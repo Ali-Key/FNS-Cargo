@@ -1,0 +1,49 @@
+# FNS Cargo — Supabase local/project config.
+# Only the fields the CLI needs are set; adjust project_id to your linked ref.
+project_id = "fns-cargo"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+# Serverless clients MUST connect through the transaction-mode pooler (pgBouncer),
+# not this direct port. See supabase/README.md → "Connection pooling".
+major_version = 15
+
+[db.pooler]
+enabled = true
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 200
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = false          # customers have no account; dashboard users are provisioned by an admin
+
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+secure_password_change = true
+
+[storage]
+enabled = true
+file_size_limit = "25MiB"
+
+[edge_runtime]
+enabled = true
+
+[functions.admin-create-user]
+verify_jwt = true
+
+[functions.track]
+verify_jwt = false             # public tracking endpoint; rate-limited by IP hash inside the function
