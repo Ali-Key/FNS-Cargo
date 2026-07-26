@@ -58,7 +58,7 @@ export default function Contact() {
       <section className="container-page py-16 sm:py-20">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <div className="rounded-2xl border border-steel-100 bg-white p-6 shadow-elevation-2">
+            <div className="flex h-full flex-col rounded-2xl border border-steel-100 bg-white p-6 shadow-elevation-2">
               <h2 className="text-lg font-bold text-navy-900">Where to reach us</h2>
               <ul className="mt-5 space-y-4">
                 <li className="flex items-start gap-3">
@@ -67,18 +67,24 @@ export default function Contact() {
                 </li>
                 <li className="flex items-center gap-3">
                   <Phone className="h-5 w-5 shrink-0 text-accent-500" />
-                  <a href={`tel:${settings.company_phone}`} className="text-sm font-medium text-navy-800 hover:text-accent-600">
+                  <a
+                    href={`tel:${settings.company_phone}`}
+                    className="rounded-control text-sm font-medium text-navy-800 hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                  >
                     {settings.company_phone}
                   </a>
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail className="h-5 w-5 shrink-0 text-accent-500" />
-                  <a href={`mailto:${settings.company_email}`} className="text-sm font-medium text-navy-800 hover:text-accent-600">
+                  <a
+                    href={`mailto:${settings.company_email}`}
+                    className="rounded-control text-sm font-medium text-navy-800 hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                  >
                     {settings.company_email}
                   </a>
                 </li>
               </ul>
-              <div className="mt-6 rounded-xl bg-navy-50/70 px-4 py-3.5 text-sm text-navy-700">
+              <div className="mt-6 rounded-xl bg-navy-50/70 px-4 py-3.5 text-sm text-navy-700 lg:mt-auto">
                 We usually get back to you within one working day.
               </div>
             </div>
