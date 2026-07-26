@@ -5,12 +5,11 @@ import { images } from '@/config/images'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const STATS = [
-  { icon: Globe2, value: '2', label: 'Countries we connect' },
-  { icon: Clock3, value: '3', label: 'Ways to ship: air, sea, road' },
-  { icon: Radar, value: 'Anytime', label: 'Check your shipment status' },
-  { icon: Users2, value: '1', label: 'Team that knows this route' },
+  { icon: Globe2, value: '2', label: 'Countries Connected' },
+  { icon: Clock3, value: '3', label: 'Shipping Options' },
+  { icon: Radar, value: '24/7', label: 'Cargo Tracking' },
+  { icon: Users2, value: '1', label: 'Expert Support Team' },
 ]
-
 export default function About() {
   useDocumentTitle(
     'About Us · FNS Cargo',
@@ -23,7 +22,7 @@ export default function About() {
         <div className="container-page">
           <p className="text-sm font-bold uppercase tracking-wider text-accent-400">About FNS Cargo</p>
           <h1 className="mt-3 max-w-2xl text-4xl font-extrabold sm:text-5xl">
-            One route, done properly
+            One route, done properly from China to Somalia
           </h1>
           <p className="mt-4 max-w-xl text-steel-300">
             We ship between China and Somalia, and that's all we do. Focusing on one route means we know it
@@ -37,8 +36,7 @@ export default function About() {
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
           <div className="order-2 lg:order-1">
             <p className="text-sm font-bold uppercase tracking-wider text-accent-600">Why we stick to one route</p>
-            <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">We know this journey inside out</h2>
-            <p className="mt-4 leading-relaxed text-steel-500">
+            <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">We know this journey inside out from start to finish</h2>            <p className="mt-4 leading-relaxed text-steel-500">
               Shipping goes smoothest when the people handling it really know the route: the ports, the
               paperwork, and the partners at both ends. That's the whole idea behind FNS Cargo. Our team spends
               every day coordinating air, sea, and road freight between China and Somalia, with warehousing and
@@ -66,16 +64,30 @@ export default function About() {
             </div>
           </div>
         </div>
+    <div className="mt-20 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+  {STATS.map((stat) => (
+    <div
+      key={stat.label}
+      className="flex items-center gap-4 rounded-2xl border border-steel-100 bg-white p-5 shadow-elevation-2 transition hover:-translate-y-1 hover:shadow-lg"
+    >
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-accent-500">
+        <stat.icon className="h-6 w-6" />
+      </div>
 
-        <div className="mt-20 grid grid-cols-2 gap-6 rounded-2xl border border-steel-100 bg-steel-50/60 p-8 sm:grid-cols-4">
-          {STATS.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <stat.icon className="mx-auto h-6 w-6 text-accent-500" />
-              <p className="mt-3 font-tabular text-2xl font-extrabold text-navy-900 sm:text-3xl">{stat.value}</p>
-              <p className="mt-1 text-xs font-medium text-steel-500 sm:text-sm">{stat.label}</p>
-            </div>
-          ))}
-        </div>
+      <div>
+        <p className="font-tabular text-2xl font-extrabold text-navy-900">
+          {stat.value}
+        </p>
+
+        <p className="mt-1 text-sm font-medium leading-snug text-steel-500">
+          {stat.label}
+        </p>
+      </div>
+    </div>
+  ))}
+</div>
+
+ 
       </section>
 
       <section className="bg-navy-900 py-16 text-white sm:py-20">
@@ -105,7 +117,8 @@ export default function About() {
       <section className="container-page py-16 text-center sm:py-20">
         <h2 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Got something to ship?</h2>
         <p className="mx-auto mt-3 max-w-lg text-steel-500">
-          Tell us what you're moving and our team will help you plan the best way to send it.
+          Tell us what you're moving and our team will help  you figure out
+          you plan the best way to send it.
         </p>
         <Link to="/contact" className="mt-6 inline-block">
           <Button variant="primary" size="lg">
