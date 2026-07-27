@@ -32,18 +32,18 @@ export default {
           900: '#171d24',
           950: '#0f1720',
         },
-        // Signal Orange (#F26B1D) anchors accent-500
+        // Vibrant Blue (#3B82F6) anchors accent-500 — clean blue & white identity
         accent: {
-          50: '#fff4ed',
-          100: '#ffe4d2',
-          200: '#ffc7a3',
-          300: '#ffa26c',
-          400: '#f8863f',
-          500: '#f26b1d',
-          600: '#d8540f',
-          700: '#b5420c',
-          800: '#8f350d',
-          900: '#742c0d',
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
         },
         status: {
           delivered: '#0f8a54',
@@ -76,10 +76,13 @@ export default {
         badge: '999px',
       },
       boxShadow: {
-        // Three elevation levels only.
-        'elevation-1': '0 1px 2px rgba(15,23,32,0.06)',
-        'elevation-2': '0 4px 16px rgba(15,23,32,0.08)',
-        'elevation-3': '0 16px 40px rgba(15,23,32,0.12)',
+        // Three elevation levels, tuned with a subtle navy tint for a more
+        // premium, less muddy shadow than neutral grey.
+        'elevation-1': '0 1px 2px rgba(8,33,63,0.06)',
+        'elevation-2': '0 6px 20px -4px rgba(8,33,63,0.10), 0 2px 6px -2px rgba(8,33,63,0.06)',
+        'elevation-3': '0 24px 48px -12px rgba(8,33,63,0.18), 0 8px 16px -8px rgba(8,33,63,0.10)',
+        // Soft ring used to lift key CTAs / the tracking widget.
+        'accent-glow': '0 10px 30px -8px rgba(37,99,235,0.45)',
       },
       transitionTimingFunction: {
         'out-premium': 'cubic-bezier(0.16, 1, 0.3, 1)',
@@ -98,11 +101,16 @@ export default {
         'fade-in': 'fadeIn 0.18s ease-out both',
         'route-draw': 'routeDraw 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         shimmer: 'shimmer 1.6s ease-in-out infinite',
+        float: 'float 6s ease-in-out infinite',
       },
       keyframes: {
         fadeUp: {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
         },
         fadeIn: {
           '0%': { opacity: '0' },

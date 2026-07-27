@@ -44,7 +44,9 @@ export function Header() {
     <header
       className={cn(
         'sticky top-0 z-50 w-full transition-all duration-240 ease-out-premium',
-        scrolled ? 'border-b border-steel-100 bg-white shadow-elevation-1' : 'border-b border-transparent bg-white',
+        scrolled
+          ? 'border-b border-steel-100 bg-white/85 shadow-elevation-1 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75'
+          : 'border-b border-transparent bg-white',
       )}
     >
       <div className="container-page flex items-center justify-between py-3.5">
@@ -58,8 +60,11 @@ export function Header() {
               end={link.to === '/'}
               className={({ isActive }) =>
                 cn(
-                  'rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors',
-                  isActive ? 'text-navy-900' : 'text-steel-500 hover:text-navy-800',
+                  'relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors',
+                  'after:absolute after:inset-x-3.5 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-accent-500 after:transition-transform after:duration-240 after:ease-out-premium',
+                  isActive
+                    ? 'text-navy-900 after:scale-x-100'
+                    : 'text-steel-500 hover:text-navy-800 after:scale-x-0 hover:after:scale-x-100',
                 )
               }
             >
@@ -78,7 +83,7 @@ export function Header() {
           </Link>
           <Link
             to="/tracking"
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-control bg-accent-500 px-4 text-sm font-semibold text-white shadow-elevation-2 transition-all duration-180 ease-out-premium hover:bg-accent-600 active:scale-[0.98]"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-control bg-accent-500 px-4 text-sm font-semibold text-white shadow-elevation-2 transition-all duration-180 ease-out-premium hover:-translate-y-0.5 hover:bg-accent-600 hover:shadow-accent-glow active:translate-y-0 active:scale-[0.98]"
           >
             <PackageSearch className="h-4 w-4" />
             Track Shipment

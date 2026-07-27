@@ -6,9 +6,11 @@ import { useSystemSettings } from '@/hooks/useSystemSettings'
 const SERVICE_LINKS = [
   { to: '/services#air', label: 'Air Freight' },
   { to: '/services#sea', label: 'Sea Freight' },
-  { to: '/services#road', label: 'Road Freight' },
-  { to: '/services#warehousing', label: 'Warehousing' },
+  { to: '/services#commercial', label: 'Commercial Cargo' },
+  { to: '/services#door-to-door', label: 'Door-to-Door Delivery' },
   { to: '/services#customs', label: 'Customs Clearance' },
+  { to: '/services#vehicle', label: 'Vehicle Shipping' },
+  { to: '/services#import-export', label: 'Import & Export' },
 ]
 
 const COMPANY_LINKS = [
@@ -23,21 +25,22 @@ export function Footer() {
 
   return (
     <footer className="relative overflow-hidden bg-navy-950 text-steel-300">
+      <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent-500/60 to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-noise opacity-40" />
       <div className="container-page relative py-16">
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
             <Logo companyName={settings.company_name} variant="light" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-steel-400">
-              We move goods between China and Somalia by air, sea, and road, and let you follow every shipment
-              from pickup right to your door.
+              Connecting Somalia with the world through reliable, fast, and secure cargo services — and letting
+              you follow every shipment from pickup right to your door.
             </p>
             <div className="mt-5 flex items-center gap-3">
               {[Facebook, Twitter, Linkedin].map((Icon, i) => (
                 <a
                   key={i}
                   href="#"
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-steel-300 transition-colors hover:border-accent-500/50 hover:text-accent-400"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-steel-300 transition-all duration-180 ease-out-premium hover:-translate-y-0.5 hover:border-accent-500/50 hover:bg-white/5 hover:text-accent-400"
                   aria-label="Social media link"
                 >
                   <Icon className="h-4 w-4" />

@@ -1,5 +1,7 @@
 import { PackageSearch, ShieldCheck, Clock, MessageCircle } from 'lucide-react'
 import { TrackingWidget } from '@/components/tracking/TrackingWidget'
+import { PageHero } from '@/components/common/PageHero'
+import { Reveal } from '@/components/common/Reveal'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const HELP_POINTS = [
@@ -33,18 +35,12 @@ export default function Tracking() {
 
   return (
     <div>
-      <section className="bg-navy-950 py-16 text-white sm:py-20">
-        <div className="container-page text-center">
-          <p className="text-sm font-bold uppercase tracking-wider text-accent-400">Shipment Tracking</p>
-          <h1 className="mx-auto mt-3 max-w-2xl text-4xl font-extrabold text-white sm:text-5xl">
-            Where's my shipment right now?
-          </h1>
-          <p className="mx-auto mt-4 max-w-xl text-steel-300">
-            Pop in your tracking number below and you'll see where your shipment is, its route, and everything
-            that's happened along the way.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Shipment Tracking"
+        title="Where's my shipment right now?"
+        description="Pop in your tracking number below and you'll see where your shipment is, its route, and everything that's happened along the way."
+        align="center"
+      />
 
       <section className="container-page -mt-10 pb-20 sm:-mt-14">
         <div className="mx-auto max-w-2xl">
@@ -54,18 +50,23 @@ export default function Tracking() {
 
       <section className="bg-steel-50 py-16 sm:py-20">
         <div className="container-page">
-          <h2 className="text-center text-2xl font-extrabold text-navy-900 sm:text-3xl">A few quick answers</h2>
+          <h2 className="text-balance text-center text-2xl font-extrabold text-navy-900 sm:text-3xl">A few quick answers</h2>
           <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {HELP_POINTS.map((point) => (
-              <div key={point.title} className="flex gap-4 rounded-2xl border border-steel-100 bg-white p-5 shadow-elevation-2">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
+            {HELP_POINTS.map((point, i) => (
+              <Reveal
+                as="div"
+                key={point.title}
+                delay={(i % 2) * 90}
+                className="group flex gap-4 rounded-2xl border border-steel-100 bg-white p-5 shadow-elevation-2 transition-all duration-240 ease-out-premium hover:-translate-y-1 hover:shadow-elevation-3"
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700 transition-colors group-hover:bg-navy-100">
                   <point.icon className="h-5 w-5" />
                 </div>
                 <div>
                   <h3 className="font-bold text-navy-900">{point.title}</h3>
                   <p className="mt-1 text-sm leading-relaxed text-steel-500">{point.description}</p>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>

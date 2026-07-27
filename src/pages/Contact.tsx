@@ -3,6 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Mail, Phone, MapPin, Send } from 'lucide-react'
 import { Button, Input, Textarea } from '@/components/ui'
+import { PageHero } from '@/components/common/PageHero'
+import { Reveal } from '@/components/common/Reveal'
 import { useSystemSettings } from '@/hooks/useSystemSettings'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/context/ToastContext'
@@ -44,20 +46,15 @@ export default function Contact() {
 
   return (
     <div>
-      <section className="bg-navy-950 py-16 text-white sm:py-20">
-        <div className="container-page">
-          <p className="text-sm font-bold uppercase tracking-wider text-accent-400">Contact Us</p>
-          <h1 className="mt-3 max-w-2xl text-4xl font-extrabold text-white sm:text-5xl">Let's talk about your shipment</h1>
-          <p className="mt-4 max-w-xl text-steel-300">
-            Need a quote, got a question about a shipment that's on its way, or just want to plan ahead? Drop us
-            a line. We're happy to help.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Contact Us"
+        title="Let's talk about your shipment"
+        description="Need a quote, got a question about a shipment that's on its way, or just want to plan ahead? Drop us a line. We're happy to help."
+      />
 
       <section className="container-page py-16 sm:py-20">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
-          <div className="lg:col-span-2">
+          <Reveal className="lg:col-span-2">
             <div className="flex h-full flex-col rounded-2xl border border-steel-100 bg-white p-6 shadow-elevation-2">
               <h2 className="text-lg font-bold text-navy-900">Where to reach us</h2>
               <ul className="mt-5 space-y-4">
@@ -88,9 +85,9 @@ export default function Contact() {
                 We usually get back to you within one working day.
               </div>
             </div>
-          </div>
+          </Reveal>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="lg:col-span-3">
+          <Reveal as="form" delay={90} onSubmit={handleSubmit(onSubmit)} className="lg:col-span-3">
             <div className="rounded-2xl border border-steel-100 bg-white p-6 shadow-elevation-2 sm:p-8">
               <h2 className="text-lg font-bold text-navy-900">Send us a message</h2>
               <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -119,7 +116,7 @@ export default function Contact() {
                 Send message
               </Button>
             </div>
-          </form>
+          </Reveal>
         </div>
       </section>
     </div>

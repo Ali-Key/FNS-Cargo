@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Plane, Ship, Truck, Warehouse, FileCheck2, CheckCircle2, ArrowRight } from 'lucide-react'
+import { Plane, Ship, Boxes, Truck, FileCheck2, Warehouse, Car, FileText, CheckCircle2, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui'
+import { PageHero } from '@/components/common/PageHero'
+import { Reveal } from '@/components/common/Reveal'
 import { images } from '@/config/images'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
@@ -9,9 +11,9 @@ const SERVICES = [
     id: 'air',
     icon: Plane,
     title: 'Air Freight',
-    tagline: 'The fast option, for when timing matters',
+    tagline: 'Fast, reliable air cargo solutions',
     description:
-      "When you can't wait, we fly your goods from China to Somalia. Air freight gets urgent restocks, high-value items, and documents there in days, with priority handling at both ends so nothing sits around.",
+      "When you can't wait, we fly your goods in. Air freight gets urgent restocks, high-value items, and documents there in days, with priority handling at both ends so nothing sits around.",
     points: [
       'Priority handling at the airport, coming and going',
       'Best for urgent, valuable, or fragile goods',
@@ -23,9 +25,9 @@ const SERVICES = [
     id: 'sea',
     icon: Ship,
     title: 'Sea Freight',
-    tagline: 'The affordable option, for bigger loads',
+    tagline: 'Cost-effective sea shipping services',
     description:
-      "For most shipments, sea freight is the sensible choice. Book a whole container to yourself or share the space with others. Either way, it's the cheapest way to move a lot of goods between China and Somalia.",
+      "For most shipments, sea freight is the sensible choice. Book a whole container to yourself or share the space with others. Either way, it's the most affordable way to move larger loads.",
     points: [
       'Book a whole container, or just part of one',
       "Best for larger loads that aren't in a rush",
@@ -34,38 +36,38 @@ const SERVICES = [
     image: images.services.sea,
   },
   {
-    id: 'road',
-    icon: Truck,
-    title: 'Road Freight',
-    tagline: 'The trucks that connect everything',
+    id: 'commercial',
+    icon: Boxes,
+    title: 'Commercial Cargo',
+    tagline: 'General cargo & business shipments',
     description:
-      'Once your goods land by air or sea, they still need to reach you. Our trucks cover that last stretch, from the port or warehouse right to your door, timed around when your shipment actually arrives.',
+      'From retail stock to equipment and bulk goods, we handle commercial cargo of every size. We plan the right mix of air and sea so your business shipments arrive on time and on budget.',
     points: [
-      'From the port to the warehouse, and to your door',
-      'Scheduled around your flight or vessel arrival',
-      'Works hand in hand with our storage',
+      'Handled end to end, whatever the volume',
+      'The right route for your timing and budget',
+      'A single point of contact for your business',
     ],
-    image: images.services.road,
+    image: images.warehouseDetail,
   },
   {
-    id: 'warehousing',
-    icon: Warehouse,
-    title: 'Warehousing',
-    tagline: 'A safe place for your goods to wait',
+    id: 'door-to-door',
+    icon: Truck,
+    title: 'Door-to-Door Delivery',
+    tagline: 'Safe delivery right to your doorstep',
     description:
-      "Not ready to receive everything at once? We'll hold your goods in secure, organized storage and keep an accurate count, then send them on when it suits your plan, not ours.",
+      "We arrange pickup and final delivery so you're never left sorting out the last mile. From the shipper's door to yours, we coordinate every leg and time it around your shipment's arrival.",
     points: [
-      'Neatly racked and properly counted',
-      'Secure buildings with controlled access',
-      'Released on your schedule',
+      'Pickup and delivery arranged for you',
+      'From the port or warehouse to your door',
+      'One team coordinating the whole journey',
     ],
-    image: images.services.warehousing,
+    image: images.services.road,
   },
   {
     id: 'customs',
     icon: FileCheck2,
     title: 'Customs Clearance',
-    tagline: 'Paperwork, sorted',
+    tagline: 'Fast & efficient customs support',
     description:
       'Crossing borders means forms, and getting them wrong causes delays. Our team prepares and checks the documents your shipment needs, so it moves through customs smoothly on both ends.',
     points: [
@@ -74,6 +76,48 @@ const SERVICES = [
       'We keep you posted through the whole process',
     ],
     image: images.services.customs,
+  },
+  {
+    id: 'airport',
+    icon: Warehouse,
+    title: 'Airport Cargo Handling',
+    tagline: 'Professional handling at major airports',
+    description:
+      'Cargo needs careful hands on the ground. We manage acceptance, storage, and loading at major airports, so your goods are handled properly from the moment they arrive to the moment they fly.',
+    points: [
+      'Trusted handling at all major airports',
+      'Secure acceptance, storage, and loading',
+      'Coordinated with your air freight booking',
+    ],
+    image: images.services.airDetail,
+  },
+  {
+    id: 'vehicle',
+    icon: Car,
+    title: 'Vehicle Shipping',
+    tagline: 'Cars, trucks & heavy equipment',
+    description:
+      'Moving a vehicle or heavy machinery takes the right equipment and planning. We ship cars, trucks, and heavy equipment safely, arranging the loading, securing, and paperwork on your behalf.',
+    points: [
+      'Cars, trucks, and heavy equipment',
+      'Safely loaded, secured, and documented',
+      'By sea or air, whichever suits best',
+    ],
+    image: images.operationsFloor,
+  },
+  {
+    id: 'import-export',
+    icon: FileText,
+    title: 'Import & Export Support',
+    tagline: 'Documentation & consulting made easy',
+    description:
+      'New to importing or exporting? We guide you through it, from the paperwork to the right shipping method, so you can trade across borders with confidence and without the guesswork.',
+    points: [
+      'Documentation prepared and checked',
+      'Practical advice on rules and requirements',
+      'Support from first enquiry to final delivery',
+    ],
+    image: images.about.secondary,
   },
 ]
 
@@ -85,18 +129,11 @@ export default function Services() {
 
   return (
     <div>
-      <section className="bg-navy-950 py-16 text-white sm:py-20">
-        <div className="container-page">
-          <p className="text-sm font-bold uppercase tracking-wider text-accent-400">What we do</p>
-          <h1 className="mt-3 max-w-2xl text-4xl font-extrabold sm:text-5xl">
-            Every way to get your goods from China to Somalia
-          </h1>
-          <p className="mt-4 max-w-xl text-steel-300">
-            From the moment we pick your goods up in China to the moment they reach you in Somalia, we handle
-            it all: air, sea, road, storage, and the customs paperwork in between.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="What we do"
+        title="Cargo & logistics services for Somalia and the world"
+        description="From pickup to final delivery, we handle it all — air and sea freight, commercial cargo, customs, airport handling, vehicle shipping, and door-to-door delivery, connecting Somalia with markets worldwide."
+      />
 
       <div className="container-page divide-y divide-steel-100">
         {SERVICES.map((service, index) => (
@@ -106,21 +143,21 @@ export default function Services() {
                 index % 2 === 1 ? 'lg:[&>*:first-child]:order-2' : ''
               }`}
             >
-              <div className="overflow-hidden rounded-2xl shadow-elevation-3">
+              <Reveal className="group overflow-hidden rounded-2xl shadow-elevation-3">
                 <img
                   src={service.image.src}
                   alt={service.image.alt}
-                  className="h-80 w-full object-cover sm:h-96"
+                  className="h-80 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-96"
                   loading="lazy"
                 />
-              </div>
-              <div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
+              </Reveal>
+              <Reveal delay={90}>
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-700 ring-1 ring-navy-100">
                   <service.icon className="h-6 w-6" />
                 </div>
-                <h2 className="mt-5 text-2xl font-extrabold text-navy-900 sm:text-3xl">{service.title}</h2>
+                <h2 className="mt-5 text-balance text-2xl font-extrabold text-navy-900 sm:text-3xl">{service.title}</h2>
                 <p className="mt-1.5 text-sm font-semibold text-accent-600">{service.tagline}</p>
-                <p className="mt-4 leading-relaxed text-steel-500">{service.description}</p>
+                <p className="mt-4 text-pretty leading-relaxed text-steel-500">{service.description}</p>
                 <ul className="mt-5 space-y-2.5">
                   {service.points.map((point) => (
                     <li key={point} className="flex items-start gap-2.5 text-sm text-navy-700">
@@ -129,16 +166,16 @@ export default function Services() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </Reveal>
             </div>
           </section>
         ))}
       </div>
 
       <section className="bg-steel-50 py-16">
-        <div className="container-page flex flex-col items-center gap-5 text-center">
-          <h2 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">Not sure which one you need?</h2>
-          <p className="max-w-lg text-steel-500">
+        <Reveal className="container-page flex flex-col items-center gap-5 text-center">
+          <h2 className="text-balance text-2xl font-extrabold text-navy-900 sm:text-3xl">Not sure which one you need?</h2>
+          <p className="max-w-lg text-pretty text-steel-500">
             Tell us what you're shipping and when you need it, and we'll suggest the right mix of services for
             your goods.
           </p>
@@ -154,7 +191,7 @@ export default function Services() {
               </Button>
             </Link>
           </div>
-        </div>
+        </Reveal>
       </section>
     </div>
   )

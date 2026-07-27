@@ -29,6 +29,35 @@
   :focus-visible {
     @apply outline-none ring-2 ring-accent-500 ring-offset-2 ring-offset-white;
   }
+
+  ::selection {
+    @apply bg-accent-500/20 text-navy-900;
+  }
+
+  /*
+   * Respect users who ask for less motion: neutralize the reveal transitions,
+   * decorative animations, and smooth scrolling. Elements still end up in their
+   * final, visible state — nothing is hidden by disabling motion.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    .reveal {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
 }
 
 @layer utilities {
@@ -37,8 +66,35 @@
     font-feature-settings: 'tnum' 1;
   }
 
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
   .container-page {
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  /*
+   * Scroll reveal: elements start slightly translated and transparent, then
+   * settle when `.is-visible` is toggled on (via the <Reveal> Intersection
+   * Observer). Reduced-motion users skip straight to the visible state above.
+   */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
   }
 
   .bg-noise {
