@@ -32,18 +32,18 @@ export default {
           900: '#171d24',
           950: '#0f1720',
         },
-        // Vibrant Blue (#3B82F6) anchors accent-500 — clean blue & white identity
+        // Signal Orange (#F26B1D) anchors accent-500
         accent: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50: '#fff4ed',
+          100: '#ffe4d2',
+          200: '#ffc7a3',
+          300: '#ffa26c',
+          400: '#f8863f',
+          500: '#f26b1d',
+          600: '#d8540f',
+          700: '#b5420c',
+          800: '#8f350d',
+          900: '#742c0d',
         },
         status: {
           delivered: '#0f8a54',
@@ -82,7 +82,7 @@ export default {
         'elevation-2': '0 6px 20px -4px rgba(8,33,63,0.10), 0 2px 6px -2px rgba(8,33,63,0.06)',
         'elevation-3': '0 24px 48px -12px rgba(8,33,63,0.18), 0 8px 16px -8px rgba(8,33,63,0.10)',
         // Soft ring used to lift key CTAs / the tracking widget.
-        'accent-glow': '0 10px 30px -8px rgba(37,99,235,0.45)',
+        'accent-glow': '0 10px 30px -8px rgba(216,84,15,0.45)',
       },
       transitionTimingFunction: {
         'out-premium': 'cubic-bezier(0.16, 1, 0.3, 1)',
