@@ -247,29 +247,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ACHIEVEMENTS — the numbers that build trust. */}
-      <div className="container-page mt-10 sm:mt-12">
-        <dl className="grid grid-cols-2 items-stretch gap-4 lg:grid-cols-4">
-          {ACHIEVEMENTS.map((stat, i) => (
-            <Reveal
-              as="div"
-              key={stat.label}
-              delay={i * 80}
-              className="group flex h-full flex-col items-center gap-2 rounded-2xl border border-steel-100 bg-white p-6 text-center shadow-elevation-1 transition-colors duration-240 ease-out-premium hover:border-steel-200"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-50 text-accent-600 transition-colors group-hover:bg-accent-100">
-                <stat.icon className="h-5 w-5" />
-              </div>
-              <dt className="font-tabular text-2xl font-extrabold leading-tight text-navy-900 sm:text-3xl">
-                {stat.value}
-              </dt>
-              <dd className="text-sm leading-snug text-steel-500">
-                {stat.label}
-              </dd>
-            </Reveal>
-          ))}
-        </dl>
-      </div>
 
       {/* SERVICES */}
       <section className="container-page py-16 sm:py-24">
