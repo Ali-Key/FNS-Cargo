@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Globe2, Plane, Boxes, Award } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui'
 import { PageHero } from '@/components/common/PageHero'
 import { Reveal } from '@/components/common/Reveal'
@@ -7,119 +7,147 @@ import { images } from '@/config/images'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 const STATS = [
-  { icon: Boxes, value: '5,000+', label: 'Shipments Delivered' },
-  { icon: Globe2, value: '7+', label: 'Countries Connected' },
-  { icon: Plane, value: '10+', label: 'Airline Partners' },
-  { icon: Award, value: '100%', label: 'Customer Satisfaction' },
+  { value: '5,000+', label: 'Shipments delivered' },
+  { value: '7', label: 'Countries connected' },
+  { value: '10+', label: 'Airline and carrier partners' },
+  { value: '24/7', label: 'Operations support' },
 ]
+
+const PRINCIPLES = [
+  {
+    title: 'Proactive communication',
+    description:
+      'You receive status updates as they happen. When a schedule changes, we tell you before you have to ask.',
+  },
+  {
+    title: 'One accountable team',
+    description:
+      'Freight, customs, handling, and final delivery are planned together and managed by a single coordinator.',
+  },
+  {
+    title: 'An established network',
+    description:
+      'Long-standing carrier and agent relationships on every lane mean fewer exceptions and shorter delays.',
+  },
+]
+
 export default function About() {
   useDocumentTitle(
-    'About Us · FNS Cargo',
-    'FNS Cargo is a professional logistics and cargo company based in Somalia, providing reliable air and sea freight, customs clearance, and door-to-door delivery that connects Somalia with markets worldwide.',
+    'About Us | FNS Cargo',
+    'FNS Cargo is a logistics and freight forwarding company based in Somalia, providing air and sea freight, customs clearance, and door-to-door delivery to markets worldwide.',
   )
 
   return (
     <div>
       <PageHero
         eyebrow="About FNS Cargo"
-        title="Connecting Somalia with the world"
-        description="FNS Cargo is a professional logistics and cargo company based in Somalia, providing reliable air and sea freight, customs clearance, and door-to-door delivery to and from China, Turkey, Sweden, Finland, Norway, Denmark and beyond."
+        title="Connecting Somalia with global markets"
+        description="FNS Cargo is a logistics and freight forwarding company based in Somalia. We provide air freight, sea freight, customs clearance, and door-to-door delivery to and from China, Turkey, Sweden, Finland, Norway, Denmark, and other international markets."
       />
 
-      <section className="container-page py-20 sm:py-28">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
-          <Reveal className="order-2 lg:order-1">
-            <p className="text-sm font-bold uppercase tracking-wider text-accent-600">Who we are</p>
-            <h2 className="mt-3 text-balance text-3xl font-extrabold sm:text-4xl">
-              A trusted partner for cargo and logistics
+      <section className="container-page py-16 sm:py-24">
+        <div className="grid gap-12 lg:grid-cols-12 lg:items-center lg:gap-16">
+          <div className="order-2 lg:order-1 lg:col-span-6">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-accent-600">Who we are</p>
+            <h2 className="mt-3 text-balance text-3xl font-extrabold text-navy-900 sm:text-4xl">
+              A freight partner, not just a carrier
             </h2>
-            <p className="mt-4 text-pretty leading-relaxed text-steel-500">
-              Our mission is to connect businesses and individuals with global markets through trusted
-              partnerships, modern systems, and excellent customer service. From air and sea freight to customs
-              clearance, airport handling, and door-to-door delivery, we handle the whole journey so you don't
-              have to juggle it yourself.
+            <p className="mt-5 text-pretty leading-relaxed text-steel-500">
+              Our purpose is to give Somali businesses and individuals dependable access to
+              international suppliers and markets. We combine established carrier partnerships with
+              modern shipment systems so that cargo moves predictably and its status is always
+              visible.
             </p>
             <p className="mt-4 text-pretty leading-relaxed text-steel-500">
-              Every shipment is logged and tracked in our system, so you and whoever's receiving the goods can
-              see real updates, instead of calling around and waiting to hear back.
+              Air freight, sea freight, customs clearance, airport handling, and final delivery are
+              planned as one operation. Every consignment is recorded in our tracking system, so both
+              the shipper and the consignee can see genuine progress rather than waiting on a phone
+              call.
             </p>
-            <Link to="/contact" className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-navy-800 hover:text-accent-600">
-              Get in touch with our team <ArrowRight className="h-3.5 w-3.5" />
+            <Link
+              to="/contact"
+              className="mt-7 inline-flex items-center gap-1.5 rounded-control text-sm font-bold text-navy-800 transition-colors hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+            >
+              Speak to our team
+              <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-          </Reveal>
-          <Reveal className="order-1 grid grid-cols-2 gap-4 lg:order-2">
-            <div className="group col-span-2 overflow-hidden rounded-2xl shadow-elevation-3">
-              <img src={images.about.main.src} alt={images.about.main.alt} className="h-64 w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+          </div>
+
+          <Reveal className="order-1 space-y-4 lg:order-2 lg:col-span-6">
+            <div className="overflow-hidden rounded-card border border-steel-100">
+              <img
+                src={images.about.main.src}
+                alt={images.about.main.alt}
+                width={1600}
+                height={1067}
+                className="h-64 w-full object-cover sm:h-72 "
+                loading="lazy"
+                decoding="async"
+              />
             </div>
-            <div className="group col-span-2 overflow-hidden rounded-2xl shadow-elevation-2">
+            <div className="overflow-hidden rounded-card border border-steel-100">
               <img
                 src={images.about.secondary.src}
                 alt={images.about.secondary.alt}
-                className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                width={1600}
+                height={1067}
+                className="h-48 w-full object-cover"
                 loading="lazy"
+                decoding="async"
               />
             </div>
           </Reveal>
         </div>
 
-        <div className="mt-20 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {STATS.map((stat, i) => (
-            <Reveal
-              as="div"
-              key={stat.label}
-              delay={i * 80}
-              className="group flex items-center gap-4 rounded-2xl border border-steel-100 bg-white p-5 shadow-elevation-2 transition-all duration-240 ease-out-premium hover:-translate-y-1 hover:shadow-elevation-3"
-            >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-accent-500 transition-colors group-hover:bg-accent-100">
-                <stat.icon className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-tabular text-2xl font-extrabold text-navy-900">{stat.value}</p>
-                <p className="mt-1 text-sm font-medium leading-snug text-steel-500">{stat.label}</p>
-              </div>
-            </Reveal>
+        <dl className="mt-20 grid grid-cols-2 divide-steel-100 border-y border-steel-100 sm:grid-cols-4 sm:divide-x">
+          {STATS.map((stat) => (
+            <div key={stat.label} className="px-4 py-7 text-center sm:px-6">
+              <dt className="font-tabular text-3xl font-extrabold tracking-tight text-navy-900 sm:text-4xl">
+                {stat.value}
+              </dt>
+              <dd className="mt-1.5 text-sm leading-snug text-steel-500">{stat.label}</dd>
+            </div>
           ))}
-        </div>
+        </dl>
       </section>
 
       <section className="relative overflow-hidden bg-navy-900 py-16 text-white sm:py-20">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-route-dots bg-[size:22px_22px] opacity-[0.07]" />
-        <div className="container-page relative grid grid-cols-1 gap-10 sm:grid-cols-3">
-          {[
-            {
-              title: "We keep you in the loop",
-              description: "You'll always know where your shipment is. No long silences, no wondering what's happening.",
-            },
-            {
-              title: 'One team, start to finish',
-              description: 'Air, sea, customs, handling, and delivery are all handled together as a single plan, not passed between strangers.',
-            },
-            {
-              title: 'A reliable global network',
-              description: 'Trusted partners across our routes mean fewer surprises and fewer delays, wherever your cargo is headed.',
-            },
-          ].map((item, i) => (
-            <Reveal as="div" key={item.title} delay={i * 90} className="border-l-2 border-accent-500/60 pl-5">
-              <h3 className="text-lg font-bold text-white">{item.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-steel-300">{item.description}</p>
-            </Reveal>
-          ))}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-grid-pattern bg-[size:40px_40px] opacity-[0.08]"
+        />
+        <div className="container-page relative">
+          <h2 className="max-w-lg text-balance text-3xl font-extrabold text-white sm:text-4xl">
+            How we work
+          </h2>
+          <div className="mt-10 grid gap-10 sm:grid-cols-3">
+            {PRINCIPLES.map((item) => (
+              <div key={item.title} className="border-l-2 border-accent-500 pl-5">
+                <h3 className="text-lg font-bold leading-snug text-white">{item.title}</h3>
+                <p className="mt-2.5 text-sm leading-relaxed text-steel-300">{item.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       <section className="container-page py-16 text-center sm:py-20">
-        <Reveal>
-          <h2 className="text-balance text-2xl font-extrabold text-navy-900 sm:text-3xl">Got something to ship?</h2>
-          <p className="mx-auto mt-3 max-w-lg text-pretty text-steel-500">
-            Tell us what you're moving and our team will help you plan the best way to send it.
-          </p>
+            <h2 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">
+              Have cargo to move?
+            </h2>
+            <p className="mx-auto mt-3 max-w-lg text-steel-500">
+              Tell us the origin, destination, and cargo details and we will recommend the most
+              suitable route and service.
+            </p>
+          
           <Link to="/contact" className="mt-6 inline-block">
             <Button variant="primary" size="lg">
-              Talk to our team
+              Request a quote
             </Button>
           </Link>
-        </Reveal>
       </section>
     </div>
   )
 }
+
+

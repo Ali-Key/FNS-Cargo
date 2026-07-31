@@ -6,26 +6,33 @@ import { Button, Input, Select, Textarea, Modal } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
 import { createTrackingEvent, updateTrackingEvent } from '@/services/trackingHistoryService'
 import { updateShipment } from '@/services/shipmentsService'
-import type { ShipmentStatus, ShipmentTrackingHistory } from '@/types'
+import type { ShipmentStatus, TrackingUpdate } from '@/types'
 import { SHIPMENT_STATUSES } from '@/types'
 import { STATUS_LABEL } from '@/utils/status'
 
 const schema = z.object({
-  status: z.enum(['pending', 'in_transit', 'delivered', 'delayed', 'cancelled']),
+  status: z.string().min(1),
+  date: z.string().min(1, 'Choose a date'),
+  time: z.string().min(1, 'Choose a time'),
+  country: z.string().trim().min(2, 'Enter a country'),
+  city: z.string().trim().min(2, 'Enter a city'),
   location: z.string().trim().min(2, 'Enter a location'),
   description: z.string().trim().optional(),
-  event_time: z.string().min(1, 'Choose a date and time'),
   sync_status: z.boolean().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
 
-/** Local Date → value string for <input type="datetime-local">. */
-function toLocalInput(date: Date): string {
+function todayInput(): string {
+  const d = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(
-    date.getMinutes(),
-  )}`
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+function nowTimeInput(): string {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 interface TrackingEventFormModalProps {
@@ -34,7 +41,7 @@ interface TrackingEventFormModalProps {
   onSaved: () => void
   shipmentId: string
   currentStatus?: ShipmentStatus
-  event?: ShipmentTrackingHistory | null
+  event?: TrackingUpdate | null
 }
 
 export function TrackingEventFormModal({
@@ -59,44 +66,56 @@ export function TrackingEventFormModal({
     if (!open) return
     if (event) {
       reset({
-        status: event.status as ShipmentStatus,
+        status: event.status,
+        date: event.date,
+        time: event.time.slice(0, 5),
+        country: event.country,
+        city: event.city,
         location: event.location,
         description: event.description ?? '',
-        event_time: toLocalInput(new Date(event.event_time)),
         sync_status: false,
       })
     } else {
       reset({
-        status: currentStatus ?? 'pending',
+        status: currentStatus ?? 'Received',
+        date: todayInput(),
+        time: nowTimeInput(),
+        country: '',
+        city: '',
         location: '',
         description: '',
-        event_time: toLocalInput(new Date()),
         sync_status: true,
       })
     }
   }, [open, event, currentStatus, reset])
 
   async function onSubmit(values: FormValues) {
-    const eventTimeIso = new Date(values.event_time).toISOString()
+    const status = values.status as ShipmentStatus
     try {
       if (isEdit && event) {
         await updateTrackingEvent(event.id, {
-          status: values.status,
+          status,
+          date: values.date,
+          time: values.time,
+          country: values.country,
+          city: values.city,
           location: values.location,
           description: values.description || null,
-          event_time: eventTimeIso,
         })
         toast.success('Tracking event updated', 'The timeline entry has been saved.')
       } else {
         await createTrackingEvent({
           shipment_id: shipmentId,
-          status: values.status,
+          status,
+          date: values.date,
+          time: values.time,
+          country: values.country,
+          city: values.city,
           location: values.location,
           description: values.description || null,
-          event_time: eventTimeIso,
         })
         if (values.sync_status) {
-          await updateShipment(shipmentId, { status: values.status })
+          await updateShipment(shipmentId, { status })
         }
         toast.success('Tracking event added', 'Customers will now see this update on their tracking page.')
       }
@@ -130,17 +149,19 @@ export function TrackingEventFormModal({
           options={SHIPMENT_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }))}
           {...register('status')}
         />
+        <div className="grid grid-cols-2 gap-4">
+          <Input label="Date" type="date" error={errors.date?.message} {...register('date')} />
+          <Input label="Time" type="time" error={errors.time?.message} {...register('time')} />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Input label="Country" placeholder="e.g. China" error={errors.country?.message} {...register('country')} />
+          <Input label="City" placeholder="e.g. Guangzhou" error={errors.city?.message} {...register('city')} />
+        </div>
         <Input
           label="Location"
-          placeholder="e.g. Guangzhou Port, China"
+          placeholder="e.g. Guangzhou Port terminal"
           error={errors.location?.message}
           {...register('location')}
-        />
-        <Input
-          label="Date & time"
-          type="datetime-local"
-          error={errors.event_time?.message}
-          {...register('event_time')}
         />
         <Textarea
           label="Description (optional)"

@@ -1,43 +1,36 @@
 import { supabase } from '@/lib/supabase'
-import type {
-  ShipmentTrackingHistory,
-  TrackingEventWithShipment,
-  TablesInsert,
-  TablesUpdate,
-} from '@/types'
+import type { TrackingUpdate, TrackingUpdateWithShipment, TablesInsert, TablesUpdate } from '@/types'
 import { logActivity } from './activityService'
 
-export async function listTrackingHistory(shipmentId: string): Promise<ShipmentTrackingHistory[]> {
+const EVENT_ORDER = { column: 'date', ascending: false } as const
+
+export async function listTrackingHistory(shipmentId: string): Promise<TrackingUpdate[]> {
   const { data, error } = await supabase
-    .from('shipment_tracking_history')
+    .from('tracking_updates')
     .select('*')
     .eq('shipment_id', shipmentId)
-    .order('event_time', { ascending: false })
+    .order('date', { ascending: false })
+    .order('time', { ascending: false })
   if (error) throw error
   return data ?? []
 }
 
 /** Cross-shipment recent event feed for the Tracking Updates page. */
-export async function listRecentTrackingEvents(limit = 20): Promise<TrackingEventWithShipment[]> {
+export async function listRecentTrackingEvents(limit = 20): Promise<TrackingUpdateWithShipment[]> {
   const { data, error } = await supabase
-    .from('shipment_tracking_history')
-    .select('*, shipments(id, tracking_number)')
-    .order('event_time', { ascending: false })
+    .from('tracking_updates')
+    .select('*, shipment:shipments(id, tracking_number)')
+    .order('date', { ascending: false })
+    .order('time', { ascending: false })
     .limit(limit)
   if (error) throw error
-  return (data as TrackingEventWithShipment[]) ?? []
+  return (data as TrackingUpdateWithShipment[]) ?? []
 }
 
-export type TrackingEventInput = Omit<TablesInsert<'shipment_tracking_history'>, 'id' | 'created_at'>
+export type TrackingEventInput = Omit<TablesInsert<'tracking_updates'>, 'id' | 'created_at'>
 
-export async function createTrackingEvent(
-  payload: TrackingEventInput,
-): Promise<ShipmentTrackingHistory> {
-  const { data, error } = await supabase
-    .from('shipment_tracking_history')
-    .insert(payload)
-    .select()
-    .single()
+export async function createTrackingEvent(payload: TrackingEventInput): Promise<TrackingUpdate> {
+  const { data, error } = await supabase.from('tracking_updates').insert(payload).select().single()
   if (error) throw error
   await logActivity('tracking_event.created', 'shipment', payload.shipment_id, {
     status: payload.status,
@@ -48,10 +41,10 @@ export async function createTrackingEvent(
 
 export async function updateTrackingEvent(
   id: string,
-  payload: TablesUpdate<'shipment_tracking_history'>,
-): Promise<ShipmentTrackingHistory> {
+  payload: TablesUpdate<'tracking_updates'>,
+): Promise<TrackingUpdate> {
   const { data, error } = await supabase
-    .from('shipment_tracking_history')
+    .from('tracking_updates')
     .update(payload)
     .eq('id', id)
     .select()
@@ -62,7 +55,7 @@ export async function updateTrackingEvent(
 }
 
 export async function deleteTrackingEvent(id: string, shipmentId: string): Promise<void> {
-  const { error } = await supabase.from('shipment_tracking_history').delete().eq('id', id)
+  const { error } = await supabase.from('tracking_updates').delete().eq('id', id)
   if (error) throw error
   await logActivity('tracking_event.deleted', 'shipment', shipmentId, {})
 }
@@ -70,9 +63,9 @@ export async function deleteTrackingEvent(id: string, shipmentId: string): Promi
 /** Distinct recently-used locations, newest first — powers the quick-update autocomplete. */
 export async function listRecentLocations(limit = 100): Promise<string[]> {
   const { data, error } = await supabase
-    .from('shipment_tracking_history')
-    .select('location, event_time')
-    .order('event_time', { ascending: false })
+    .from('tracking_updates')
+    .select('location, date')
+    .order(EVENT_ORDER.column, { ascending: false })
     .limit(limit)
   if (error) throw error
   const seen = new Set<string>()
@@ -88,7 +81,7 @@ export async function findShipmentByTracking(trackingNumber: string) {
   const { data, error } = await supabase
     .from('shipments')
     .select('id, tracking_number, status, origin, destination')
-    .eq('tracking_number', trackingNumber.trim())
+    .ilike('tracking_number', trackingNumber.trim())
     .maybeSingle()
   if (error) throw error
   return data

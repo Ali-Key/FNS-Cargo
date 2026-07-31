@@ -22,7 +22,7 @@ interface StatTileProps {
 export function StatTile({ label, value, icon: Icon, tone = 'navy', hint }: StatTileProps) {
   const style = TONE_STYLES[tone]
   return (
-    <div className={cn('rounded-2xl border border-steel-100 bg-white p-5 shadow-elevation-1', style.ring)}>
+    <div className={cn('rounded-card border border-steel-100 bg-white p-5 shadow-elevation-1', style.ring)}>
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-steel-500">{label}</span>
         <span className={cn('flex h-9 w-9 items-center justify-center rounded-xl', style.icon)}>

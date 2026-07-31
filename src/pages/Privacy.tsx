@@ -3,7 +3,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export default function Privacy() {
   const { settings } = useSystemSettings()
-  useDocumentTitle(`Privacy Policy · ${settings.company_name}`, 'What information FNS Cargo collects, how we use it, and how we keep it safe.')
+  useDocumentTitle(`Privacy Policy | ${settings.company_name}`, 'What information FNS Cargo collects, how we use it, and how we keep it safe.')
 
   return (
     <div className="container-page py-16 sm:py-20">
@@ -63,7 +63,10 @@ export default function Privacy() {
             <h2 className="text-lg font-bold text-navy-900">Questions?</h2>
             <p className="mt-2 leading-relaxed">
               If you'd like to know more about how we handle your information, email us at{' '}
-              <a href={`mailto:${settings.company_email}`} className="font-semibold text-navy-800 hover:text-accent-600">
+              <a
+                href={`mailto:${settings.company_email}`}
+                className="rounded-control font-semibold text-navy-800 hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+              >
                 {settings.company_email}
               </a>{' '}
               or call {settings.company_phone}.

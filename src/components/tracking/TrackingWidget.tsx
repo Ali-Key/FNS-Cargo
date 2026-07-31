@@ -24,7 +24,13 @@ import type { PublicTrackingResult } from '@/types'
 
 type WidgetState = 'idle' | 'loading' | 'found' | 'notfound' | 'error'
 
-const METHOD_ICON = { air: Plane, sea: Ship, road: Truck }
+const METHOD_ICON: Record<string, typeof Plane> = {
+  'Air Express': Plane,
+  'Air Freight': Plane,
+  'Sea Freight': Ship,
+  'Road Freight': Truck,
+  'Door to Door': Truck,
+}
 
 interface TrackingWidgetProps {
   className?: string
@@ -61,20 +67,20 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
       if (data) {
         setResult(data)
         setState('found')
-        toast.success('Found it', `Here's the latest on ${data.tracking_number}.`)
+        toast.success('Shipment found', `Showing the latest status for ${data.tracking_number}.`)
       } else {
         setResult(null)
         setState('notfound')
-        toast.warning("Couldn't find that one", 'Have another look at the number and try again.')
+        toast.warning('No match found', 'Check the tracking number and try again.')
       }
     } catch {
       setResult(null)
       setState('error')
-      toast.error('Tracking is down for a moment', "We couldn't check right now. Please try again shortly.")
+      toast.error('Tracking unavailable', 'We could not reach the tracking service. Please try again shortly.')
     }
   }
 
-  const MethodIcon = result ? METHOD_ICON[result.shipping_method] : Boxes
+  const MethodIcon = (result && METHOD_ICON[result.shipping_method]) || Boxes
 
   return (
     <div
@@ -122,17 +128,17 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
 
       {state === 'notfound' && (
         <div className="mt-6 flex flex-col items-center gap-3 border-t border-steel-100 pt-8 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-card bg-orange-50 text-orange-500">
+          <div className="flex h-14 w-14 items-center justify-center rounded-card bg-accent-50 text-accent-600">
             <PackageX className="h-7 w-7" />
           </div>
-          <h3 className="text-base font-bold text-navy-900">We couldn't find that shipment</h3>
-          <p className="max-w-sm text-sm text-steel-500">
-            Have another look at the tracking number and try again. If it still doesn't show up, we're happy to
-            track it down for you.
+          <h3 className="text-base font-bold text-navy-900">No shipment found</h3>
+          <p className="max-w-sm text-sm leading-relaxed text-steel-500">
+            We could not match that tracking number. Check it against your booking confirmation and
+            try again, or contact our team and we will locate the consignment for you.
           </p>
           <Link to="/contact">
             <Button variant="secondary" size="sm">
-              Ask us to help
+              Contact support
             </Button>
           </Link>
         </div>
@@ -143,14 +149,14 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
           <div className="flex h-14 w-14 items-center justify-center rounded-card bg-red-50 text-red-500">
             <AlertCircle className="h-7 w-7" />
           </div>
-          <h3 className="text-base font-bold text-navy-900">That didn't work</h3>
-          <p className="max-w-sm text-sm text-steel-500">
-            We couldn't check just now. Give it another try in a moment. And if it keeps happening, get in
-            touch and we'll sort it out.
+          <h3 className="text-base font-bold text-navy-900">Tracking unavailable</h3>
+          <p className="max-w-sm text-sm leading-relaxed text-steel-500">
+            We could not reach the tracking service. Please try again in a moment. If the problem
+            continues, contact our operations team.
           </p>
           <Link to="/contact">
             <Button variant="secondary" size="sm">
-              Get in touch
+              Contact support
             </Button>
           </Link>
         </div>
@@ -186,13 +192,15 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
               <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-steel-400">
                 <Weight className="h-3.5 w-3.5" /> Weight
               </p>
-              <p className="mt-1 font-tabular text-sm font-bold text-navy-800">{result.weight_kg} kg</p>
+              <p className="mt-1 font-tabular text-sm font-bold text-navy-800">
+                {result.weight != null ? `${result.weight} kg` : 'To be confirmed'}
+              </p>
             </div>
             <div>
               <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-steel-400">
-                <Boxes className="h-3.5 w-3.5" /> Pieces
+                <Boxes className="h-3.5 w-3.5" /> Cargo
               </p>
-              <p className="mt-1 font-tabular text-sm font-bold text-navy-800">{result.pieces}</p>
+              <p className="mt-1 text-sm font-bold text-navy-800">{result.cargo_type}</p>
             </div>
           </div>
 
@@ -201,7 +209,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
               <MapPin className="h-4 w-4 text-accent-500" />
               Tracking History
             </p>
-            <TrackingTimeline events={result.tracking_history} />
+            <TrackingTimeline events={result.events} />
           </div>
         </div>
       )}

@@ -34,6 +34,7 @@ export default {
         },
         // Signal Orange (#F26B1D) anchors accent-500
         accent: {
+          25: '#fff3eb',
           50: '#fff4ed',
           100: '#ffe4d2',
           200: '#ffc7a3',
@@ -76,13 +77,10 @@ export default {
         badge: '999px',
       },
       boxShadow: {
-        // Three elevation levels, tuned with a subtle navy tint for a more
-        // premium, less muddy shadow than neutral grey.
-        'elevation-1': '0 1px 2px rgba(8,33,63,0.06)',
-        'elevation-2': '0 6px 20px -4px rgba(8,33,63,0.10), 0 2px 6px -2px rgba(8,33,63,0.06)',
-        'elevation-3': '0 24px 48px -12px rgba(8,33,63,0.18), 0 8px 16px -8px rgba(8,33,63,0.10)',
-        // Soft ring used to lift key CTAs / the tracking widget.
-        'accent-glow': '0 10px 30px -8px rgba(216,84,15,0.45)',
+        // Three elevation levels only.
+        'elevation-1': '0 1px 2px rgba(15,23,32,0.06)',
+        'elevation-2': '0 4px 16px rgba(15,23,32,0.08)',
+        'elevation-3': '0 16px 40px rgba(15,23,32,0.12)',
       },
       transitionTimingFunction: {
         'out-premium': 'cubic-bezier(0.16, 1, 0.3, 1)',
@@ -101,16 +99,11 @@ export default {
         'fade-in': 'fadeIn 0.18s ease-out both',
         'route-draw': 'routeDraw 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         shimmer: 'shimmer 1.6s ease-in-out infinite',
-        float: 'float 6s ease-in-out infinite',
       },
       keyframes: {
         fadeUp: {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
         },
         fadeIn: {
           '0%': { opacity: '0' },

@@ -1,47 +1,55 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Wand2 } from 'lucide-react'
-import { Button, Input, Select, Textarea, Modal } from '@/components/ui'
+import { Button, Input, Select, Modal } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
 import {
   createShipment,
   updateShipment,
   suggestTrackingNumber,
+  listAssignableStaff,
+  type AssignableStaff,
 } from '@/services/shipmentsService'
-import type { Customer, ShipmentWithCustomer } from '@/types'
-import { SHIPMENT_STATUSES, SHIPPING_METHODS } from '@/types'
+import type { Customer, ShipmentWithCustomer, ShippingMethod, CargoType, ShipmentStatus } from '@/types'
+import { SHIPMENT_STATUSES, SHIPPING_METHODS, CARGO_TYPES } from '@/types'
 import { STATUS_LABEL, SHIPPING_METHOD_LABEL } from '@/utils/status'
-
-const optionalNumber = z.preprocess(
-  (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-  z.number({ invalid_type_error: 'Enter a number' }).nonnegative('Must be 0 or more').optional(),
-)
+import { formatCurrency } from '@/utils/format'
 
 const schema = z.object({
   tracking_number: z.string().trim().min(6, 'Tracking number is too short'),
   customer_id: z.string().optional(),
-  sender_name: z.string().trim().min(2, 'Enter the sender name'),
-  sender_phone: z.string().trim().optional(),
-  receiver_name: z.string().trim().min(2, 'Enter the receiver name'),
-  receiver_phone: z.string().trim().optional(),
+  customer_name: z.string().trim().min(2, 'Enter the customer name'),
   origin: z.string().trim().min(2, 'Enter an origin'),
   destination: z.string().trim().min(2, 'Enter a destination'),
-  shipping_method: z.enum(['air', 'sea', 'road']),
-  status: z.enum(['pending', 'in_transit', 'delivered', 'delayed', 'cancelled']),
-  weight_kg: z.preprocess(
+  shipping_method: z.string().min(1),
+  cargo_type: z.string().min(1),
+  status: z.string().min(1),
+  weight: z.preprocess(
     (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
-    z.number({ invalid_type_error: 'Enter a weight' }).positive('Weight must be greater than 0'),
+    z.number({ invalid_type_error: 'Enter a weight' }).positive('Weight must be greater than 0').optional(),
   ),
-  pieces: z.preprocess(
-    (v) => (v === '' || v === null || v === undefined ? 1 : Number(v)),
-    z.number().int('Whole number only').min(1, 'At least 1 piece'),
+  price_per_kg: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z
+      .number({ invalid_type_error: 'Enter a rate' })
+      .nonnegative('Rate cannot be negative')
+      .optional(),
   ),
-  declared_value: optionalNumber,
   estimated_delivery: z.string().optional(),
-  notes: z.string().trim().optional(),
+  warehouse: z.string().optional(),
+  current_location: z.string().optional(),
+  assigned_to: z.string().optional(),
 })
+
+/** Total = weight x price per kg, rounded to cents. Mirrors the generated column in Postgres. */
+function calcTotal(weight: unknown, pricePerKg: unknown): number | null {
+  const w = Number(weight)
+  const p = Number(pricePerKg)
+  if (!weight || !pricePerKg || Number.isNaN(w) || Number.isNaN(p)) return null
+  return Math.round(w * p * 100) / 100
+}
 
 type FormValues = z.input<typeof schema>
 
@@ -56,32 +64,36 @@ interface ShipmentFormModalProps {
 const EMPTY: FormValues = {
   tracking_number: '',
   customer_id: '',
-  sender_name: '',
-  sender_phone: '',
-  receiver_name: '',
-  receiver_phone: '',
+  customer_name: '',
   origin: 'China',
   destination: 'Somalia',
-  shipping_method: 'sea',
-  status: 'pending',
-  weight_kg: '' as unknown as number,
-  pieces: 1,
-  declared_value: '' as unknown as number,
+  shipping_method: 'Air Freight',
+  cargo_type: 'General Goods',
+  status: 'Received',
+  weight: '' as unknown as number,
+  price_per_kg: '' as unknown as number,
   estimated_delivery: '',
-  notes: '',
+  warehouse: '',
+  current_location: '',
+  assigned_to: '',
 }
 
 export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOptions }: ShipmentFormModalProps) {
   const toast = useToast()
   const isEdit = !!shipment
+  const [staff, setStaff] = useState<AssignableStaff[]>([])
 
   const {
     register,
     handleSubmit,
     reset,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: EMPTY })
+
+  const [watchedWeight, watchedRate] = useWatch({ control, name: ['weight', 'price_per_kg'] })
+  const total = calcTotal(watchedWeight, watchedRate)
 
   useEffect(() => {
     if (!open) return
@@ -89,28 +101,35 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
       reset({
         tracking_number: shipment.tracking_number,
         customer_id: shipment.customer_id ?? '',
-        sender_name: shipment.sender_name,
-        sender_phone: shipment.sender_phone ?? '',
-        receiver_name: shipment.receiver_name,
-        receiver_phone: shipment.receiver_phone ?? '',
+        customer_name: shipment.customer_name,
         origin: shipment.origin,
         destination: shipment.destination,
-        shipping_method: shipment.shipping_method as FormValues['shipping_method'],
-        status: shipment.status as FormValues['status'],
-        weight_kg: shipment.weight_kg,
-        pieces: shipment.pieces,
-        declared_value: (shipment.declared_value ?? '') as unknown as number,
+        shipping_method: shipment.shipping_method,
+        cargo_type: shipment.cargo_type,
+        status: shipment.status,
+        weight: (shipment.weight ?? '') as unknown as number,
+        price_per_kg: (shipment.price_per_kg ?? '') as unknown as number,
         estimated_delivery: shipment.estimated_delivery ? shipment.estimated_delivery.slice(0, 10) : '',
-        notes: shipment.notes ?? '',
+        warehouse: shipment.warehouse ?? '',
+        current_location: shipment.current_location ?? '',
+        assigned_to: shipment.assigned_to ?? '',
       })
     } else {
       reset(EMPTY)
     }
   }, [open, shipment, reset])
 
+  // Staff list is only needed while the dialog is open.
+  useEffect(() => {
+    if (!open) return
+    listAssignableStaff()
+      .then(setStaff)
+      .catch(() => setStaff([]))
+  }, [open])
+
   async function handleSuggest() {
     try {
-      const suggestion = await suggestTrackingNumber(new Date().getFullYear())
+      const suggestion = await suggestTrackingNumber('CN')
       setValue('tracking_number', suggestion, { shouldValidate: true })
     } catch {
       toast.error('Could not generate a number', 'Please enter a tracking number manually and try again.')
@@ -122,19 +141,18 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
     const payload = {
       tracking_number: parsed.tracking_number.toUpperCase(),
       customer_id: parsed.customer_id || null,
-      sender_name: parsed.sender_name,
-      sender_phone: parsed.sender_phone || null,
-      receiver_name: parsed.receiver_name,
-      receiver_phone: parsed.receiver_phone || null,
+      customer_name: parsed.customer_name,
       origin: parsed.origin,
       destination: parsed.destination,
-      shipping_method: parsed.shipping_method,
-      status: parsed.status,
-      weight_kg: parsed.weight_kg,
-      pieces: parsed.pieces,
-      declared_value: parsed.declared_value ?? null,
+      shipping_method: parsed.shipping_method as ShippingMethod,
+      cargo_type: parsed.cargo_type as CargoType,
+      status: parsed.status as ShipmentStatus,
+      weight: parsed.weight ?? null,
+      price_per_kg: parsed.price_per_kg ?? null,
       estimated_delivery: parsed.estimated_delivery ? parsed.estimated_delivery : null,
-      notes: parsed.notes || null,
+      warehouse: parsed.warehouse?.trim() || null,
+      current_location: parsed.current_location?.trim() || null,
+      assigned_to: parsed.assigned_to || null,
     }
 
     try {
@@ -190,7 +208,7 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
               <Input
                 id="tracking_number"
                 className="font-mono"
-                placeholder="FNS-2026-000123"
+                placeholder="FNS-CN-000123"
                 error={errors.tracking_number?.message}
                 containerClassName="flex-1"
                 {...register('tracking_number')}
@@ -209,10 +227,12 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input label="Sender name" error={errors.sender_name?.message} {...register('sender_name')} />
-          <Input label="Sender phone (optional)" {...register('sender_phone')} />
-          <Input label="Receiver name" error={errors.receiver_name?.message} {...register('receiver_name')} />
-          <Input label="Receiver phone (optional)" {...register('receiver_phone')} />
+          <Input label="Customer name" error={errors.customer_name?.message} {...register('customer_name')} />
+          <Select
+            label="Cargo type"
+            options={CARGO_TYPES.map((c) => ({ value: c, label: c }))}
+            {...register('cargo_type')}
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -220,7 +240,7 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
           <Input label="Destination" error={errors.destination?.message} {...register('destination')} />
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Select
             label="Method"
             options={SHIPPING_METHODS.map((m) => ({ value: m, label: SHIPPING_METHOD_LABEL[m] }))}
@@ -231,28 +251,63 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
             options={SHIPMENT_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }))}
             {...register('status')}
           />
-          <Input
-            label="Weight (kg)"
-            type="number"
-            step="0.01"
-            error={errors.weight_kg?.message}
-            {...register('weight_kg')}
-          />
-          <Input label="Pieces" type="number" error={errors.pieces?.message} {...register('pieces')} />
+          <Input label="Est. delivery" type="date" {...register('estimated_delivery')} />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Operations: who owns this shipment and where it physically sits. */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Input label="Warehouse" placeholder="Guangzhou Hub" {...register('warehouse')} />
           <Input
-            label="Declared value (USD, optional)"
-            type="number"
-            step="0.01"
-            error={errors.declared_value?.message}
-            {...register('declared_value')}
+            label="Current location"
+            placeholder="Set from tracking events"
+            {...register('current_location')}
           />
-          <Input label="Estimated delivery (optional)" type="date" {...register('estimated_delivery')} />
+          <Select
+            label="Assigned to"
+            options={[
+              { value: '', label: 'Unassigned' },
+              ...staff.map((p) => ({ value: p.id, label: `${p.full_name} (${p.role})` })),
+            ]}
+            {...register('assigned_to')}
+          />
         </div>
 
-        <Textarea label="Internal notes (optional)" rows={3} {...register('notes')} />
+        <div className="rounded-lg border border-steel-200 bg-steel-50 p-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:items-start">
+            <Input
+              label="Weight (kg)"
+              type="number"
+              step="0.01"
+              min="0"
+              inputMode="decimal"
+              placeholder="0.00"
+              error={errors.weight?.message}
+              {...register('weight')}
+            />
+            <Input
+              label="Price per kg ($)"
+              type="number"
+              step="0.01"
+              min="0"
+              inputMode="decimal"
+              placeholder="0.00"
+              error={errors.price_per_kg?.message}
+              {...register('price_per_kg')}
+            />
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-navy-800">Total price</span>
+              <div
+                aria-live="polite"
+                className="flex h-11 items-center rounded-lg border border-navy-100 bg-white px-3 font-mono text-lg font-bold tabular-nums text-navy-700"
+              >
+                {total === null ? '—' : formatCurrency(total, 2)}
+              </div>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-steel-500">
+            Calculated automatically as weight x price per kg. It cannot be edited by hand.
+          </p>
+        </div>
       </form>
     </Modal>
   )

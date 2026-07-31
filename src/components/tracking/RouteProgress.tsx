@@ -2,22 +2,7 @@ import { useEffect, useState } from 'react'
 import { MapPin } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import type { ShipmentStatus } from '@/types'
-
-const PROGRESS_BY_STATUS: Record<ShipmentStatus, number> = {
-  pending: 6,
-  in_transit: 55,
-  delivered: 100,
-  delayed: 40,
-  cancelled: 0,
-}
-
-const BAR_COLOR: Record<ShipmentStatus, string> = {
-  pending: 'bg-status-pending',
-  in_transit: 'bg-status-transit',
-  delivered: 'bg-status-delivered',
-  delayed: 'bg-status-delayed',
-  cancelled: 'bg-status-cancelled',
-}
+import { STATUS_PROGRESS, STATUS_STYLES } from '@/utils/status'
 
 interface RouteProgressProps {
   origin: string
@@ -27,7 +12,7 @@ interface RouteProgressProps {
 
 export function RouteProgress({ origin, destination, status }: RouteProgressProps) {
   const [width, setWidth] = useState(0)
-  const target = PROGRESS_BY_STATUS[status]
+  const target = STATUS_PROGRESS[status]
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setWidth(target))
@@ -44,14 +29,13 @@ export function RouteProgress({ origin, destination, status }: RouteProgressProp
         <div
           className={cn(
             'absolute inset-y-0 left-0 rounded-badge transition-[width] duration-1000 ease-out-premium',
-            BAR_COLOR[status],
+            STATUS_STYLES[status].dot,
           )}
           style={{ width: `${width}%` }}
         />
         <MapPin
           className={cn(
-            'absolute -top-[7px] h-4 w-4 -translate-x-1/2 fill-white transition-[left] duration-1000 ease-out-premium',
-            status === 'cancelled' ? 'text-steel-400' : 'text-navy-800',
+            'absolute -top-[7px] h-4 w-4 -translate-x-1/2 fill-white text-navy-800 transition-[left] duration-1000 ease-out-premium',
           )}
           style={{ left: `${width}%` }}
           aria-hidden="true"

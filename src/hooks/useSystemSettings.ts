@@ -4,13 +4,14 @@ import type { SystemSettings } from '@/types'
 
 const FALLBACK: SystemSettings = {
   id: '',
+  singleton: true,
   company_name: 'FNS Cargo',
   company_email: 'info@fnscargo.com',
-  company_phone: '+252 61 000 0000',
+  company_phone: '+252 61 1189286',
   company_address: 'Mogadishu, Somalia',
   company_website: 'https://fnscargo.com',
   logo_url: null,
-  default_shipping_method: 'sea',
+  default_shipping_method: 'Air Freight',
   created_at: '',
   updated_at: '',
 }

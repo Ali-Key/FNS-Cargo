@@ -7,6 +7,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -42,97 +44,140 @@ export type Database = {
         }
         Relationships: []
       }
-      admin_users: {
+      countries: {
         Row: {
+          code: string
           created_at: string
+          hub_city: string
           id: string
-          role: string
-          user_id: string
+          is_active: boolean
+          lane: string | null
+          name: string
+          sort_order: number
         }
         Insert: {
+          code: string
           created_at?: string
+          hub_city: string
           id?: string
-          role: string
-          user_id: string
+          is_active?: boolean
+          lane?: string | null
+          name: string
+          sort_order?: number
         }
         Update: {
+          code?: string
           created_at?: string
+          hub_city?: string
           id?: string
-          role?: string
-          user_id?: string
+          is_active?: boolean
+          lane?: string | null
+          name?: string
+          sort_order?: number
         }
         Relationships: []
       }
       customers: {
         Row: {
           address: string | null
-          city: string | null
-          country: string | null
+          auth_user_id: string | null
+          company: string | null
           created_at: string
-          email: string | null
+          email: string
           full_name: string
           id: string
-          is_active: boolean
+          notes: string | null
           phone: string | null
+          status: Database["public"]["Enums"]["user_status"]
           updated_at: string
         }
         Insert: {
           address?: string | null
-          city?: string | null
-          country?: string | null
+          auth_user_id?: string | null
+          company?: string | null
           created_at?: string
-          email?: string | null
+          email: string
           full_name: string
           id?: string
-          is_active?: boolean
+          notes?: string | null
           phone?: string | null
+          status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
         }
         Update: {
           address?: string | null
-          city?: string | null
-          country?: string | null
+          auth_user_id?: string | null
+          company?: string | null
           created_at?: string
-          email?: string | null
+          email?: string
           full_name?: string
           id?: string
-          is_active?: boolean
+          notes?: string | null
           phone?: string | null
+          status?: Database["public"]["Enums"]["user_status"]
           updated_at?: string
         }
         Relationships: []
       }
-      shipment_tracking_history: {
+      invoices: {
         Row: {
+          amount: number
+          amount_paid: number
+          balance: number | null
           created_at: string
-          description: string | null
-          event_time: string
+          currency: string
+          customer_id: string | null
+          due_date: string | null
           id: string
-          location: string
+          invoice_number: string
+          issued_at: string
+          notes: string | null
           shipment_id: string
-          status: string
+          status: Database["public"]["Enums"]["invoice_status"]
+          updated_at: string
         }
         Insert: {
+          amount: number
+          amount_paid?: number
+          balance?: number | null
           created_at?: string
-          description?: string | null
-          event_time?: string
+          currency?: string
+          customer_id?: string | null
+          due_date?: string | null
           id?: string
-          location: string
+          invoice_number?: string
+          issued_at?: string
+          notes?: string | null
           shipment_id: string
-          status: string
+          status?: Database["public"]["Enums"]["invoice_status"]
+          updated_at?: string
         }
         Update: {
+          amount?: number
+          amount_paid?: number
+          balance?: number | null
           created_at?: string
-          description?: string | null
-          event_time?: string
+          currency?: string
+          customer_id?: string | null
+          due_date?: string | null
           id?: string
-          location?: string
+          invoice_number?: string
+          issued_at?: string
+          notes?: string | null
           shipment_id?: string
-          status?: string
+          status?: Database["public"]["Enums"]["invoice_status"]
+          updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "shipment_tracking_history_shipment_id_fkey"
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
@@ -140,74 +185,227 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          notes: string | null
+          paid_at: string
+          recorded_by: string | null
+          reference: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          paid_at?: string
+          recorded_by?: string | null
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          paid_at?: string
+          recorded_by?: string | null
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          auth_user_id: string | null
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          status: Database["public"]["Enums"]["user_status"]
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          status?: Database["public"]["Enums"]["user_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          cargo_type: Database["public"]["Enums"]["cargo_type"]
+          created_at: string
+          customer_id: string | null
+          destination: string
+          email: string
+          full_name: string
+          id: string
+          message: string | null
+          origin: string
+          phone: string | null
+          status: Database["public"]["Enums"]["quote_status"]
+          weight: number | null
+        }
+        Insert: {
+          cargo_type?: Database["public"]["Enums"]["cargo_type"]
+          created_at?: string
+          customer_id?: string | null
+          destination: string
+          email: string
+          full_name: string
+          id?: string
+          message?: string | null
+          origin: string
+          phone?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          weight?: number | null
+        }
+        Update: {
+          cargo_type?: Database["public"]["Enums"]["cargo_type"]
+          created_at?: string
+          customer_id?: string | null
+          destination?: string
+          email?: string
+          full_name?: string
+          id?: string
+          message?: string | null
+          origin?: string
+          phone?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipments: {
         Row: {
           assigned_to: string | null
+          cargo_type: Database["public"]["Enums"]["cargo_type"]
           created_at: string
+          current_location: string | null
           customer_id: string | null
-          declared_value: number | null
+          customer_name: string
+          delivered_at: string | null
+          delivery_proof_url: string | null
           destination: string
           estimated_delivery: string | null
           id: string
-          notes: string | null
           origin: string
-          pieces: number
-          receiver_name: string
-          receiver_phone: string | null
-          reference_number: string | null
-          sender_name: string
-          sender_phone: string | null
-          shipping_method: string
-          status: string
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          price_per_kg: number | null
+          shipping_method: Database["public"]["Enums"]["shipping_method"]
+          status: Database["public"]["Enums"]["shipment_status"]
+          total_price: number | null
           tracking_number: string
           updated_at: string
-          weight_kg: number
+          warehouse: string | null
+          weight: number | null
         }
         Insert: {
           assigned_to?: string | null
+          cargo_type?: Database["public"]["Enums"]["cargo_type"]
           created_at?: string
+          current_location?: string | null
           customer_id?: string | null
-          declared_value?: number | null
+          customer_name: string
+          delivered_at?: string | null
+          delivery_proof_url?: string | null
           destination: string
           estimated_delivery?: string | null
           id?: string
-          notes?: string | null
           origin: string
-          pieces?: number
-          receiver_name: string
-          receiver_phone?: string | null
-          reference_number?: string | null
-          sender_name: string
-          sender_phone?: string | null
-          shipping_method: string
-          status?: string
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          price_per_kg?: number | null
+          shipping_method?: Database["public"]["Enums"]["shipping_method"]
+          status?: Database["public"]["Enums"]["shipment_status"]
+          total_price?: number | null
           tracking_number: string
           updated_at?: string
-          weight_kg: number
+          warehouse?: string | null
+          weight?: number | null
         }
         Update: {
           assigned_to?: string | null
+          cargo_type?: Database["public"]["Enums"]["cargo_type"]
           created_at?: string
+          current_location?: string | null
           customer_id?: string | null
-          declared_value?: number | null
+          customer_name?: string
+          delivered_at?: string | null
+          delivery_proof_url?: string | null
           destination?: string
           estimated_delivery?: string | null
           id?: string
-          notes?: string | null
           origin?: string
-          pieces?: number
-          receiver_name?: string
-          receiver_phone?: string | null
-          reference_number?: string | null
-          sender_name?: string
-          sender_phone?: string | null
-          shipping_method?: string
-          status?: string
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          price_per_kg?: number | null
+          shipping_method?: Database["public"]["Enums"]["shipping_method"]
+          status?: Database["public"]["Enums"]["shipment_status"]
+          total_price?: number | null
           tracking_number?: string
           updated_at?: string
-          weight_kg?: number
+          warehouse?: string | null
+          weight?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "shipments_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "shipments_customer_id_fkey"
             columns: ["customer_id"]
@@ -215,17 +413,11 @@ export type Database = {
             referencedRelation: "customers"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "shipments_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "admin_users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       system_settings: {
         Row: {
+          company_whatsapp: ReactNode
           company_address: string
           company_email: string
           company_name: string
@@ -235,6 +427,7 @@ export type Database = {
           default_shipping_method: string
           id: string
           logo_url: string | null
+          singleton: boolean
           updated_at: string
         }
         Insert: {
@@ -247,6 +440,7 @@ export type Database = {
           default_shipping_method?: string
           id?: string
           logo_url?: string | null
+          singleton?: boolean
           updated_at?: string
         }
         Update: {
@@ -259,34 +453,130 @@ export type Database = {
           default_shipping_method?: string
           id?: string
           logo_url?: string | null
+          singleton?: boolean
           updated_at?: string
         }
         Relationships: []
+      }
+      tracking_updates: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          location: string
+          shipment_id: string
+          status: Database["public"]["Enums"]["shipment_status"]
+          time: string
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          date: string
+          description?: string | null
+          id?: string
+          location: string
+          shipment_id: string
+          status: Database["public"]["Enums"]["shipment_status"]
+          time?: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          location?: string
+          shipment_id?: string
+          status?: Database["public"]["Enums"]["shipment_status"]
+          time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tracking_updates_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      admin_list_users: {
-        Args: Record<PropertyKey, never>
+      admin_users_overview: {
+        Args: never
         Returns: {
-          admin_id: string
+          auth_user_id: string
+          avatar_url: string
           created_at: string
           email: string
-          last_sign_in_at: string
-          role: string
-          user_id: string
+          full_name: string
+          id: string
+          phone: string
+          role: Database["public"]["Enums"]["user_role"]
+          shipment_count: number
+          status: Database["public"]["Enums"]["user_status"]
         }[]
       }
-      dashboard_stats: { Args: Record<PropertyKey, never>; Returns: Json }
-      is_admin_user: { Args: Record<PropertyKey, never>; Returns: boolean }
-      is_staff_or_admin_user: { Args: Record<PropertyKey, never>; Returns: boolean }
-      public_settings: { Args: Record<PropertyKey, never>; Returns: Json }
+      analytics_report: { Args: { p_months?: number }; Returns: Json }
+      current_customer_id: { Args: never; Returns: string }
+      current_profile_id: { Args: never; Returns: string }
+      dashboard_stats: { Args: never; Returns: Json }
+      is_admin: { Args: never; Returns: boolean }
+      is_ops: { Args: never; Returns: boolean }
+      public_settings: { Args: never; Returns: Json }
+      suggest_tracking_number: {
+        Args: { p_country_code?: string }
+        Returns: string
+      }
       track_shipment: { Args: { p_tracking_number: string }; Returns: Json }
     }
     Enums: {
-      [_ in never]: never
+      cargo_type:
+        | "General Goods"
+        | "Electronics"
+        | "Textiles & Apparel"
+        | "Machinery"
+        | "Auto Parts"
+        | "Cosmetics"
+        | "Foodstuff"
+        | "Furniture"
+        | "Medical Supplies"
+        | "Documents"
+      invoice_status: "Draft" | "Issued" | "Partially Paid" | "Paid" | "Void"
+      payment_method:
+        | "Cash"
+        | "Bank Transfer"
+        | "Mobile Money"
+        | "Card"
+        | "Cheque"
+      payment_status: "Unpaid" | "Partially Paid" | "Paid" | "Refunded"
+      quote_status: "Pending" | "Reviewed" | "Quoted" | "Closed"
+      shipment_status:
+        | "Received"
+        | "Processing"
+        | "Warehouse"
+        | "Shipped"
+        | "In Transit"
+        | "Customs Clearance"
+        | "Arrived"
+        | "Out for Delivery"
+        | "Delivered"
+      shipping_method:
+        | "Air Express"
+        | "Air Freight"
+        | "Sea Freight"
+        | "Road Freight"
+        | "Door to Door"
+      user_role: "Admin" | "Dispatcher"
+      user_status: "Active" | "Disabled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -377,8 +667,85 @@ export type TablesUpdate<
       : never
     : never
 
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      cargo_type: [
+        "General Goods",
+        "Electronics",
+        "Textiles & Apparel",
+        "Machinery",
+        "Auto Parts",
+        "Cosmetics",
+        "Foodstuff",
+        "Furniture",
+        "Medical Supplies",
+        "Documents",
+      ],
+      invoice_status: ["Draft", "Issued", "Partially Paid", "Paid", "Void"],
+      payment_method: [
+        "Cash",
+        "Bank Transfer",
+        "Mobile Money",
+        "Card",
+        "Cheque",
+      ],
+      payment_status: ["Unpaid", "Partially Paid", "Paid", "Refunded"],
+      quote_status: ["Pending", "Reviewed", "Quoted", "Closed"],
+      shipment_status: [
+        "Received",
+        "Processing",
+        "Warehouse",
+        "Shipped",
+        "In Transit",
+        "Customs Clearance",
+        "Arrived",
+        "Out for Delivery",
+        "Delivered",
+      ],
+      shipping_method: [
+        "Air Express",
+        "Air Freight",
+        "Sea Freight",
+        "Road Freight",
+        "Door to Door",
+      ],
+      user_role: ["Admin", "Dispatcher"],
+      user_status: ["Active", "Disabled"],
+    },
   },
 } as const

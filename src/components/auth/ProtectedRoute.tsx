@@ -1,63 +1,123 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { ShieldAlert } from 'lucide-react'
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { ShieldAlert, WifiOff } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button, Spinner } from '@/components/ui'
-import type { AdminRole } from '@/types'
+import type { UserRole } from '@/types'
 
 interface ProtectedRouteProps {
-  /** When set, the signed-in admin must hold one of these roles. */
-  allow?: AdminRole[]
+  /** When set, the signed-in user must hold one of these roles. */
+  allow?: UserRole[]
 }
 
 export function ProtectedRoute({ allow }: ProtectedRouteProps) {
-  const { session, isAdmin, role, loading, unauthorized, signOut } = useAuth()
+  const { session, isOps, role, loading, unauthorized, profileError, refreshProfile, signOut } =
+    useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
 
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-steel-50">
         <Spinner className="h-7 w-7 text-navy-700" />
-        <p className="text-sm font-medium text-steel-500">Verifying access…</p>
+        <p className="text-sm font-medium text-steel-500">Verifying access</p>
       </div>
     )
   }
 
-  // Not signed in → send to login, remembering where they were headed.
+  // Not signed in, so send to login and remember where they were headed.
   if (!session) {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 
-  // Signed in with a valid Supabase session but no admin_users record.
-  if (unauthorized || !isAdmin) {
-    return <NoAccess onSignOut={signOut} />
+  // The profile lookup failed. This is a connection or permission fault, not a
+  // decision about the account, so offer a retry instead of a dead end.
+  if (profileError) {
+    return (
+      <Shell
+        icon={<WifiOff className="h-7 w-7" />}
+        tone="amber"
+        title="Could not verify your access"
+        body="We signed you in but could not load your account profile. This is usually a temporary connection problem."
+        detail={profileError}
+      >
+        <Button variant="primary" className="w-full" onClick={() => void refreshProfile()}>
+          Try again
+        </Button>
+        <Button variant="secondary" className="w-full" onClick={signOut}>
+          Sign out
+        </Button>
+      </Shell>
+    )
   }
 
-  // Signed in and an admin, but lacks the specific role this area requires.
+  // Signed in, profile resolved, but holds no active dashboard role.
+  if (unauthorized || !isOps) {
+    return (
+      <Shell
+        icon={<ShieldAlert className="h-7 w-7" />}
+        tone="red"
+        title="No dashboard access"
+        body="This account is signed in but is not authorised for the FNS Cargo dashboard. Ask an administrator to grant you access."
+      >
+        <Button variant="secondary" className="w-full" onClick={signOut}>
+          Sign out
+        </Button>
+      </Shell>
+    )
+  }
+
+  // A dashboard user, but this area requires a role they do not hold. They keep
+  // their session — this is one area being closed, not access being revoked.
   if (allow && role && !allow.includes(role)) {
-    return <NoAccess onSignOut={signOut} restricted />
+    return (
+      <Shell
+        icon={<ShieldAlert className="h-7 w-7" />}
+        tone="red"
+        title="Insufficient permissions"
+        body="This area is restricted to administrators. The rest of the dashboard is still available to you."
+      >
+        <Button variant="primary" className="w-full" onClick={() => navigate('/dashboard')}>
+          Back to overview
+        </Button>
+      </Shell>
+    )
   }
 
   return <Outlet />
 }
 
-function NoAccess({ onSignOut, restricted }: { onSignOut: () => void; restricted?: boolean }) {
+const TONES = {
+  red: 'bg-red-50 text-red-600',
+  amber: 'bg-amber-50 text-amber-600',
+} as const
+
+function Shell({
+  icon,
+  tone,
+  title,
+  body,
+  detail,
+  children,
+}: {
+  icon: React.ReactNode
+  tone: keyof typeof TONES
+  title: string
+  body: string
+  detail?: string
+  children: React.ReactNode
+}) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-steel-50 px-4">
-      <div className="w-full max-w-md rounded-2xl border border-steel-100 bg-white p-8 text-center shadow-elevation-2">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
-          <ShieldAlert className="h-7 w-7" />
+      <div className="w-full max-w-md rounded-card border border-steel-100 bg-white p-8 text-center shadow-elevation-2">
+        <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-card ${TONES[tone]}`}>
+          {icon}
         </div>
-        <h1 className="mt-5 text-xl font-bold text-navy-900">
-          {restricted ? 'Insufficient permissions' : 'No dashboard access'}
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-steel-500">
-          {restricted
-            ? 'Your account does not have permission to view this area. Contact an administrator if you believe this is a mistake.'
-            : 'This account is signed in but is not authorised for the FNS Cargo dashboard. If you need access, please contact an administrator.'}
-        </p>
-        <Button variant="secondary" className="mt-6 w-full" onClick={onSignOut}>
-          Sign out
-        </Button>
+        <h1 className="mt-5 text-xl font-bold text-navy-900">{title}</h1>
+        <p className="mt-2 text-sm leading-relaxed text-steel-500">{body}</p>
+        {detail && (
+          <p className="mt-3 rounded-control bg-steel-50 px-3 py-2 text-xs text-steel-500">{detail}</p>
+        )}
+        <div className="mt-6 space-y-2">{children}</div>
       </div>
     </div>
   )

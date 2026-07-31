@@ -22,7 +22,9 @@ function nowLocal(): string {
 
 const EMPTY = {
   tracking: '',
-  status: 'in_transit' as ShipmentStatus,
+  status: 'In Transit' as ShipmentStatus,
+  country: '',
+  city: '',
   location: '',
   description: '',
   eventTime: '',
@@ -87,6 +89,8 @@ export function CommandPalette() {
     setError(null)
     const tracking = form.tracking.trim().toUpperCase()
     if (tracking.length < 6) return setError('Enter a full tracking number.')
+    if (form.country.trim().length < 2) return setError('Enter a country for this update.')
+    if (form.city.trim().length < 2) return setError('Enter a city for this update.')
     if (form.location.trim().length < 2) return setError('Enter a location for this update.')
 
     setSubmitting(true)
@@ -96,13 +100,16 @@ export function CommandPalette() {
         setError('No shipment matches that tracking number.')
         return
       }
-      const eventTimeIso = new Date(form.eventTime || nowLocal()).toISOString()
+      const when = form.eventTime || nowLocal()
       await createTrackingEvent({
         shipment_id: shipment.id,
         status: form.status,
+        date: when.slice(0, 10),
+        time: when.slice(11, 16),
+        country: form.country.trim(),
+        city: form.city.trim(),
         location: form.location.trim(),
         description: form.description.trim() || null,
-        event_time: eventTimeIso,
       })
       if (form.sync) await updateShipment(shipment.id, { status: form.status })
 
@@ -191,6 +198,32 @@ export function CommandPalette() {
                   </button>
                 )
               })}
+            </div>
+          </div>
+
+          {/* Country + city */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-steel-400">
+                Country
+              </label>
+              <input
+                value={form.country}
+                onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+                placeholder="China"
+                className="h-11 w-full rounded-control border border-steel-200 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-steel-400">
+                City
+              </label>
+              <input
+                value={form.city}
+                onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+                placeholder="Guangzhou"
+                className="h-11 w-full rounded-control border border-steel-200 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+              />
             </div>
           </div>
 

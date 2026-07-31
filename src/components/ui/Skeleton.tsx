@@ -33,7 +33,7 @@ export function SkeletonTableRows({ rows = 5, columns = 5 }: { rows?: number; co
 
 export function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn('rounded-2xl border border-steel-100 bg-white p-5 shadow-elevation-2', className)}>
+    <div className={cn('rounded-card border border-steel-100 bg-white p-5 shadow-elevation-2', className)}>
       <Skeleton className="mb-4 h-4 w-1/3" />
       <Skeleton className="mb-2 h-7 w-1/2" />
       <Skeleton className="h-3 w-1/4" />

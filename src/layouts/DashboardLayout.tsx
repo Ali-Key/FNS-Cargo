@@ -5,6 +5,9 @@ import {
   Package,
   Users,
   MapPinned,
+  FileText,
+  Receipt,
+  BarChart3,
   UserCog,
   Settings,
   LogOut,
@@ -17,13 +20,14 @@ import { CommandPalette } from '@/components/dashboard/CommandPalette'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { cn } from '@/utils/cn'
+import type { UserRole } from '@/types'
 
 interface NavItem {
   to: string
   label: string
   icon: typeof LayoutDashboard
-  /** Roles allowed to see this link; omit for all authenticated admins/staff. */
-  roles?: ('admin' | 'staff')[]
+  /** Roles allowed to see this link; omit for all dashboard users. */
+  roles?: UserRole[]
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -31,12 +35,15 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard/shipments', label: 'Shipments', icon: Package },
   { to: '/dashboard/tracking', label: 'Tracking Updates', icon: MapPinned },
   { to: '/dashboard/customers', label: 'Customers', icon: Users },
-  { to: '/dashboard/users', label: 'Users', icon: UserCog, roles: ['admin'] },
-  { to: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['admin'] },
+  { to: '/dashboard/quotes', label: 'Quote Requests', icon: FileText },
+  { to: '/dashboard/finance', label: 'Finance', icon: Receipt, roles: ['Admin'] },
+  { to: '/dashboard/analytics', label: 'Analytics', icon: BarChart3, roles: ['Admin'] },
+  { to: '/dashboard/users', label: 'Users', icon: UserCog, roles: ['Admin'] },
+  { to: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['Admin'] },
 ]
 
 export default function DashboardLayout() {
-  const { user, role, signOut } = useAuth()
+  const { user, profile, role, signOut } = useAuth()
   const toast = useToast()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -71,7 +78,7 @@ export default function DashboardLayout() {
           <Logo variant="dark" />
           <button
             type="button"
-            className="rounded-control p-1.5 text-steel-500 hover:bg-steel-100 lg:hidden"
+            className="rounded-control p-1.5 text-steel-500 hover:bg-steel-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 lg:hidden"
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           >
@@ -119,12 +126,24 @@ export default function DashboardLayout() {
               )
             }
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-100 text-sm font-bold uppercase text-navy-700">
-              {user?.email?.charAt(0) ?? 'U'}
-            </span>
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt=""
+                width={36}
+                height={36}
+                className="h-9 w-9 shrink-0 rounded-full border border-steel-200 object-cover"
+              />
+            ) : (
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-100 text-sm font-bold uppercase text-navy-700">
+                {(profile?.full_name ?? user?.email ?? 'U').charAt(0)}
+              </span>
+            )}
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-navy-900">{user?.email}</p>
-              <p className="text-xs font-medium capitalize text-steel-500">{role ?? 'member'}</p>
+              <p className="truncate text-sm font-semibold text-navy-900">
+                {profile?.full_name ?? user?.email}
+              </p>
+              <p className="truncate text-xs font-medium text-steel-500">{role ?? 'Member'}</p>
             </div>
           </NavLink>
           <button

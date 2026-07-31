@@ -27,10 +27,10 @@ import { initials } from '@/utils/format'
 const PAGE_SIZE = 10
 
 export default function Customers() {
-  useDocumentTitle('Customers · FNS Cargo')
+  useDocumentTitle('Customers | FNS Cargo')
   const toast = useToast()
   const { role } = useAuth()
-  const isAdmin = role === 'admin'
+  const isAdmin = role === 'Admin'
 
   const [rows, setRows] = useState<Customer[]>([])
   const [count, setCount] = useState(0)
@@ -99,7 +99,7 @@ export default function Customers() {
         actions={
           isAdmin ? (
             <Button
-              variant="primary"
+              variant="accent"
               icon={<Plus className="h-4 w-4" />}
               onClick={() => {
                 setEditing(null)
@@ -114,13 +114,12 @@ export default function Customers() {
 
       <DataToolbar search={search} onSearchChange={setSearch} placeholder="Search name, email, phone, city…" />
 
-      <div className="overflow-hidden rounded-2xl border border-steel-100 bg-white shadow-elevation-1">
+      <div className="overflow-hidden rounded-card border border-steel-100 bg-white shadow-elevation-1">
         <Table className="border-0">
           <TableHead>
             <TableRow>
               <TableHeadCell>Customer</TableHeadCell>
               <TableHeadCell>Contact</TableHeadCell>
-              <TableHeadCell>Location</TableHeadCell>
               <TableHeadCell>Status</TableHeadCell>
               <TableHeadCell>Added</TableHeadCell>
               {isAdmin && <TableHeadCell className="text-right">Actions</TableHeadCell>}
@@ -128,10 +127,10 @@ export default function Customers() {
           </TableHead>
           <TableBody>
             {loading ? (
-              <SkeletonTableRows rows={8} columns={isAdmin ? 6 : 5} />
+              <SkeletonTableRows rows={8} columns={isAdmin ? 5 : 4} />
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={isAdmin ? 6 : 5}>
+                <td colSpan={isAdmin ? 5 : 4}>
                   <EmptyState
                     icon={<Users className="h-6 w-6" />}
                     title="No customers found"
@@ -165,14 +164,11 @@ export default function Customers() {
                       {!c.email && !c.phone && <span className="text-steel-400">—</span>}
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm text-steel-600">
-                    {[c.city, c.country].filter(Boolean).join(', ') || '—'}
-                  </TableCell>
                   <TableCell>
-                    {c.is_active ? (
+                    {c.status === 'Active' ? (
                       <Badge variant="success">Active</Badge>
                     ) : (
-                      <Badge variant="neutral">Inactive</Badge>
+                      <Badge variant="neutral">Disabled</Badge>
                     )}
                   </TableCell>
                   <TableCell className="font-tabular text-sm text-steel-500">{formatDate(c.created_at)}</TableCell>

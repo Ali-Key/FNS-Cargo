@@ -9,12 +9,12 @@ import type { Customer } from '@/types'
 
 const schema = z.object({
   full_name: z.string().trim().min(2, 'Enter the customer name'),
-  email: z.union([z.string().trim().email('Enter a valid email'), z.literal('')]).optional(),
+  email: z.string().trim().min(1, 'Enter an email').email('Enter a valid email'),
   phone: z.string().trim().optional(),
-  city: z.string().trim().optional(),
-  country: z.string().trim().optional(),
+  company: z.string().trim().optional(),
   address: z.string().trim().optional(),
-  is_active: z.boolean().optional(),
+  notes: z.string().trim().optional(),
+  active: z.boolean().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -43,22 +43,22 @@ export function CustomerFormModal({ open, onClose, onSaved, customer }: Customer
       full_name: customer?.full_name ?? '',
       email: customer?.email ?? '',
       phone: customer?.phone ?? '',
-      city: customer?.city ?? '',
-      country: customer?.country ?? 'Somalia',
+      company: customer?.company ?? '',
       address: customer?.address ?? '',
-      is_active: customer?.is_active ?? true,
+      notes: customer?.notes ?? '',
+      active: customer ? customer.status === 'Active' : true,
     })
   }, [open, customer, reset])
 
   async function onSubmit(values: FormValues) {
     const payload = {
       full_name: values.full_name,
-      email: values.email || null,
+      email: values.email,
       phone: values.phone || null,
-      city: values.city || null,
-      country: values.country || null,
+      company: values.company || null,
       address: values.address || null,
-      is_active: values.is_active ?? true,
+      notes: values.notes || null,
+      status: (values.active ?? true ? 'Active' : 'Disabled') as Customer['status'],
     }
     try {
       if (isEdit && customer) {
@@ -95,17 +95,24 @@ export function CustomerFormModal({ open, onClose, onSaved, customer }: Customer
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <Input label="Full name" error={errors.full_name?.message} {...register('full_name')} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input label="Email (optional)" type="email" error={errors.email?.message} {...register('email')} />
+          <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
           <Input label="Phone (optional)" {...register('phone')} />
-          <Input label="City (optional)" {...register('city')} />
-          <Input label="Country (optional)" {...register('country')} />
         </div>
-        <Textarea label="Address (optional)" rows={2} {...register('address')} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Input label="Company (optional)" {...register('company')} />
+          <Input label="Address (optional)" {...register('address')} />
+        </div>
+        <Textarea
+          label="Internal notes"
+          rows={3}
+          hint="Staff-only. Never shown to the customer or on the public site."
+          {...register('notes')}
+        />
         <label className="flex items-center gap-2.5 text-sm text-steel-600">
           <input
             type="checkbox"
             className="h-4 w-4 rounded border-steel-300 text-navy-700 focus:ring-navy-500"
-            {...register('is_active')}
+            {...register('active')}
           />
           Active customer
         </label>

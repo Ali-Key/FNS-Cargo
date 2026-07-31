@@ -3,7 +3,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export default function Terms() {
   const { settings } = useSystemSettings()
-  useDocumentTitle(`Terms of Service · ${settings.company_name}`, 'The simple terms for using FNS Cargo to ship goods and track shipments between China and Somalia.')
+  useDocumentTitle(`Terms of Service | ${settings.company_name}`, 'The simple terms for using FNS Cargo to ship goods and track shipments between China and Somalia.')
 
   return (
     <div className="container-page py-16 sm:py-20">
@@ -73,7 +73,10 @@ export default function Terms() {
             <h2 className="text-lg font-bold text-navy-900">Questions?</h2>
             <p className="mt-2 leading-relaxed">
               If anything here needs explaining, email us at{' '}
-              <a href={`mailto:${settings.company_email}`} className="font-semibold text-navy-800 hover:text-accent-600">
+              <a
+                href={`mailto:${settings.company_email}`}
+                className="rounded-control font-semibold text-navy-800 hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+              >
                 {settings.company_email}
               </a>{' '}
               or call {settings.company_phone}.

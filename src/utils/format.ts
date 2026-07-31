@@ -8,12 +8,13 @@ export function formatWeight(value: number | null | undefined): string {
   return `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value)} kg`
 }
 
-export function formatCurrency(value: number | null | undefined): string {
+export function formatCurrency(value: number | null | undefined, fractionDigits = 0): string {
   if (value === null || value === undefined || Number.isNaN(value)) return '—'
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    maximumFractionDigits: 0,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   }).format(value)
 }
 

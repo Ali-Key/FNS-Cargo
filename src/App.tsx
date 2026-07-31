@@ -11,6 +11,8 @@ import Contact from '@/pages/Contact'
 import Privacy from '@/pages/Privacy'
 import Terms from '@/pages/Terms'
 import NotFound from '@/pages/NotFound'
+import { ScrollToTop } from "@/components/common/ScrollToTop";
+
 
 // Admin/dashboard code is split into its own chunk so it never ships with the
 // public bundle (keeps the public site lean and isolates Recharts to the dashboard).
@@ -21,6 +23,9 @@ const Shipments = lazy(() => import('@/pages/admin/Shipments'))
 const ShipmentDetail = lazy(() => import('@/pages/admin/ShipmentDetail'))
 const TrackingUpdates = lazy(() => import('@/pages/admin/TrackingUpdates'))
 const Customers = lazy(() => import('@/pages/admin/Customers'))
+const Quotes = lazy(() => import('@/pages/admin/Quotes'))
+const Finance = lazy(() => import('@/pages/admin/Finance'))
+const Analytics = lazy(() => import('@/pages/admin/Analytics'))
 const Users = lazy(() => import('@/pages/admin/Users'))
 const Settings = lazy(() => import('@/pages/admin/Settings'))
 const Profile = lazy(() => import('@/pages/admin/Profile'))
@@ -36,6 +41,7 @@ function RouteFallback() {
 export default function App() {
   return (
     <Suspense fallback={<RouteFallback />}>
+      <ScrollToTop />
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
@@ -56,9 +62,13 @@ export default function App() {
             <Route path="/dashboard/shipments/:id" element={<ShipmentDetail />} />
             <Route path="/dashboard/tracking" element={<TrackingUpdates />} />
             <Route path="/dashboard/customers" element={<Customers />} />
+            <Route path="/dashboard/quotes" element={<Quotes />} />
             <Route path="/dashboard/profile" element={<Profile />} />
-            {/* Admin-only areas */}
-            <Route element={<ProtectedRoute allow={['admin']} />}>
+            {/* Admin-only areas. Finance and Analytics expose revenue, which the
+                invoices RLS policy and analytics_report() also restrict to admins. */}
+            <Route element={<ProtectedRoute allow={['Admin']} />}>
+              <Route path="/dashboard/finance" element={<Finance />} />
+              <Route path="/dashboard/analytics" element={<Analytics />} />
               <Route path="/dashboard/users" element={<Users />} />
               <Route path="/dashboard/settings" element={<Settings />} />
             </Route>

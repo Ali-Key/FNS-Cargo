@@ -9,10 +9,18 @@ function unsplash(id: string, width: number, quality = 80) {
   return `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${width}&q=${quality}`
 }
 
+/** Builds a width-descriptor srcSet so the browser downloads the smallest usable file. */
+function srcSet(id: string, widths: number[], quality = 80) {
+  return widths.map((w) => `${unsplash(id, w, quality)} ${w}w`).join(', ')
+}
+
+const HERO_ID = '1605745341112-85968b19335b'
+
 export const images = {
   hero: {
     main: {
-      src: unsplash('1605745341112-85968b19335b', 2000),
+      src: unsplash(HERO_ID, 1600),
+      srcSet: srcSet(HERO_ID, [640, 960, 1280, 1600, 2000]),
       alt: 'Loaded container ship underway at sea, representing FNS Cargo sea freight between China and Somalia',
     },
   },

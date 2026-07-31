@@ -2,14 +2,14 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Button, Input, Select, Modal, Alert } from '@/components/ui'
+import { Button, Input, Modal, Alert } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
 import { createDashboardUser } from '@/services/usersService'
 
 const schema = z.object({
+  full_name: z.string().trim().min(2, 'Enter a name'),
   email: z.string().trim().min(1, 'Enter an email').email('Enter a valid email'),
   password: z.string().min(10, 'Use at least 10 characters'),
-  role: z.enum(['admin', 'staff']),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -27,15 +27,15 @@ export function CreateUserModal({ open, onClose, onSaved }: CreateUserModalProps
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { role: 'staff' } })
+  } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
   useEffect(() => {
-    if (open) reset({ email: '', password: '', role: 'staff' })
+    if (open) reset({ full_name: '', email: '', password: '' })
   }, [open, reset])
 
   async function onSubmit(values: FormValues) {
     try {
-      await createDashboardUser(values)
+      await createDashboardUser({ ...values, role: 'Admin' })
       toast.success('User invited', `${values.email} can now sign in with the temporary password.`)
       onSaved()
       onClose()
@@ -63,6 +63,7 @@ export function CreateUserModal({ open, onClose, onSaved }: CreateUserModalProps
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <Input label="Full name" error={errors.full_name?.message} {...register('full_name')} />
         <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
         <Input
           label="Temporary password"
@@ -71,17 +72,8 @@ export function CreateUserModal({ open, onClose, onSaved }: CreateUserModalProps
           error={errors.password?.message}
           {...register('password')}
         />
-        <Select
-          label="Role"
-          options={[
-            { value: 'staff', label: 'Staff: manage shipments & tracking' },
-            { value: 'admin', label: 'Admin: full access' },
-          ]}
-          {...register('role')}
-        />
         <Alert variant="info">
-          Staff can manage shipments, tracking, and view customers. Admins additionally manage customers, users, and
-          settings.
+          This creates an administrator with full access to the operations dashboard.
         </Alert>
       </form>
     </Modal>

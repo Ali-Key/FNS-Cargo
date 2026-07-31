@@ -1,167 +1,202 @@
-import { Link } from 'react-router-dom'
-import { Plane, Ship, Boxes, Truck, FileCheck2, Warehouse, Car, FileText, CheckCircle2, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui'
-import { PageHero } from '@/components/common/PageHero'
-import { Reveal } from '@/components/common/Reveal'
-import { images } from '@/config/images'
-import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { Link } from "react-router-dom";
+import {
+  Plane,
+  Ship,
+  Boxes,
+  Truck,
+  FileCheck2,
+  Warehouse,
+  Car,
+  FileText,
+  CheckCircle2,
+  ArrowRight,
+} from "lucide-react";
+import { Button } from "@/components/ui";
+import { PageHero } from "@/components/common/PageHero";
+import { Reveal } from "@/components/common/Reveal";
+import { images } from "@/config/images";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+
+// Shared focus-visible treatment for bare links (keyboard accessibility).
+const FOCUS_RING =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2";
 
 const SERVICES = [
   {
-    id: 'air',
+    id: "air",
     icon: Plane,
-    title: 'Air Freight',
-    tagline: 'Fast, reliable air cargo solutions',
+    title: "Air Freight",
+    tagline: "Scheduled and express air cargo",
     description:
-      "When you can't wait, we fly your goods in. Air freight gets urgent restocks, high-value items, and documents there in days, with priority handling at both ends so nothing sits around.",
+      "Air freight moves urgent restocks, high-value goods, and documents in days rather than weeks. We book capacity with established airline partners and arrange priority handling at both origin and destination.",
     points: [
-      'Priority handling at the airport, coming and going',
-      'Best for urgent, valuable, or fragile goods',
-      'Much faster than shipping by sea',
+      "Priority acceptance and handling at both airports",
+      "Suited to urgent, high-value, or fragile consignments",
+      "Transit times measured in days, not weeks",
     ],
     image: images.services.air,
   },
   {
-    id: 'sea',
+    id: "sea",
     icon: Ship,
-    title: 'Sea Freight',
-    tagline: 'Cost-effective sea shipping services',
+    title: "Sea Freight",
+    tagline: "Full and shared container shipping",
     description:
-      "For most shipments, sea freight is the sensible choice. Book a whole container to yourself or share the space with others. Either way, it's the most affordable way to move larger loads.",
+      "Sea freight offers the lowest cost per unit for high-volume cargo. Book a full container (FCL) or share space in a consolidated load (LCL). We manage the port formalities at both ends.",
     points: [
-      'Book a whole container, or just part of one',
-      "Best for larger loads that aren't in a rush",
-      'We take care of the port work at both ends',
+      "FCL and LCL options to match your volume",
+      "Best value for large or non-urgent shipments",
+      "Port handling and terminal charges coordinated for you",
     ],
     image: images.services.sea,
   },
   {
-    id: 'commercial',
+    id: "commercial",
     icon: Boxes,
-    title: 'Commercial Cargo',
-    tagline: 'General cargo & business shipments',
+    title: "Commercial Cargo",
+    tagline: "General and project cargo for business",
     description:
-      'From retail stock to equipment and bulk goods, we handle commercial cargo of every size. We plan the right mix of air and sea so your business shipments arrive on time and on budget.',
+      "From retail stock to plant and equipment, we handle commercial consignments at any scale. We recommend the right mix of air and sea to balance your delivery deadline against cost.",
     points: [
-      'Handled end to end, whatever the volume',
-      'The right route for your timing and budget',
-      'A single point of contact for your business',
+      "Managed end to end regardless of volume",
+      "Routing planned around your deadline and budget",
+      "A single named coordinator for your account",
     ],
     image: images.warehouseDetail,
   },
   {
-    id: 'door-to-door',
+    id: "door-to-door",
     icon: Truck,
-    title: 'Door-to-Door Delivery',
-    tagline: 'Safe delivery right to your doorstep',
+    title: "Door-to-Door Delivery",
+    tagline: "Collection through to final delivery",
     description:
-      "We arrange pickup and final delivery so you're never left sorting out the last mile. From the shipper's door to yours, we coordinate every leg and time it around your shipment's arrival.",
+      "We arrange collection at origin and final delivery at destination, so the first and last mile are covered under the same booking. Delivery is scheduled around the arrival of your cargo.",
     points: [
-      'Pickup and delivery arranged for you',
-      'From the port or warehouse to your door',
-      'One team coordinating the whole journey',
+      "Collection and final delivery arranged as one service",
+      "From supplier premises through to your address",
+      "Every leg coordinated by the same team",
     ],
     image: images.services.road,
   },
   {
-    id: 'customs',
+    id: "customs",
     icon: FileCheck2,
-    title: 'Customs Clearance',
-    tagline: 'Fast & efficient customs support',
+    title: "Customs Clearance",
+    tagline: "Import and export declarations",
     description:
-      'Crossing borders means forms, and getting them wrong causes delays. Our team prepares and checks the documents your shipment needs, so it moves through customs smoothly on both ends.',
+      "Incorrect or incomplete documentation is the most common cause of delay. Our team prepares and checks declarations, assesses duty, and manages clearance at both origin and destination.",
     points: [
-      'We prepare and coordinate the documents',
-      'Clear guidance on exactly what you need',
-      'We keep you posted through the whole process',
+      "Declarations prepared, checked, and lodged",
+      "Clear guidance on the documents required",
+      "Status reported at each stage of clearance",
     ],
     image: images.services.customs,
   },
   {
-    id: 'airport',
+    id: "airport",
     icon: Warehouse,
-    title: 'Airport Cargo Handling',
-    tagline: 'Professional handling at major airports',
+    title: "Warehousing and Airport Handling",
+    tagline: "Secure storage and cargo handling",
     description:
-      'Cargo needs careful hands on the ground. We manage acceptance, storage, and loading at major airports, so your goods are handled properly from the moment they arrive to the moment they fly.',
+      "We manage acceptance, storage, consolidation, and loading at major airports and at our own facilities, keeping cargo secure between legs of its journey.",
     points: [
-      'Trusted handling at all major airports',
-      'Secure acceptance, storage, and loading',
-      'Coordinated with your air freight booking',
+      "Short and long-term storage available",
+      "Secure acceptance, consolidation, and loading",
+      "Coordinated directly with your freight booking",
     ],
     image: images.services.airDetail,
   },
   {
-    id: 'vehicle',
+    id: "vehicle",
     icon: Car,
-    title: 'Vehicle Shipping',
-    tagline: 'Cars, trucks & heavy equipment',
+    title: "Vehicle Shipping",
+    tagline: "Cars, commercial vehicles, and machinery",
     description:
-      'Moving a vehicle or heavy machinery takes the right equipment and planning. We ship cars, trucks, and heavy equipment safely, arranging the loading, securing, and paperwork on your behalf.',
+      "Vehicles and heavy machinery require specific loading equipment and documentation. We arrange securing, shipping, and all associated paperwork by container or roll-on service.",
     points: [
-      'Cars, trucks, and heavy equipment',
-      'Safely loaded, secured, and documented',
-      'By sea or air, whichever suits best',
+      "Cars, commercial vehicles, and heavy equipment",
+      "Professionally loaded, secured, and documented",
+      "Shipped by sea or air according to requirement",
     ],
     image: images.operationsFloor,
   },
   {
-    id: 'import-export',
+    id: "import-export",
     icon: FileText,
-    title: 'Import & Export Support',
-    tagline: 'Documentation & consulting made easy',
+    title: "Import and Export Support",
+    tagline: "Documentation and trade advisory",
     description:
-      'New to importing or exporting? We guide you through it, from the paperwork to the right shipping method, so you can trade across borders with confidence and without the guesswork.',
+      "For first-time importers and established traders alike, we advise on documentation, compliance obligations, and the most suitable shipping method for the goods being moved.",
     points: [
-      'Documentation prepared and checked',
-      'Practical advice on rules and requirements',
-      'Support from first enquiry to final delivery',
+      "Documentation prepared and verified",
+      "Practical guidance on regulations and requirements",
+      "Support from first enquiry through to final delivery",
     ],
     image: images.about.secondary,
   },
-]
+];
 
 export default function Services() {
   useDocumentTitle(
-    'Freight Services · FNS Cargo',
-    'Air freight, sea freight, road freight, warehousing, and customs help between China and Somalia, from pickup to delivery, all in one place.',
-  )
+    "Freight Services | FNS Cargo",
+    "Air freight, sea freight, customs clearance, warehousing, vehicle shipping, and door-to-door delivery connecting Somalia with international markets.",
+  );
 
   return (
     <div>
       <PageHero
         eyebrow="What we do"
-        title="Cargo & logistics services for Somalia and the world"
-        description="From pickup to final delivery, we handle it all — air and sea freight, commercial cargo, customs, airport handling, vehicle shipping, and door-to-door delivery, connecting Somalia with markets worldwide."
+        title="Freight and logistics services"
+        description="Air freight, sea freight, commercial cargo, customs clearance, warehousing, vehicle shipping, and door-to-door delivery, connecting Somalia with international markets under one account."
       />
 
       <div className="container-page divide-y divide-steel-100">
         {SERVICES.map((service, index) => (
-          <section id={service.id} key={service.id} className="scroll-mt-24 py-16 sm:py-20">
+          <section
+            id={service.id}
+            key={service.id}
+            className="scroll-mt-24 py-16 sm:py-20"
+          >
             <div
               className={`grid grid-cols-1 items-center gap-10 lg:grid-cols-2 ${
-                index % 2 === 1 ? 'lg:[&>*:first-child]:order-2' : ''
+                index % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""
               }`}
             >
-              <Reveal className="group overflow-hidden rounded-2xl shadow-elevation-3">
+              <Reveal className="overflow-hidden rounded-card border border-steel-100">
                 <img
                   src={service.image.src}
                   alt={service.image.alt}
-                  className="h-80 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-96"
+                  width={1200}
+                  height={800}
+                  className="h-72 w-full object-cover sm:h-96"
                   loading="lazy"
+                  decoding="async"
                 />
               </Reveal>
               <Reveal delay={90}>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-navy-50 text-navy-700 ring-1 ring-navy-100">
-                  <service.icon className="h-6 w-6" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#ffe4d2] bg-[#ffe4d2]">
+                  {" "}
+                  <service.icon
+                    className="h-6 w-6  text-accent-600"
+                    strokeWidth={1.75}
+                  />
                 </div>
-                <h2 className="mt-5 text-balance text-2xl font-extrabold text-navy-900 sm:text-3xl">{service.title}</h2>
-                <p className="mt-1.5 text-sm font-semibold text-accent-600">{service.tagline}</p>
-                <p className="mt-4 text-pretty leading-relaxed text-steel-500">{service.description}</p>
-                <ul className="mt-5 space-y-2.5">
+                <h2 className="mt-5 text-balance text-2xl font-extrabold text-navy-900 sm:text-3xl">
+                  {service.title}
+                </h2>
+                <p className="mt-1.5 text-sm font-bold uppercase tracking-[0.1em] text-accent-600">
+                  {service.tagline}
+                </p>
+                <p className="mt-4 text-pretty leading-relaxed text-steel-500">
+                  {service.description}
+                </p>
+                <ul className="mt-6 space-y-3 border-t border-steel-100 pt-5">
                   {service.points.map((point) => (
-                    <li key={point} className="flex items-start gap-2.5 text-sm text-navy-700">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                    <li
+                      key={point}
+                      className="flex items-start gap-2.5 text-sm leading-relaxed text-navy-800"
+                    >
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-500" />
                       {point}
                     </li>
                   ))}
@@ -172,27 +207,39 @@ export default function Services() {
         ))}
       </div>
 
-      <section className="bg-steel-50 py-16">
-        <Reveal className="container-page flex flex-col items-center gap-5 text-center">
-          <h2 className="text-balance text-2xl font-extrabold text-navy-900 sm:text-3xl">Not sure which one you need?</h2>
-          <p className="max-w-lg text-pretty text-steel-500">
-            Tell us what you're shipping and when you need it, and we'll suggest the right mix of services for
-            your goods.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link to="/contact">
-              <Button variant="primary" size="lg" icon={<ArrowRight className="h-4 w-4" />} iconPosition="right">
-                Get a quote
-              </Button>
-            </Link>
-            <Link to="/tracking">
-              <Button variant="secondary" size="lg">
-                Track a shipment
-              </Button>
-            </Link>
-          </div>
-        </Reveal>
+      <section className="border-t border-steel-100   container-page py-16 text-center sm:py-20">
+        <h2 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">
+          Not sure which service you need?
+        </h2>
+        <p className="mx-auto mt-3 max-w-lg text-steel-500">
+          Send us your cargo details and required delivery date. We will
+          recommend the most suitable routing and quote accordingly.
+        </p>
+
+        <div className=" flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <Link
+            to="/contact"
+            className={`rounded-control mt-10  inline-block3 ${FOCUS_RING}`}
+          >
+            <Button
+              variant="accent"
+              size="lg"
+              icon={<ArrowRight className="h-4 w-4" />}
+              iconPosition="right"
+            >
+              Request a quote
+            </Button>
+          </Link>
+          <Link
+            to="/tracking"
+            className={`rounded-control  mt-10   ${FOCUS_RING}`}
+          >
+            <Button variant="secondary" size="lg">
+              Track a shipment
+            </Button>
+          </Link>
+        </div>
       </section>
     </div>
-  )
+  );
 }

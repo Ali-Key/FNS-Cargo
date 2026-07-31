@@ -25,7 +25,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>
 
 export default function Settings() {
-  useDocumentTitle('Settings · FNS Cargo')
+  useDocumentTitle('Settings | FNS Cargo')
   const toast = useToast()
 
   const [loading, setLoading] = useState(true)
@@ -91,7 +91,7 @@ export default function Settings() {
       <PageHeader title="Settings" description="Company details shown across the public website." />
 
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl">
-        <div className="rounded-2xl border border-steel-100 bg-white p-6 shadow-elevation-1 sm:p-8">
+        <div className="rounded-card border border-steel-100 bg-white p-6 shadow-elevation-1 sm:p-8">
           <div className="mb-6 flex items-center gap-2">
             <Building2 className="h-5 w-5 text-accent-500" />
             <h2 className="font-bold text-navy-900">Company information</h2>

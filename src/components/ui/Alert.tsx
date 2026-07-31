@@ -10,7 +10,7 @@ interface AlertProps extends HTMLAttributes<HTMLDivElement> {
 const ICONS = { info: Info, success: CheckCircle2, warning: AlertTriangle, error: XCircle }
 
 const STYLES: Record<NonNullable<AlertProps['variant']>, string> = {
-  info: 'border-blue-200 bg-blue-50 text-blue-800',
+  info: 'border-accent-200 bg-accent-50 text-accent-700',
   success: 'border-emerald-200 bg-emerald-50 text-emerald-800',
   warning: 'border-orange-200 bg-orange-50 text-orange-800',
   error: 'border-red-200 bg-red-50 text-red-800',

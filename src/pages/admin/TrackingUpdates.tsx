@@ -10,7 +10,7 @@ import {
   listRecentTrackingEvents,
   findShipmentByTracking,
 } from '@/services/trackingHistoryService'
-import type { ShipmentStatus, TrackingEventWithShipment } from '@/types'
+import type { ShipmentStatus, TrackingUpdateWithShipment } from '@/types'
 import { formatDateTime } from '@/utils/date'
 
 interface FoundShipment {
@@ -22,10 +22,10 @@ interface FoundShipment {
 }
 
 export default function TrackingUpdates() {
-  useDocumentTitle('Tracking Updates · FNS Cargo')
+  useDocumentTitle('Tracking Updates | FNS Cargo')
   const toast = useToast()
 
-  const [events, setEvents] = useState<TrackingEventWithShipment[]>([])
+  const [events, setEvents] = useState<TrackingUpdateWithShipment[]>([])
   const [loading, setLoading] = useState(true)
 
   const [query, setQuery] = useState('')
@@ -74,7 +74,7 @@ export default function TrackingUpdates() {
       />
 
       {/* Quick add by tracking number */}
-      <div className="rounded-2xl border border-steel-100 bg-white p-6 shadow-elevation-1">
+      <div className="rounded-card border border-steel-100 bg-white p-6 shadow-elevation-1">
         <h2 className="font-bold text-navy-900">Post an update</h2>
         <p className="mt-1 text-sm text-steel-500">Find a shipment by its tracking number to add a new event.</p>
         <form onSubmit={handleSearch} className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -122,7 +122,7 @@ export default function TrackingUpdates() {
       </div>
 
       {/* Recent events feed */}
-      <div className="rounded-2xl border border-steel-100 bg-white shadow-elevation-1">
+      <div className="rounded-card border border-steel-100 bg-white shadow-elevation-1">
         <div className="border-b border-steel-100 px-6 py-4">
           <h2 className="font-bold text-navy-900">Latest updates</h2>
         </div>
@@ -143,12 +143,12 @@ export default function TrackingUpdates() {
                 <MapPin className="h-4 w-4 shrink-0 text-steel-400" />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    {event.shipments && (
+                    {event.shipment && (
                       <Link
-                        to={`/dashboard/shipments/${event.shipments.id}`}
+                        to={`/dashboard/shipments/${event.shipment.id}`}
                         className="font-mono text-sm font-semibold text-navy-900 hover:text-accent-600"
                       >
-                        {event.shipments.tracking_number}
+                        {event.shipment.tracking_number}
                       </Link>
                     )}
                     <StatusBadge status={event.status as ShipmentStatus} />
@@ -159,7 +159,7 @@ export default function TrackingUpdates() {
                   </p>
                 </div>
                 <span className="whitespace-nowrap font-tabular text-xs text-steel-400">
-                  {formatDateTime(event.event_time)}
+                  {formatDateTime(`${event.date}T${event.time}`)}
                 </span>
               </li>
             ))}

@@ -2,9 +2,9 @@ import { CheckCircle2, Circle, MapPin } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { formatDateTime } from '@/utils/date'
 import { STATUS_STYLES, STATUS_LABEL } from '@/utils/status'
-import type { PublicTrackingHistoryEvent } from '@/types'
+import type { PublicTrackingEvent } from '@/types'
 
-export function TrackingTimeline({ events }: { events: PublicTrackingHistoryEvent[] }) {
+export function TrackingTimeline({ events }: { events: PublicTrackingEvent[] }) {
   if (events.length === 0) {
     return (
       <p className="rounded-card border border-dashed border-steel-200 px-4 py-6 text-center text-sm text-steel-500">
@@ -18,9 +18,10 @@ export function TrackingTimeline({ events }: { events: PublicTrackingHistoryEven
       {events.map((event, index) => {
         const style = STATUS_STYLES[event.status]
         const isLatest = index === 0
+        const timestamp = `${event.date}T${event.time}`
         return (
           <li
-            key={`${event.event_time}-${index}`}
+            key={event.id}
             className="relative animate-fade-up pb-8 pl-9 last:pb-0"
             style={{ animationDelay: `${index * 40}ms` }}
           >
@@ -42,8 +43,8 @@ export function TrackingTimeline({ events }: { events: PublicTrackingHistoryEven
 
             <div className="flex flex-wrap items-center gap-2">
               <span className={cn('text-sm font-bold', style.text)}>{STATUS_LABEL[event.status]}</span>
-              <time dateTime={event.event_time} className="text-xs font-medium text-steel-400 font-tabular">
-                {formatDateTime(event.event_time)}
+              <time dateTime={timestamp} className="text-xs font-medium text-steel-400 font-tabular">
+                {formatDateTime(timestamp)}
               </time>
             </div>
             <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-navy-700">

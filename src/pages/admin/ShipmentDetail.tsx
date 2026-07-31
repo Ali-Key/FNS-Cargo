@@ -10,14 +10,27 @@ import {
   User,
   Calendar,
   Weight,
+  Warehouse,
+  Receipt,
 } from 'lucide-react'
-import { Button, StatusBadge, Spinner, EmptyState } from '@/components/ui'
+import {
+  Button,
+  StatusBadge,
+  PaymentBadge,
+  InvoiceBadge,
+  Spinner,
+  EmptyState,
+} from '@/components/ui'
 import { ConfirmDialog } from '@/components/dashboard'
 import { ShipmentFormModal } from '@/components/dashboard/ShipmentFormModal'
 import { TrackingEventFormModal } from '@/components/dashboard/TrackingEventFormModal'
+import { InvoiceFormModal } from '@/components/dashboard/InvoiceFormModal'
+import { DeliveryProofCard } from '@/components/dashboard/DeliveryProofCard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
+import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { getShipment } from '@/services/shipmentsService'
+import { listInvoicesForShipment } from '@/services/financeService'
 import {
   listTrackingHistory,
   deleteTrackingEvent,
@@ -25,12 +38,18 @@ import {
 import { listCustomerOptions } from '@/services/customersService'
 import type {
   Customer,
+  Invoice,
   ShipmentStatus,
-  ShipmentTrackingHistory,
+  TrackingUpdate,
   ShipmentWithCustomer,
   ShippingMethod,
 } from '@/types'
-import { STATUS_ICON, STATUS_STYLES, SHIPPING_METHOD_LABEL } from '@/utils/status'
+import {
+  STATUS_ICON,
+  STATUS_STYLES,
+  SHIPPING_METHOD_LABEL,
+  isInvoiceOverdue,
+} from '@/utils/status'
 import { formatDate, formatDateTime } from '@/utils/date'
 import { formatWeight, formatCurrency } from '@/utils/format'
 
@@ -38,31 +57,37 @@ export default function ShipmentDetail() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
+  const { isAdmin } = useAuth()
 
   const [shipment, setShipment] = useState<ShipmentWithCustomer | null>(null)
-  const [history, setHistory] = useState<ShipmentTrackingHistory[]>([])
+  const [history, setHistory] = useState<TrackingUpdate[]>([])
+  const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(true)
   const [customerOptions, setCustomerOptions] = useState<Pick<Customer, 'id' | 'full_name'>[]>([])
 
+  const [invoiceOpen, setInvoiceOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [eventOpen, setEventOpen] = useState(false)
-  const [editingEvent, setEditingEvent] = useState<ShipmentTrackingHistory | null>(null)
-  const [deletingEvent, setDeletingEvent] = useState<ShipmentTrackingHistory | null>(null)
+  const [editingEvent, setEditingEvent] = useState<TrackingUpdate | null>(null)
+  const [deletingEvent, setDeletingEvent] = useState<TrackingUpdate | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
-  useDocumentTitle(shipment ? `${shipment.tracking_number} · FNS Cargo` : 'Shipment · FNS Cargo')
+  useDocumentTitle(shipment ? `${shipment.tracking_number} | FNS Cargo` : 'Shipment | FNS Cargo')
 
   const load = useCallback(async () => {
     try {
       const [s, h] = await Promise.all([getShipment(id), listTrackingHistory(id)])
       setShipment(s)
       setHistory(h)
+      // Invoices are admin-only at the RLS layer; asking as a dispatcher would
+      // just return an empty set, so skip the round trip entirely.
+      setInvoices(isAdmin ? await listInvoicesForShipment(id) : [])
     } catch {
       toast.error('Unable to load shipment', 'Please go back and try again.')
     } finally {
       setLoading(false)
     }
-  }, [id, toast])
+  }, [id, isAdmin, toast])
 
   useEffect(() => {
     load()
@@ -144,9 +169,10 @@ export default function ShipmentDetail() {
           </InfoCard>
 
           <InfoCard icon={Weight} title="Cargo">
-            <Row label="Weight" value={formatWeight(shipment.weight_kg)} mono />
-            <Row label="Pieces" value={String(shipment.pieces)} mono />
-            <Row label="Declared value" value={formatCurrency(shipment.declared_value)} mono />
+            <Row label="Cargo type" value={shipment.cargo_type} />
+            <Row label="Weight" value={formatWeight(shipment.weight)} mono />
+            <Row label="Price per kg" value={formatCurrency(shipment.price_per_kg, 2)} mono />
+            <Row label="Total price" value={formatCurrency(shipment.total_price, 2)} mono />
           </InfoCard>
 
           <InfoCard icon={Calendar} title="Dates">
@@ -155,24 +181,36 @@ export default function ShipmentDetail() {
             <Row label="Last updated" value={formatDate(shipment.updated_at)} mono />
           </InfoCard>
 
-          <InfoCard icon={User} title="Parties">
-            <Row label="Sender" value={shipment.sender_name} />
-            {shipment.sender_phone && <Row label="Sender phone" value={shipment.sender_phone} />}
-            <Row label="Receiver" value={shipment.receiver_name} />
-            {shipment.receiver_phone && <Row label="Receiver phone" value={shipment.receiver_phone} />}
-            {shipment.customers?.full_name && <Row label="Customer" value={shipment.customers.full_name} />}
+          <InfoCard icon={User} title="Customer">
+            <Row label="Name" value={shipment.customer_name} />
+            {shipment.customer?.email && <Row label="Account email" value={shipment.customer.email} />}
           </InfoCard>
 
-          {shipment.notes && (
-            <div className="rounded-2xl border border-steel-100 bg-white p-5 shadow-elevation-1">
-              <h3 className="text-sm font-bold text-navy-900">Internal notes</h3>
-              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-steel-600">{shipment.notes}</p>
+          <InfoCard icon={Warehouse} title="Operations">
+            <Row label="Warehouse" value={shipment.warehouse ?? 'Not set'} />
+            <Row label="Current location" value={shipment.current_location ?? 'Not set'} />
+            <Row label="Assigned to" value={shipment.assignee?.full_name ?? 'Unassigned'} />
+            {shipment.delivered_at && (
+              <Row label="Delivered" value={formatDateTime(shipment.delivered_at)} mono />
+            )}
+            <div className="flex items-center justify-between gap-4 pt-1 text-sm">
+              <dt className="text-steel-500">Payment</dt>
+              <dd>
+                <PaymentBadge status={shipment.payment_status} />
+              </dd>
             </div>
-          )}
+          </InfoCard>
+
+          <DeliveryProofCard
+            shipmentId={id}
+            proofPath={shipment.delivery_proof_url}
+            onChange={load}
+            canDelete={isAdmin}
+          />
         </div>
 
         {/* Tracking history */}
-        <div className="rounded-2xl border border-steel-100 bg-white shadow-elevation-1 lg:col-span-2">
+        <div className="rounded-card border border-steel-100 bg-white shadow-elevation-1 lg:col-span-2">
           <div className="flex items-center justify-between border-b border-steel-100 px-6 py-4">
             <h2 className="font-bold text-navy-900">Tracking history</h2>
             <Button
@@ -212,7 +250,9 @@ export default function ShipmentDetail() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-semibold text-navy-900">{event.location}</p>
-                          <p className="font-tabular text-xs text-steel-400">{formatDateTime(event.event_time)}</p>
+                          <p className="font-tabular text-xs text-steel-400">
+                            {formatDateTime(`${event.date}T${event.time}`)}
+                          </p>
                         </div>
                         <div className="flex items-center gap-1">
                           <button
@@ -245,6 +285,71 @@ export default function ShipmentDetail() {
           )}
         </div>
       </div>
+
+      {/* Billing — admin only, mirroring the invoices RLS policy. */}
+      {isAdmin && (
+        <div className="rounded-card border border-steel-100 bg-white shadow-elevation-1">
+          <div className="flex items-center justify-between border-b border-steel-100 px-6 py-4">
+            <div>
+              <h2 className="font-bold text-navy-900">Billing</h2>
+              <p className="mt-0.5 text-xs text-steel-500">
+                Invoices raised against this shipment and what has been collected.
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Plus className="h-4 w-4" />}
+              onClick={() => setInvoiceOpen(true)}
+            >
+              Raise invoice
+            </Button>
+          </div>
+
+          {invoices.length === 0 ? (
+            <EmptyState
+              icon={<Receipt className="h-6 w-6" />}
+              title="Not invoiced yet"
+              description={`This shipment prices out at ${formatCurrency(shipment.total_price, 2)}. Raise an invoice to bill it.`}
+            />
+          ) : (
+            <ul className="divide-y divide-steel-100">
+              {invoices.map((inv) => (
+                <li key={inv.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+                  <div className="min-w-0">
+                    <p className="font-mono text-sm font-semibold text-navy-900">{inv.invoice_number}</p>
+                    <p className="text-xs text-steel-500">
+                      Issued {formatDate(inv.issued_at)}
+                      {inv.due_date && ` · due ${formatDate(inv.due_date)}`}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="text-right">
+                      <p className="font-tabular text-sm font-bold text-navy-900">
+                        {formatCurrency(inv.amount, 2)}
+                      </p>
+                      <p className="font-tabular text-xs text-steel-500">
+                        {formatCurrency(inv.amount_paid, 2)} paid
+                      </p>
+                    </div>
+                    <InvoiceBadge
+                      status={inv.status}
+                      overdue={isInvoiceOverdue(inv.status, inv.due_date, inv.balance)}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      <InvoiceFormModal
+        open={invoiceOpen}
+        onClose={() => setInvoiceOpen(false)}
+        onSaved={load}
+        presetShipment={shipment}
+      />
 
       <ShipmentFormModal
         open={editOpen}
@@ -286,7 +391,7 @@ function InfoCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl border border-steel-100 bg-white p-5 shadow-elevation-1">
+    <div className="rounded-card border border-steel-100 bg-white p-5 shadow-elevation-1">
       <div className="mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-accent-500" />
         <h3 className="text-sm font-bold text-navy-900">{title}</h3>

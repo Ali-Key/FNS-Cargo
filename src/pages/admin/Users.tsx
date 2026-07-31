@@ -19,12 +19,12 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/context/ToastContext'
 import { useAuth } from '@/context/AuthContext'
 import { listDashboardUsers, updateUserRole, revokeUser } from '@/services/usersService'
-import type { AdminRole, DashboardUser } from '@/types'
-import { formatDate, formatRelativeToNow } from '@/utils/date'
+import type { UserRole, DashboardUser } from '@/types'
+import { formatDate } from '@/utils/date'
 import { initials } from '@/utils/format'
 
 export default function Users() {
-  useDocumentTitle('Users · FNS Cargo')
+  useDocumentTitle('Users | FNS Cargo')
   const toast = useToast()
   const { user } = useAuth()
 
@@ -50,13 +50,13 @@ export default function Users() {
     load()
   }, [load])
 
-  async function changeRole(row: DashboardUser, role: AdminRole) {
+  async function changeRole(row: DashboardUser, role: UserRole) {
     if (role === row.role) return
-    setSavingRole(row.admin_id)
+    setSavingRole(row.id)
     try {
-      await updateUserRole(row.admin_id, role)
-      setRows((prev) => prev.map((r) => (r.admin_id === row.admin_id ? { ...r, role } : r)))
-      toast.success('Role updated', `${row.email ?? 'This user'} is now ${role === 'admin' ? 'an admin' : 'staff'}.`)
+      await updateUserRole(row.id, role)
+      setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, role } : r)))
+      toast.success('Role updated', `${row.email} is now ${role === 'Admin' ? 'an admin' : 'a customer'}.`)
     } catch {
       toast.error('Unable to update role', 'Please try again in a moment.')
     } finally {
@@ -68,7 +68,7 @@ export default function Users() {
     if (!revoking) return
     setRevokeLoading(true)
     try {
-      await revokeUser(revoking.admin_id, revoking.email)
+      await revokeUser(revoking.id, revoking.email)
       toast.success('Access revoked', `${revoking.email ?? 'This user'} can no longer access the dashboard.`)
       setRevoking(null)
       load()
@@ -85,19 +85,19 @@ export default function Users() {
         title="Users"
         description="Manage who can access the operations dashboard."
         actions={
-          <Button variant="primary" icon={<UserPlus className="h-4 w-4" />} onClick={() => setCreateOpen(true)}>
+          <Button variant="accent" icon={<UserPlus className="h-4 w-4" />} onClick={() => setCreateOpen(true)}>
             Invite user
           </Button>
         }
       />
 
-      <div className="overflow-hidden rounded-2xl border border-steel-100 bg-white shadow-elevation-1">
+      <div className="overflow-hidden rounded-card border border-steel-100 bg-white shadow-elevation-1">
         <Table className="border-0">
           <TableHead>
             <TableRow>
               <TableHeadCell>User</TableHeadCell>
               <TableHeadCell>Role</TableHeadCell>
-              <TableHeadCell>Last sign in</TableHeadCell>
+              <TableHeadCell>Status</TableHeadCell>
               <TableHeadCell>Added</TableHeadCell>
               <TableHeadCell className="text-right">Actions</TableHeadCell>
             </TableRow>
@@ -113,41 +113,40 @@ export default function Users() {
               </tr>
             ) : (
               rows.map((u) => {
-                const isSelf = u.user_id === user?.id
+                const isSelf = u.auth_user_id === user?.id
                 return (
-                  <TableRow key={u.admin_id}>
+                  <TableRow key={u.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-100 text-xs font-bold uppercase text-navy-700">
-                          {initials(u.email ?? '?')}
+                          {initials(u.full_name || u.email)}
                         </span>
                         <div>
-                          <span className="font-medium text-navy-900">{u.email ?? '—'}</span>
+                          <span className="font-medium text-navy-900">{u.full_name}</span>
                           {isSelf && <span className="ml-2 text-xs font-medium text-steel-400">(you)</span>}
+                          <p className="text-xs text-steel-500">{u.email}</p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       {isSelf ? (
-                        <Badge variant={u.role === 'admin' ? 'info' : 'neutral'}>
-                          {u.role === 'admin' ? 'Admin' : 'Staff'}
-                        </Badge>
+                        <Badge variant={u.role === 'Admin' ? 'info' : 'neutral'}>{u.role}</Badge>
                       ) : (
                         <Select
                           aria-label={`Role for ${u.email}`}
                           className="h-9 w-32"
                           value={u.role}
-                          disabled={savingRole === u.admin_id}
-                          onChange={(e) => changeRole(u, e.target.value as AdminRole)}
+                          disabled={savingRole === u.id}
+                          onChange={(e) => changeRole(u, e.target.value as UserRole)}
                           options={[
-                            { value: 'staff', label: 'Staff' },
-                            { value: 'admin', label: 'Admin' },
+                            { value: 'Staff', label: 'Staff' },
+                            { value: 'Admin', label: 'Admin' },
                           ]}
                         />
                       )}
                     </TableCell>
-                    <TableCell className="font-tabular text-sm text-steel-500">
-                      {u.last_sign_in_at ? formatRelativeToNow(u.last_sign_in_at) : 'Never'}
+                    <TableCell>
+                      <Badge variant={u.status === 'Active' ? 'success' : 'neutral'}>{u.status}</Badge>
                     </TableCell>
                     <TableCell className="font-tabular text-sm text-steel-500">{formatDate(u.created_at)}</TableCell>
                     <TableCell>

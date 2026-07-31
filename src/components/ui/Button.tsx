@@ -15,7 +15,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_STYLES: Record<Variant, string> = {
   primary:
-    'bg-navy-800 text-white hover:bg-navy-900 hover:-translate-y-0.5 active:translate-y-0 shadow-elevation-2 hover:shadow-elevation-3 focus-visible:ring-navy-600 disabled:hover:translate-y-0 disabled:hover:bg-navy-800',
+    'bg-navy-800 text-white hover:bg-navy-900 shadow-elevation-2 hover:shadow-elevation-3 focus-visible:ring-navy-600 disabled:hover:bg-navy-800',
   secondary:
     'bg-white text-navy-800 border border-steel-200 hover:border-navy-300 hover:bg-navy-50 shadow-sm',
   outline:
@@ -23,7 +23,7 @@ const VARIANT_STYLES: Record<Variant, string> = {
   ghost: 'bg-transparent text-steel-600 hover:bg-steel-100 hover:text-navy-800',
   danger: 'bg-red-600 text-white hover:bg-red-700 shadow-elevation-2',
   accent:
-    'bg-accent-500 text-white hover:bg-accent-600 hover:-translate-y-0.5 active:translate-y-0 shadow-elevation-2 hover:shadow-accent-glow disabled:hover:translate-y-0',
+    'bg-accent-500 text-white hover:bg-accent-600 shadow-elevation-2 hover:shadow-elevation-3',
 }
 
 const SIZE_STYLES: Record<Size, string> = {
