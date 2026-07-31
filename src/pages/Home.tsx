@@ -239,7 +239,6 @@ export default function Home() {
                   </p>
                   <p className="mt-0.5 text-xs font-medium text-steel-500">
                     Growing global network
-
                   </p>
                 </div>
               </div>
@@ -248,7 +247,6 @@ export default function Home() {
         </div>
       </section>
 
-     
       {/* ACHIEVEMENTS — the numbers that build trust. */}
       <div className="container-page mt-10 sm:mt-12">
         <dl className="grid grid-cols-2 items-stretch gap-4 lg:grid-cols-4">
@@ -491,7 +489,7 @@ export default function Home() {
       </section>
 
       {/* CONTACT CTA */}
-<section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-yellow-700 py-16 text-white sm:py-24">
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-yellow-700 py-16 text-white sm:py-24">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-grid-pattern bg-[size:40px_40px] opacity-15"
@@ -502,8 +500,7 @@ export default function Home() {
         />
         <Reveal className="container-page relative flex flex-col items-center gap-6 text-center">
           <h2 className="max-w-xl text-balance text-3xl font-extrabold text-white sm:text-4xl">
-            Need help or want to 
-            ship cargo?
+            Need help or want to ship cargo?
           </h2>
           <p className="max-w-lg text-pretty text-white/85">
             Our team is ready to support you 24/7. Get a free quote, ask a
