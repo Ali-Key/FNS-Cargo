@@ -6,7 +6,10 @@
       "mcp__claude_ai_Supabase__apply_migration",
       "mcp__claude_ai_Supabase__get_advisors",
       "Bash(npm -v)",
-      "Bash(npm create *)"
+      "Bash(npm create *)",
+      "Bash(npm run *)",
+      "Bash(npx vite *)",
+      "Read(//tmp/**)"
     ]
   }
 }

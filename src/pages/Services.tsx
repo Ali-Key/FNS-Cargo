@@ -19,7 +19,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 // Shared focus-visible treatment for bare links (keyboard accessibility).
 const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2";
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2";
 
 const SERVICES = [
   {
@@ -162,7 +162,7 @@ export default function Services() {
                 index % 2 === 1 ? "lg:[&>*:first-child]:order-2" : ""
               }`}
             >
-              <Reveal className="overflow-hidden rounded-card border border-steel-100">
+              <Reveal className="overflow-hidden rounded-card border border-gray-200">
                 <img
                   src={service.image.src}
                   alt={service.image.alt}
@@ -174,29 +174,29 @@ export default function Services() {
                 />
               </Reveal>
               <Reveal delay={90}>
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#ffe4d2] bg-[#ffe4d2]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-primary-200 bg-primary-50">
                   {" "}
                   <service.icon
-                    className="h-6 w-6  text-accent-600"
+                    className="h-6 w-6  text-primary-600"
                     strokeWidth={1.75}
                   />
                 </div>
                 <h2 className="mt-5 text-balance text-2xl font-extrabold text-navy-900 sm:text-3xl">
                   {service.title}
                 </h2>
-                <p className="mt-1.5 text-sm font-bold uppercase tracking-[0.1em] text-accent-600">
+                <p className="mt-1.5 text-sm font-bold uppercase tracking-[0.1em] text-primary-600">
                   {service.tagline}
                 </p>
-                <p className="mt-4 text-pretty leading-relaxed text-steel-500">
+                <p className="mt-4 text-pretty leading-relaxed text-text-secondary">
                   {service.description}
                 </p>
-                <ul className="mt-6 space-y-3 border-t border-steel-100 pt-5">
+                <ul className="mt-6 space-y-3 border-t border-gray-200 pt-5">
                   {service.points.map((point) => (
                     <li
                       key={point}
                       className="flex items-start gap-2.5 text-sm leading-relaxed text-navy-800"
                     >
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent-500" />
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" />
                       {point}
                     </li>
                   ))}
@@ -207,25 +207,26 @@ export default function Services() {
         ))}
       </div>
 
-      <section className="border-t border-steel-100   container-page py-16 text-center sm:py-20">
+      <section className="border-t border-gray-200   container-page py-16 text-center sm:py-20">
         <h2 className="text-2xl font-extrabold text-navy-900 sm:text-3xl">
           Not sure which service you need?
         </h2>
-        <p className="mx-auto mt-3 max-w-lg text-steel-500">
+        <p className="mx-auto mt-3 max-w-lg text-text-secondary">
           Send us your cargo details and required delivery date. We will
           recommend the most suitable routing and quote accordingly.
         </p>
 
-        <div className=" flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+        <div className=" flex flex-col items-center gap-4 sm:flex-row sm:justify-center ">
           <Link
             to="/contact"
-            className={`rounded-control mt-10  inline-block3 ${FOCUS_RING}`}
+            className={`rounded-control mt-10  inline-block3 text-white      ${FOCUS_RING}`}
           >
             <Button
-              variant="accent"
+              variant="primary"
               size="lg"
-              icon={<ArrowRight className="h-4 w-4" />}
+              icon={<ArrowRight className="h-4 w-4" strokeWidth={2.5} />}
               iconPosition="right"
+              className="text-white"
             >
               Request a quote
             </Button>

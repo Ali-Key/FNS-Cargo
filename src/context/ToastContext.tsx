@@ -41,11 +41,11 @@ const ICONS: Record<ToastType, LucideIcon> = {
 
 // White-card treatment with a variant-tinted icon chip and progress bar —
 // color is always paired with an icon, never the sole signal.
-const VARIANT: Record<ToastType, { chip: string; bar: string; accent: string }> = {
-  success: { chip: 'bg-emerald-50 text-emerald-600', bar: 'bg-emerald-500', accent: 'ring-emerald-500/20' },
-  error: { chip: 'bg-red-50 text-red-600', bar: 'bg-red-500', accent: 'ring-red-500/20' },
-  warning: { chip: 'bg-amber-50 text-amber-600', bar: 'bg-amber-500', accent: 'ring-amber-500/20' },
-  info: { chip: 'bg-navy-50 text-navy-600', bar: 'bg-navy-500', accent: 'ring-navy-500/20' },
+const VARIANT: Record<ToastType, { chip: string; bar: string; primary: string }> = {
+  success: { chip: 'bg-success-50 text-success-600', bar: 'bg-success-500', primary: 'ring-success-500/20' },
+  error: { chip: 'bg-danger-50 text-danger-600', bar: 'bg-danger-500', primary: 'ring-danger-500/20' },
+  warning: { chip: 'bg-warning-50 text-warning-600', bar: 'bg-warning-500', primary: 'ring-warning-500/20' },
+  info: { chip: 'bg-navy-50 text-navy-600', bar: 'bg-navy-500', primary: 'ring-navy-500/20' },
 }
 
 // Errors linger longer so they can be read; successes clear quickly.
@@ -173,8 +173,8 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
       onBlur={resume}
       onTransitionEnd={handleTransitionEnd}
       className={cn(
-        'pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-card border border-steel-100 bg-white shadow-elevation-3 ring-1',
-        styles.accent,
+        'pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-3 ring-1',
+        styles.primary,
         'transition-all duration-240 ease-out-premium motion-reduce:transition-none',
         visible && !leaving ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0',
       )}
@@ -185,7 +185,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
         </span>
         <div className="flex-1 pt-0.5">
           <p className="text-sm font-semibold text-navy-900">{toast.title}</p>
-          {toast.description && <p className="mt-0.5 text-sm leading-snug text-steel-500">{toast.description}</p>}
+          {toast.description && <p className="mt-0.5 text-sm leading-snug text-text-secondary">{toast.description}</p>}
         </div>
         <button
           onClick={beginClose}

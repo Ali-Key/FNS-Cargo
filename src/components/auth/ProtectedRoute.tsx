@@ -17,9 +17,9 @@ export function ProtectedRoute({ allow }: ProtectedRouteProps) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-steel-50">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface">
         <Spinner className="h-7 w-7 text-navy-700" />
-        <p className="text-sm font-medium text-steel-500">Verifying access</p>
+        <p className="text-sm font-medium text-text-secondary">Verifying access</p>
       </div>
     )
   }
@@ -87,8 +87,8 @@ export function ProtectedRoute({ allow }: ProtectedRouteProps) {
 }
 
 const TONES = {
-  red: 'bg-red-50 text-red-600',
-  amber: 'bg-amber-50 text-amber-600',
+  red: 'bg-status-delayed/10 text-status-delayed',
+  amber: 'bg-warning-50 text-warning-600',
 } as const
 
 function Shell({
@@ -107,15 +107,15 @@ function Shell({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-steel-50 px-4">
-      <div className="w-full max-w-md rounded-card border border-steel-100 bg-white p-8 text-center shadow-elevation-2">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-surface px-4">
+      <div className="w-full max-w-md rounded-card border border-gray-200 bg-white p-8 text-center shadow-elevation-2">
         <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-card ${TONES[tone]}`}>
           {icon}
         </div>
         <h1 className="mt-5 text-xl font-bold text-navy-900">{title}</h1>
-        <p className="mt-2 text-sm leading-relaxed text-steel-500">{body}</p>
+        <p className="mt-2 text-sm leading-relaxed text-text-secondary">{body}</p>
         {detail && (
-          <p className="mt-3 rounded-control bg-steel-50 px-3 py-2 text-xs text-steel-500">{detail}</p>
+          <p className="mt-3 rounded-control bg-surface px-3 py-2 text-xs text-text-secondary">{detail}</p>
         )}
         <div className="mt-6 space-y-2">{children}</div>
       </div>

@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Save, Building2 } from 'lucide-react'
-import { Button, Input, Select, Textarea, Spinner } from '@/components/ui'
+import { Button, Input, Select, Textarea, SectionCard, Skeleton } from '@/components/ui'
 import { PageHeader } from '@/components/dashboard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/context/ToastContext'
@@ -80,8 +80,24 @@ export default function Settings() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Spinner className="h-7 w-7 text-navy-700" />
+      <div className="space-y-6">
+        <PageHeader title="Settings" description="Company details shown across the public website." />
+        <div className="max-w-3xl rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1 sm:p-8">
+          <Skeleton className="mb-6 h-5 w-48" />
+          <div className="space-y-5">
+            <Skeleton className="h-11 w-full" />
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <Skeleton className="h-11 w-full" />
+              <Skeleton className="h-11 w-full" />
+            </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <Skeleton className="h-11 w-full" />
+              <Skeleton className="h-11 w-full" />
+            </div>
+            <Skeleton className="h-11 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        </div>
       </div>
     )
   }
@@ -91,12 +107,7 @@ export default function Settings() {
       <PageHeader title="Settings" description="Company details shown across the public website." />
 
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl">
-        <div className="rounded-card border border-steel-100 bg-white p-6 shadow-elevation-1 sm:p-8">
-          <div className="mb-6 flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-accent-500" />
-            <h2 className="font-bold text-navy-900">Company information</h2>
-          </div>
-
+        <SectionCard icon={Building2} title="Company information" variant="form">
           <div className="space-y-5">
             <Input label="Company name" error={errors.company_name?.message} {...register('company_name')} />
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -125,7 +136,7 @@ export default function Settings() {
             <Textarea label="Address" rows={2} error={errors.company_address?.message} {...register('company_address')} />
           </div>
 
-          <div className="mt-8 flex justify-end border-t border-steel-100 pt-6">
+          <div className="mt-8 flex justify-end border-t border-gray-200 pt-6">
             <Button
               type="submit"
               variant="primary"
@@ -136,7 +147,7 @@ export default function Settings() {
               Save changes
             </Button>
           </div>
-        </div>
+        </SectionCard>
       </form>
     </div>
   )

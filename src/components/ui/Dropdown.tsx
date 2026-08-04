@@ -33,7 +33,7 @@ export function Dropdown({ trigger, items, align = 'right' }: DropdownProps) {
       {open && (
         <div
           className={cn(
-            'absolute z-30 mt-2 min-w-[180px] animate-fade-up rounded-card border border-steel-100 bg-white p-1.5 shadow-elevation-3',
+            'absolute z-30 mt-2 min-w-[180px] animate-fade-up rounded-card border border-gray-200 bg-white p-1.5 shadow-elevation-3',
             align === 'right' ? 'right-0' : 'left-0',
           )}
         >
@@ -45,8 +45,8 @@ export function Dropdown({ trigger, items, align = 'right' }: DropdownProps) {
                 setOpen(false)
               }}
               className={cn(
-                'flex w-full items-center gap-2 rounded-control px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-steel-50',
-                item.danger ? 'text-red-600 hover:bg-red-50' : 'text-navy-800',
+                'flex w-full items-center gap-2 rounded-control px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-surface',
+                item.danger ? 'text-status-delayed hover:bg-status-delayed/10' : 'text-navy-800',
               )}
             >
               {item.icon}

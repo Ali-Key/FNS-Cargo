@@ -85,7 +85,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
   return (
     <div
       className={cn(
-        'w-full rounded-card border border-steel-100 bg-white/95 p-5 backdrop-blur-xl sm:p-6',
+        'w-full rounded-card border border-gray-200 bg-white/95 p-5 backdrop-blur-xl sm:p-6',
         elevated && 'shadow-elevation-3',
         className,
       )}
@@ -94,7 +94,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
         <Input
           containerClassName="flex-1"
           inputSize="lg"
-          placeholder="FNS-2026-000123"
+          placeholder="FNS-CN-000123"
           value={value}
           onChange={handleChange}
           icon={<Search className="h-5 w-5" />}
@@ -103,13 +103,13 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
           autoComplete="off"
           spellCheck={false}
         />
-        <Button type="submit" variant="accent" size="lg" loading={state === 'loading'} className="sm:w-auto">
+        <Button type="submit" variant="primary" size="lg" loading={state === 'loading'} className="sm:w-auto text-white">
           Track shipment
         </Button>
       </form>
 
       {state === 'loading' && (
-        <div className="mt-6 space-y-4 border-t border-steel-100 pt-6">
+        <div className="mt-6 space-y-4 border-t border-gray-200 pt-6">
           <div className="flex items-center justify-between">
             <Skeleton className="h-6 w-28 rounded-full" />
             <Skeleton className="h-4 w-32" />
@@ -127,12 +127,12 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
       )}
 
       {state === 'notfound' && (
-        <div className="mt-6 flex flex-col items-center gap-3 border-t border-steel-100 pt-8 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-card bg-accent-50 text-accent-600">
+        <div className="mt-6 flex flex-col items-center gap-3 border-t border-gray-200 pt-8 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-card bg-primary-50 text-primary-600">
             <PackageX className="h-7 w-7" />
           </div>
           <h3 className="text-base font-bold text-navy-900">No shipment found</h3>
-          <p className="max-w-sm text-sm leading-relaxed text-steel-500">
+          <p className="max-w-sm text-sm leading-relaxed text-text-secondary">
             We could not match that tracking number. Check it against your booking confirmation and
             try again, or contact our team and we will locate the consignment for you.
           </p>
@@ -145,12 +145,12 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
       )}
 
       {state === 'error' && (
-        <div className="mt-6 flex flex-col items-center gap-3 border-t border-steel-100 pt-8 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-card bg-red-50 text-red-500">
+        <div className="mt-6 flex flex-col items-center gap-3 border-t border-gray-200 pt-8 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-card bg-status-delayed/10 text-status-delayed">
             <AlertCircle className="h-7 w-7" />
           </div>
           <h3 className="text-base font-bold text-navy-900">Tracking unavailable</h3>
-          <p className="max-w-sm text-sm leading-relaxed text-steel-500">
+          <p className="max-w-sm text-sm leading-relaxed text-text-secondary">
             We could not reach the tracking service. Please try again in a moment. If the problem
             continues, contact our operations team.
           </p>
@@ -163,13 +163,13 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
       )}
 
       {state === 'found' && result && (
-        <div className="mt-6 animate-fade-up border-t border-steel-100 pt-6" aria-live="polite">
+        <div className="mt-6 animate-fade-up border-t border-gray-200 pt-6" aria-live="polite">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <span className="font-mono font-tabular text-sm font-bold text-navy-900">{result.tracking_number}</span>
               <StatusBadge status={result.status} />
             </div>
-            <div className="flex items-center gap-1.5 text-sm font-medium text-steel-500">
+            <div className="flex items-center gap-1.5 text-sm font-medium text-text-secondary">
               <MethodIcon className="h-4 w-4 text-navy-500" />
               {SHIPPING_METHOD_LABEL[result.shipping_method]}
             </div>
@@ -206,7 +206,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
 
           <div className="mt-6">
             <p className="mb-4 flex items-center gap-1.5 text-sm font-bold text-navy-900">
-              <MapPin className="h-4 w-4 text-accent-500" />
+              <MapPin className="h-4 w-4 text-primary-500" />
               Tracking History
             </p>
             <TrackingTimeline events={result.events} />

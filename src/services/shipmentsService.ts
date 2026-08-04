@@ -10,10 +10,9 @@ import type {
   TablesUpdate,
 } from '@/types'
 import { logActivity } from './activityService'
+import { fetchAllRows } from '@/lib/exportBatch'
 
-export interface ShipmentListParams {
-  page: number
-  pageSize: number
+export interface ShipmentFilters {
   search?: string
   status?: ShipmentStatus | 'all'
   method?: ShippingMethod | 'all'
@@ -24,6 +23,11 @@ export interface ShipmentListParams {
   delayedOnly?: boolean
 }
 
+export interface ShipmentListParams extends ShipmentFilters {
+  page: number
+  pageSize: number
+}
+
 export interface ShipmentListResult {
   rows: ShipmentWithCustomer[]
   count: number
@@ -32,31 +36,30 @@ export interface ShipmentListResult {
 const LIST_SELECT =
   '*, customer:customers(id, full_name, email), assignee:profiles!shipments_assigned_to_fkey(id, full_name, avatar_url)'
 
-export async function listShipments(params: ShipmentListParams): Promise<ShipmentListResult> {
-  const { page, pageSize, search, status, method, payment, assignee, delayedOnly } = params
-  const from = (page - 1) * pageSize
-  const to = from + pageSize - 1
+function baseShipmentQuery() {
+  return supabase.from('shipments').select(LIST_SELECT, { count: 'exact' }).order('created_at', { ascending: false })
+}
 
-  let query = supabase
-    .from('shipments')
-    .select(LIST_SELECT, { count: 'exact' })
-    .order('created_at', { ascending: false })
-    .range(from, to)
+/** Shared filter application so the paginated list and the export sweep never drift apart. */
+function applyShipmentFilters(
+  query: ReturnType<typeof baseShipmentQuery>,
+  { search, status, method, payment, assignee, delayedOnly }: ShipmentFilters,
+) {
+  let q = query
+  if (status && status !== 'all') q = q.eq('status', status)
+  if (method && method !== 'all') q = q.eq('shipping_method', method)
+  if (payment && payment !== 'all') q = q.eq('payment_status', payment)
 
-  if (status && status !== 'all') query = query.eq('status', status)
-  if (method && method !== 'all') query = query.eq('shipping_method', method)
-  if (payment && payment !== 'all') query = query.eq('payment_status', payment)
-
-  if (assignee === 'unassigned') query = query.is('assigned_to', null)
-  else if (assignee && assignee !== 'all') query = query.eq('assigned_to', assignee)
+  if (assignee === 'unassigned') q = q.is('assigned_to', null)
+  else if (assignee && assignee !== 'all') q = q.eq('assigned_to', assignee)
 
   if (delayedOnly) {
-    query = query.neq('status', 'Delivered').lt('estimated_delivery', new Date().toISOString().slice(0, 10))
+    q = q.neq('status', 'Delivered').lt('estimated_delivery', new Date().toISOString().slice(0, 10))
   }
 
   if (search && search.trim()) {
     const term = search.trim().replace(/[%,]/g, '')
-    query = query.or(
+    q = q.or(
       [
         `tracking_number.ilike.%${term}%`,
         `customer_name.ilike.%${term}%`,
@@ -67,10 +70,26 @@ export async function listShipments(params: ShipmentListParams): Promise<Shipmen
       ].join(','),
     )
   }
+  return q
+}
 
-  const { data, error, count } = await query
+export async function listShipments(params: ShipmentListParams): Promise<ShipmentListResult> {
+  const { page, pageSize, ...filters } = params
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
+  const { data, error, count } = await applyShipmentFilters(baseShipmentQuery(), filters).range(from, to)
   if (error) throw error
   return { rows: (data as ShipmentWithCustomer[]) ?? [], count: count ?? 0 }
+}
+
+/** Every shipment matching the given filters, unpaginated — for exports (Excel list, PDF report). */
+export async function listShipmentsForExport(filters: ShipmentFilters): Promise<ShipmentWithCustomer[]> {
+  return fetchAllRows(async (from, to) => {
+    const { data, error, count } = await applyShipmentFilters(baseShipmentQuery(), filters).range(from, to)
+    if (error) throw error
+    return { rows: (data as ShipmentWithCustomer[]) ?? [], count: count ?? 0 }
+  })
 }
 
 export async function getShipment(id: string): Promise<ShipmentWithCustomer | null> {

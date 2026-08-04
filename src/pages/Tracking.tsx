@@ -9,7 +9,7 @@ const HELP_POINTS = [
     icon: PackageSearch,
     title: "Finding your tracking number",
     description:
-      "Your tracking number appears on the booking confirmation we issued. It follows the format FNS-2026-000123.",
+      "Your tracking number appears on the booking confirmation we issued. It follows the format FNS-CN-100001.",
   },
   {
     icon: Clock,
@@ -52,7 +52,7 @@ export default function Tracking() {
         </div>
       </section>
 
-      <section className="border-t border-steel-100 bg-steel-50 py-16 sm:py-20">
+      <section className="border-t border-gray-200 bg-surface py-16 sm:py-20">
         <div className="container-page">
           <h2 className="text-balance text-center text-2xl font-extrabold text-navy-900 sm:text-3xl">
             Tracking questions
@@ -62,12 +62,12 @@ export default function Tracking() {
             {HELP_POINTS.map((point) => (
               <div key={point.title} className="flex gap-4">
                 <point.icon
-                  className="h-5 w-5 shrink-0 text-accent-600"
+                  className="h-5 w-5 shrink-0 text-primary-600"
                   strokeWidth={1.75}
                 />
                 <div>
                   <dt className="font-bold text-navy-900">{point.title}</dt>
-                  <dd className="mt-1.5 text-sm leading-relaxed text-steel-500">
+                  <dd className="mt-1.5 text-sm leading-relaxed text-text-secondary">
                     {point.description}
                   </dd>
                 </div>
@@ -75,11 +75,11 @@ export default function Tracking() {
             ))}
           </dl>
 
-          <p className="mt-12 text-center text-sm text-steel-500">
+          <p className="mt-12 text-center text-sm text-text-secondary">
             Still need help?{" "}
             <Link
               to="/contact"
-              className="font-bold text-navy-800 underline underline-offset-4 transition-colors hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+              className="font-bold text-navy-800 underline underline-offset-4 transition-colors hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
             >
               Contact our operations team
             </Link>

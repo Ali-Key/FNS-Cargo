@@ -12,6 +12,7 @@ import {
   TableRow,
   EmptyState,
   SkeletonTableRows,
+  Avatar,
 } from '@/components/ui'
 import { PageHeader, ConfirmDialog } from '@/components/dashboard'
 import { CreateUserModal } from '@/components/dashboard/CreateUserModal'
@@ -21,7 +22,7 @@ import { useAuth } from '@/context/AuthContext'
 import { listDashboardUsers, updateUserRole, revokeUser } from '@/services/usersService'
 import type { UserRole, DashboardUser } from '@/types'
 import { formatDate } from '@/utils/date'
-import { initials } from '@/utils/format'
+import { activeVariant } from '@/utils/status'
 
 export default function Users() {
   useDocumentTitle('Users | FNS Cargo')
@@ -85,13 +86,13 @@ export default function Users() {
         title="Users"
         description="Manage who can access the operations dashboard."
         actions={
-          <Button variant="accent" icon={<UserPlus className="h-4 w-4" />} onClick={() => setCreateOpen(true)}>
+          <Button variant="primary" icon={<UserPlus className="h-4 w-4" />} onClick={() => setCreateOpen(true)}>
             Invite user
           </Button>
         }
       />
 
-      <div className="overflow-hidden rounded-card border border-steel-100 bg-white shadow-elevation-1">
+      <div className="overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1">
         <Table className="border-0">
           <TableHead>
             <TableRow>
@@ -118,13 +119,11 @@ export default function Users() {
                   <TableRow key={u.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-100 text-xs font-bold uppercase text-navy-700">
-                          {initials(u.full_name || u.email)}
-                        </span>
+                        <Avatar name={u.full_name || u.email} />
                         <div>
                           <span className="font-medium text-navy-900">{u.full_name}</span>
                           {isSelf && <span className="ml-2 text-xs font-medium text-steel-400">(you)</span>}
-                          <p className="text-xs text-steel-500">{u.email}</p>
+                          <p className="text-xs text-text-secondary">{u.email}</p>
                         </div>
                       </div>
                     </TableCell>
@@ -146,15 +145,15 @@ export default function Users() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={u.status === 'Active' ? 'success' : 'neutral'}>{u.status}</Badge>
+                      <Badge variant={activeVariant(u.status)}>{u.status}</Badge>
                     </TableCell>
-                    <TableCell className="font-tabular text-sm text-steel-500">{formatDate(u.created_at)}</TableCell>
+                    <TableCell className="font-tabular text-sm text-text-secondary">{formatDate(u.created_at)}</TableCell>
                     <TableCell>
                       <div className="flex justify-end">
                         {!isSelf && (
                           <button
                             onClick={() => setRevoking(u)}
-                            className="inline-flex items-center gap-1.5 rounded-control px-2.5 py-1.5 text-sm font-medium text-steel-500 hover:bg-red-50 hover:text-red-600"
+                            className="inline-flex items-center gap-1.5 rounded-control px-2.5 py-1.5 text-sm font-medium text-text-secondary hover:bg-status-delayed/10 hover:text-status-delayed"
                           >
                             <UserMinus className="h-4 w-4" /> Revoke
                           </button>

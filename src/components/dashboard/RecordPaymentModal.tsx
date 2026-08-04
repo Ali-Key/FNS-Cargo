@@ -100,21 +100,21 @@ export function RecordPaymentModal({ open, onClose, onSaved, invoice }: RecordPa
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {invoice && (
-          <div className="grid grid-cols-3 gap-3 rounded-lg border border-steel-200 bg-steel-50 px-4 py-3 text-center">
+          <div className="grid grid-cols-3 gap-3 rounded-lg border border-gray-300 bg-surface px-4 py-3 text-center">
             <div>
-              <p className="text-xs font-medium text-steel-500">Invoiced</p>
+              <p className="text-xs font-medium text-text-secondary">Invoiced</p>
               <p className="font-tabular text-sm font-bold text-navy-900">
                 {formatCurrency(invoice.amount, 2)}
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-steel-500">Paid</p>
+              <p className="text-xs font-medium text-text-secondary">Paid</p>
               <p className="font-tabular text-sm font-bold text-status-delivered">
                 {formatCurrency(invoice.amount_paid, 2)}
               </p>
             </div>
             <div>
-              <p className="text-xs font-medium text-steel-500">Balance</p>
+              <p className="text-xs font-medium text-text-secondary">Balance</p>
               <p className="font-tabular text-sm font-bold text-navy-900">{formatCurrency(balance, 2)}</p>
             </div>
           </div>

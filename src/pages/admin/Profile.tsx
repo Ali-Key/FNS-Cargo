@@ -1,9 +1,9 @@
-import { useRef, useState, type ReactNode } from 'react'
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { KeyRound, Mail, ShieldCheck, Upload, User } from 'lucide-react'
-import { Button, Input, Badge, Alert } from '@/components/ui'
+import { Button, Input, Badge, Alert, SectionCard, DetailRow, Avatar } from '@/components/ui'
 import { PageHeader } from '@/components/dashboard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/context/ToastContext'
@@ -57,28 +57,18 @@ export default function Profile() {
             onSaved={refreshProfile}
           />
 
-          <div className="rounded-card border border-steel-100 bg-white p-6 shadow-elevation-1">
-            <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-steel-500">Account</h2>
-            <dl className="mt-4 space-y-3 text-sm">
-              <Row label="Role">
+          <div className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1">
+            <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-text-secondary">Account</h2>
+            <dl className="mt-4 space-y-3">
+              <DetailRow label="Role" divider>
                 <Badge variant={role === 'Admin' ? 'info' : 'neutral'}>
                   <ShieldCheck className="h-3.5 w-3.5" />
                   {role === 'Admin' ? 'Administrator' : 'Staff'}
                 </Badge>
-              </Row>
-              <Row label="Status">
-                <span className="font-semibold text-navy-800">{profile?.status ?? 'Unknown'}</span>
-              </Row>
-              <Row label="Member since">
-                <span className="font-tabular font-medium text-navy-800">
-                  {formatDate(user?.created_at)}
-                </span>
-              </Row>
-              <Row label="Last sign in">
-                <span className="font-tabular font-medium text-navy-800">
-                  {formatDate(user?.last_sign_in_at)}
-                </span>
-              </Row>
+              </DetailRow>
+              <DetailRow label="Status" value={profile?.status ?? 'Unknown'} divider />
+              <DetailRow label="Member since" value={formatDate(user?.created_at)} mono divider />
+              <DetailRow label="Last sign in" value={formatDate(user?.last_sign_in_at)} mono divider />
             </dl>
           </div>
         </div>
@@ -90,27 +80,6 @@ export default function Profile() {
         </div>
       </div>
     </div>
-  )
-}
-
-function Row({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-steel-100 pb-3 last:border-0 last:pb-0">
-      <dt className="text-steel-500">{label}</dt>
-      <dd>{children}</dd>
-    </div>
-  )
-}
-
-function Section({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
-  return (
-    <section className="rounded-card border border-steel-100 bg-white p-6 shadow-elevation-1 sm:p-8">
-      <div className="mb-6 flex items-center gap-2.5">
-        {icon}
-        <h2 className="font-bold text-navy-900">{title}</h2>
-      </div>
-      {children}
-    </section>
   )
 }
 
@@ -151,33 +120,12 @@ function AvatarCard({
     }
   }
 
-  const initials = (profile?.full_name || email || 'U')
-    .split(' ')
-    .slice(0, 2)
-    .map((part) => part.charAt(0))
-    .join('')
-    .toUpperCase()
-
   return (
-    <div className="rounded-card border border-steel-100 bg-white p-6 text-center shadow-elevation-1">
-      <div className="mx-auto h-24 w-24 overflow-hidden rounded-full border border-steel-200 bg-navy-50">
-        {profile?.avatar_url ? (
-          <img
-            src={profile.avatar_url}
-            alt=""
-            className="h-full w-full object-cover"
-            width={96}
-            height={96}
-          />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center text-2xl font-bold text-navy-700">
-            {initials}
-          </span>
-        )}
-      </div>
+    <div className="rounded-card border border-gray-200 bg-white p-6 text-center shadow-elevation-1">
+      <Avatar name={profile?.full_name || email} src={profile?.avatar_url} size="xl" className="mx-auto" />
 
       <p className="mt-4 truncate font-bold text-navy-900">{profile?.full_name ?? ''}</p>
-      <p className="mt-0.5 truncate text-sm text-steel-500">{email}</p>
+      <p className="mt-0.5 truncate text-sm text-text-secondary">{email}</p>
 
       <input
         ref={inputRef}
@@ -190,7 +138,7 @@ function AvatarCard({
         }}
       />
       <Button
-        variant="secondary"
+        variant="primary"
         size="sm"
         className="mt-5 w-full"
         loading={busy}
@@ -243,7 +191,7 @@ function DetailsForm({
   }
 
   return (
-    <Section icon={<User className="h-5 w-5 text-accent-500" />} title="Personal details">
+    <SectionCard icon={User} title="Personal details" variant="form">
       <form onSubmit={handleSubmit(onSubmit)} className="grid max-w-xl gap-5 sm:grid-cols-2">
         <Input
           label="Full name"
@@ -265,7 +213,7 @@ function DetailsForm({
           </Button>
         </div>
       </form>
-    </Section>
+    </SectionCard>
   )
 }
 
@@ -299,7 +247,7 @@ function EmailForm({ currentEmail }: { currentEmail: string }) {
   }
 
   return (
-    <Section icon={<Mail className="h-5 w-5 text-accent-500" />} title="Sign-in email">
+    <SectionCard icon={Mail} title="Sign-in email" variant="form">
       {sent && (
         <Alert variant="info" className="mb-5" title="Confirmation required">
           We sent a confirmation link to your new address. The change takes effect once you open that
@@ -319,7 +267,7 @@ function EmailForm({ currentEmail }: { currentEmail: string }) {
           Update email
         </Button>
       </form>
-    </Section>
+    </SectionCard>
   )
 }
 
@@ -345,7 +293,7 @@ function PasswordForm() {
   }
 
   return (
-    <Section icon={<KeyRound className="h-5 w-5 text-accent-500" />} title="Password">
+    <SectionCard icon={KeyRound} title="Password" variant="form">
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-md space-y-5">
         <Input
           label="New password"
@@ -365,6 +313,6 @@ function PasswordForm() {
           Update password
         </Button>
       </form>
-    </Section>
+    </SectionCard>
   )
 }

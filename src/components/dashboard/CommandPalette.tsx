@@ -142,9 +142,9 @@ export function CommandPalette() {
         aria-label="Post tracking update"
         className="relative z-10 w-full max-w-lg animate-fade-up overflow-hidden rounded-card bg-white shadow-elevation-3"
       >
-        <div className="flex items-center justify-between border-b border-steel-100 px-5 py-3.5">
+        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3.5">
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-accent-500" />
+            <Zap className="h-4 w-4 text-primary-500" />
             <h2 className="text-sm font-bold text-navy-900">Quick tracking update</h2>
           </div>
           <button
@@ -165,7 +165,7 @@ export function CommandPalette() {
               value={form.tracking}
               onChange={(e) => setForm((f) => ({ ...f, tracking: e.target.value.toUpperCase() }))}
               placeholder="FNS-2026-000123"
-              className="h-11 w-full rounded-control border border-steel-200 bg-white pl-10 pr-3 font-mono text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+              className="h-11 w-full rounded-control border border-gray-300 bg-white pl-10 pr-3 font-mono text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
               aria-label="Tracking number"
               autoComplete="off"
             />
@@ -190,7 +190,7 @@ export function CommandPalette() {
                       'flex flex-col items-center gap-1 rounded-control border px-1 py-2 text-[11px] font-semibold transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500',
                       active
                         ? cn(style.bg, style.text, 'border-transparent ring-1', style.ring)
-                        : 'border-steel-200 text-steel-500 hover:border-navy-300 hover:text-navy-700',
+                        : 'border-gray-300 text-text-secondary hover:border-navy-300 hover:text-navy-700',
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -211,7 +211,7 @@ export function CommandPalette() {
                 value={form.country}
                 onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
                 placeholder="China"
-                className="h-11 w-full rounded-control border border-steel-200 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+                className="h-11 w-full rounded-control border border-gray-300 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
               />
             </div>
             <div>
@@ -222,7 +222,7 @@ export function CommandPalette() {
                 value={form.city}
                 onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
                 placeholder="Guangzhou"
-                className="h-11 w-full rounded-control border border-steel-200 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+                className="h-11 w-full rounded-control border border-gray-300 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
               />
             </div>
           </div>
@@ -238,7 +238,7 @@ export function CommandPalette() {
                 onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
                 list={listId}
                 placeholder="Guangzhou Port, China"
-                className="h-11 w-full rounded-control border border-steel-200 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+                className="h-11 w-full rounded-control border border-gray-300 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
               />
               <datalist id={listId}>
                 {locations.map((loc) => (
@@ -254,7 +254,7 @@ export function CommandPalette() {
                 type="datetime-local"
                 value={form.eventTime}
                 onChange={(e) => setForm((f) => ({ ...f, eventTime: e.target.value }))}
-                className="h-11 w-full rounded-control border border-steel-200 bg-white px-3 text-sm text-navy-900 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+                className="h-11 w-full rounded-control border border-gray-300 bg-white px-3 text-sm text-navy-900 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
               />
             </div>
           </div>
@@ -263,7 +263,7 @@ export function CommandPalette() {
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             placeholder="Description (optional): visible to the customer"
-            className="h-11 w-full rounded-control border border-steel-200 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+            className="h-11 w-full rounded-control border border-gray-300 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
           />
 
           <label className="flex items-center gap-2.5 text-sm text-steel-600">
@@ -276,10 +276,10 @@ export function CommandPalette() {
             Set the shipment’s current status to match this update
           </label>
 
-          {error && <p className="text-sm font-medium text-red-600">{error}</p>}
+          {error && <p className="text-sm font-medium text-status-delayed">{error}</p>}
         </div>
 
-        <div className="flex items-center justify-between border-t border-steel-100 bg-steel-50/60 px-5 py-3">
+        <div className="flex items-center justify-between border-t border-gray-200 bg-surface/60 px-5 py-3">
           <span className="flex items-center gap-1 text-xs text-steel-400">
             <CornerDownLeft className="h-3.5 w-3.5" />
             <kbd className="font-sans font-semibold">⌘</kbd>

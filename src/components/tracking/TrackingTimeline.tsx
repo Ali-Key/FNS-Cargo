@@ -7,7 +7,7 @@ import type { PublicTrackingEvent } from '@/types'
 export function TrackingTimeline({ events }: { events: PublicTrackingEvent[] }) {
   if (events.length === 0) {
     return (
-      <p className="rounded-card border border-dashed border-steel-200 px-4 py-6 text-center text-sm text-steel-500">
+      <p className="rounded-card border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-text-secondary">
         No tracking events have been recorded for this shipment yet.
       </p>
     )
@@ -51,7 +51,7 @@ export function TrackingTimeline({ events }: { events: PublicTrackingEvent[] }) 
               <MapPin className="h-3.5 w-3.5 text-steel-400" />
               {event.location}
             </p>
-            {event.description && <p className="mt-1 text-sm text-steel-500">{event.description}</p>}
+            {event.description && <p className="mt-1 text-sm text-text-secondary">{event.description}</p>}
           </li>
         )
       })}

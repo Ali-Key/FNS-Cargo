@@ -31,9 +31,9 @@ const SOCIAL_LINKS = [
 ]
 
 const focusRing =
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-950'
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-950'
 const linkClass = `rounded-control text-sm text-steel-400 transition-colors duration-180 ease-out-premium hover:text-white ${focusRing}`
-const headingClass = 'font-display text-xs font-bold uppercase tracking-[0.14em] text-accent-100'
+const headingClass = 'font-display text-xs font-bold uppercase tracking-[0.14em] text-primary-100'
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -49,7 +49,7 @@ export function Footer() {
   const whatsappNumber = settings.company_phone.replace(/[^\d]/g, '')
 
   return (
-    <footer className="border-t border-white/10 bg-navy-950 text-steel-300">
+    <footer className="border-t border-white/10 bg-navy-950 text-gray-300">
       <div className="container-page py-16 lg:py-20">
         <div className="grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-12">
           <div className="sm:col-span-2 lg:col-span-4">
@@ -65,7 +65,7 @@ export function Footer() {
                   <a
                     key={label}
                     href="#"
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-steel-300 transition-colors duration-180 ease-out-premium hover:border-accent-500/50 hover:bg-white/5 hover:text-accent-400 ${focusRing}`}
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-gray-300 transition-colors duration-180 ease-out-premium hover:border-primary-500/50 hover:bg-white/5 hover:text-primary-400 ${focusRing}`}
                     aria-label={`${settings.company_name} on ${label}`}
                   >
                     <Icon className="h-4 w-4" />
@@ -105,17 +105,17 @@ export function Footer() {
             <h4 className={headingClass}>Contact</h4>
             <ul className="mt-5 space-y-4 text-sm text-steel-400">
               <li className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" />
                 <span className="leading-relaxed">{settings.company_address}</span>
               </li>
               <li className="flex items-start gap-3">
-                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" />
+                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" />
                 <a href={`tel:${settings.company_phone}`} className={`rounded-control transition-colors hover:text-white ${focusRing}`}>
                   {settings.company_phone}
                 </a>
               </li>
               <li className="flex items-start gap-3">
-                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" />
+                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" />
                 <a
                   href={`mailto:${settings.company_email}`}
                   className={`rounded-control break-all transition-colors hover:text-white ${focusRing}`}
@@ -125,7 +125,7 @@ export function Footer() {
               </li>
               {settings.company_website && (
                 <li className="flex items-start gap-3">
-                  <Globe className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" />
+                  <Globe className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" />
                   <span>{settings.company_website.replace(/^https?:\/\//, '')}</span>
                 </li>
               )}
@@ -135,7 +135,7 @@ export function Footer() {
                 href={`https://wa.me/+252611189286`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`mt-6 inline-flex items-center gap-2.5 rounded-control border border-accent-500/40 px-4 py-2.5 text-sm font-semibold text-accent-100 transition-colors duration-180 ease-out-premium hover:border-accent-400 hover:bg-accent-500/10 hover:text-accent-25 ${focusRing}`}
+                className={`mt-6 inline-flex items-center gap-2.5 rounded-control border border-primary-500/40 px-4 py-2.5 text-sm font-semibold text-primary-100 transition-colors duration-180 ease-out-premium hover:border-primary-400 hover:bg-primary-500/10 hover:text-primary-25 ${focusRing}`}
               >
                 <WhatsAppIcon className="h-4 w-4" />
                 Chat on WhatsApp
@@ -144,7 +144,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-xs text-steel-500 sm:flex-row lg:mt-16">
+        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-xs text-text-secondary sm:flex-row lg:mt-16">
           <p>
             &copy; {year} {settings.company_name}. All rights reserved.
           </p>

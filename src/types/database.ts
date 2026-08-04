@@ -417,7 +417,6 @@ export type Database = {
       }
       system_settings: {
         Row: {
-          company_whatsapp: ReactNode
           company_address: string
           company_email: string
           company_name: string

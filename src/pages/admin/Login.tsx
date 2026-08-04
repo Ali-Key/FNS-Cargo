@@ -84,7 +84,7 @@ return (
           </h1>
 
 
-          <p className="mt-3 text-sm leading-relaxed text-steel-500">
+          <p className="mt-3 text-sm leading-relaxed text-text-secondary">
             Access the FNS Cargo operations portal to manage shipments,
             tracking, and customers.
           </p>
@@ -165,7 +165,7 @@ return (
 
             <Button
               type="submit"
-              variant="accent"
+              variant="primary"
               size="lg"
               className="w-full"
               loading={isSubmitting}
@@ -189,14 +189,14 @@ return (
               gap-2.5
               rounded-xl
               border
-              border-[#ffe4d2]
-              bg-[#fff3eb]
+              border-primary-200
+              bg-primary-50
               px-4
               py-3
             "
           >
 
-            <ShieldCheck className="mt-0.5 h-4 w-4 text-accent-600" />
+            <ShieldCheck className="mt-0.5 h-4 w-4 text-primary-600" />
 
             <p className="text-xs leading-relaxed text-steel-600">
               Authorised FNS Cargo staff only. Account activity is monitored.
@@ -301,7 +301,7 @@ return (
             font-bold
             uppercase
             tracking-[0.18em]
-            text-accent-400
+            text-primary-400
           "
         >
           FNS Cargo Operations
@@ -330,7 +330,7 @@ return (
             max-w-lg
             text-lg
             leading-relaxed
-            text-steel-300
+            text-gray-300
           "
         >
           Manage shipments, monitor tracking updates,

@@ -16,9 +16,9 @@ export function Pagination({ page, pageCount, onPageChange, totalItems, pageSize
   const end = totalItems && pageSize ? Math.min(page * pageSize, totalItems) : null
 
   return (
-    <div className="flex flex-col items-center justify-between gap-3 border-t border-steel-100 px-4 py-3.5 sm:flex-row">
+    <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-200 px-4 py-3.5 sm:flex-row">
       {totalItems !== undefined && (
-        <p className="text-sm text-steel-500">
+        <p className="text-sm text-text-secondary">
           Showing <span className="font-semibold text-navy-800">{start}</span>–
           <span className="font-semibold text-navy-800">{end}</span> of{' '}
           <span className="font-semibold text-navy-800">{totalItems}</span>
@@ -28,7 +28,7 @@ export function Pagination({ page, pageCount, onPageChange, totalItems, pageSize
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 1}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-control border border-steel-200 text-steel-600 transition hover:bg-steel-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-control border border-gray-300 text-steel-600 transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Previous page"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -40,7 +40,7 @@ export function Pagination({ page, pageCount, onPageChange, totalItems, pageSize
           onClick={() => onPageChange(page + 1)}
           disabled={page >= pageCount}
           className={cn(
-            'inline-flex h-9 w-9 items-center justify-center rounded-control border border-steel-200 text-steel-600 transition hover:bg-steel-50 disabled:cursor-not-allowed disabled:opacity-40',
+            'inline-flex h-9 w-9 items-center justify-center rounded-control border border-gray-300 text-steel-600 transition hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40',
           )}
           aria-label="Next page"
         >

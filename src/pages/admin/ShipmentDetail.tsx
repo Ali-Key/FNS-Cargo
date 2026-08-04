@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
-  ArrowLeft,
   Pencil,
   Plus,
   Trash2,
@@ -18,10 +17,13 @@ import {
   StatusBadge,
   PaymentBadge,
   InvoiceBadge,
-  Spinner,
   EmptyState,
+  SectionCard,
+  DetailRow,
+  Skeleton,
+  SkeletonText,
 } from '@/components/ui'
-import { ConfirmDialog } from '@/components/dashboard'
+import { PageHeader, ConfirmDialog } from '@/components/dashboard'
 import { ShipmentFormModal } from '@/components/dashboard/ShipmentFormModal'
 import { TrackingEventFormModal } from '@/components/dashboard/TrackingEventFormModal'
 import { InvoiceFormModal } from '@/components/dashboard/InvoiceFormModal'
@@ -49,6 +51,7 @@ import {
   STATUS_STYLES,
   SHIPPING_METHOD_LABEL,
   isInvoiceOverdue,
+  isShipmentDelayed,
 } from '@/utils/status'
 import { formatDate, formatDateTime } from '@/utils/date'
 import { formatWeight, formatCurrency } from '@/utils/format'
@@ -115,11 +118,7 @@ export default function ShipmentDetail() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Spinner className="h-7 w-7 text-navy-700" />
-      </div>
-    )
+    return <ShipmentDetailSkeleton />
   }
 
   if (!shipment) {
@@ -141,65 +140,59 @@ export default function ShipmentDetail() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link
-          to="/dashboard/shipments"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-steel-500 hover:text-navy-800"
-        >
-          <ArrowLeft className="h-4 w-4" /> All shipments
-        </Link>
-        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-mono text-2xl font-bold text-navy-900">{shipment.tracking_number}</h1>
-            <StatusBadge status={status} />
-          </div>
-          <Button variant="secondary" icon={<Pencil className="h-4 w-4" />} onClick={() => setEditOpen(true)}>
+      <PageHeader
+        back={{ to: '/dashboard/shipments', label: 'All shipments' }}
+        title={
+          <span className="flex flex-wrap items-center gap-3">
+            <span className="font-mono">{shipment.tracking_number}</span>
+            <StatusBadge status={status} delayed={isShipmentDelayed(status, shipment.estimated_delivery)} />
+          </span>
+        }
+        actions={
+          <Button variant="primary" icon={<Pencil className="h-4 w-4" />} onClick={() => setEditOpen(true)}>
             Edit shipment
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
-          <InfoCard icon={MapPin} title="Route">
-            <Row label="Origin" value={shipment.origin} />
-            <Row label="Destination" value={shipment.destination} />
-            <Row label="Method" value={SHIPPING_METHOD_LABEL[shipment.shipping_method as ShippingMethod]} />
-          </InfoCard>
+          <SectionCard icon={MapPin} title="Route" variant="compact">
+            <DetailRow label="Origin" value={shipment.origin} />
+            <DetailRow label="Destination" value={shipment.destination} />
+            <DetailRow label="Method" value={SHIPPING_METHOD_LABEL[shipment.shipping_method as ShippingMethod]} />
+          </SectionCard>
 
-          <InfoCard icon={Weight} title="Cargo">
-            <Row label="Cargo type" value={shipment.cargo_type} />
-            <Row label="Weight" value={formatWeight(shipment.weight)} mono />
-            <Row label="Price per kg" value={formatCurrency(shipment.price_per_kg, 2)} mono />
-            <Row label="Total price" value={formatCurrency(shipment.total_price, 2)} mono />
-          </InfoCard>
+          <SectionCard icon={Weight} title="Cargo" variant="compact">
+            <DetailRow label="Cargo type" value={shipment.cargo_type} />
+            <DetailRow label="Weight" value={formatWeight(shipment.weight)} mono />
+            <DetailRow label="Price per kg" value={formatCurrency(shipment.price_per_kg, 2)} mono />
+            <DetailRow label="Total price" value={formatCurrency(shipment.total_price, 2)} mono />
+          </SectionCard>
 
-          <InfoCard icon={Calendar} title="Dates">
-            <Row label="Created" value={formatDate(shipment.created_at)} mono />
-            <Row label="Est. delivery" value={formatDate(shipment.estimated_delivery)} mono />
-            <Row label="Last updated" value={formatDate(shipment.updated_at)} mono />
-          </InfoCard>
+          <SectionCard icon={Calendar} title="Dates" variant="compact">
+            <DetailRow label="Created" value={formatDate(shipment.created_at)} mono />
+            <DetailRow label="Est. delivery" value={formatDate(shipment.estimated_delivery)} mono />
+            <DetailRow label="Last updated" value={formatDate(shipment.updated_at)} mono />
+          </SectionCard>
 
-          <InfoCard icon={User} title="Customer">
-            <Row label="Name" value={shipment.customer_name} />
-            {shipment.customer?.email && <Row label="Account email" value={shipment.customer.email} />}
-          </InfoCard>
+          <SectionCard icon={User} title="Customer" variant="compact">
+            <DetailRow label="Name" value={shipment.customer_name} />
+            {shipment.customer?.email && <DetailRow label="Account email" value={shipment.customer.email} />}
+          </SectionCard>
 
-          <InfoCard icon={Warehouse} title="Operations">
-            <Row label="Warehouse" value={shipment.warehouse ?? 'Not set'} />
-            <Row label="Current location" value={shipment.current_location ?? 'Not set'} />
-            <Row label="Assigned to" value={shipment.assignee?.full_name ?? 'Unassigned'} />
+          <SectionCard icon={Warehouse} title="Operations" variant="compact">
+            <DetailRow label="Warehouse" value={shipment.warehouse ?? 'Not set'} />
+            <DetailRow label="Current location" value={shipment.current_location ?? 'Not set'} />
+            <DetailRow label="Assigned to" value={shipment.assignee?.full_name ?? 'Unassigned'} />
             {shipment.delivered_at && (
-              <Row label="Delivered" value={formatDateTime(shipment.delivered_at)} mono />
+              <DetailRow label="Delivered" value={formatDateTime(shipment.delivered_at)} mono />
             )}
-            <div className="flex items-center justify-between gap-4 pt-1 text-sm">
-              <dt className="text-steel-500">Payment</dt>
-              <dd>
-                <PaymentBadge status={shipment.payment_status} />
-              </dd>
-            </div>
-          </InfoCard>
+            <DetailRow label="Payment">
+              <PaymentBadge status={shipment.payment_status} />
+            </DetailRow>
+          </SectionCard>
 
           <DeliveryProofCard
             shipmentId={id}
@@ -210,9 +203,11 @@ export default function ShipmentDetail() {
         </div>
 
         {/* Tracking history */}
-        <div className="rounded-card border border-steel-100 bg-white shadow-elevation-1 lg:col-span-2">
-          <div className="flex items-center justify-between border-b border-steel-100 px-6 py-4">
-            <h2 className="font-bold text-navy-900">Tracking history</h2>
+        <SectionCard
+          title="Tracking history"
+          flush
+          className="lg:col-span-2"
+          action={
             <Button
               variant="primary"
               size="sm"
@@ -224,8 +219,8 @@ export default function ShipmentDetail() {
             >
               Add event
             </Button>
-          </div>
-
+          }
+        >
           {history.length === 0 ? (
             <EmptyState
               icon={<MapPin className="h-6 w-6" />}
@@ -267,7 +262,7 @@ export default function ShipmentDetail() {
                           </button>
                           <button
                             onClick={() => setDeletingEvent(event)}
-                            className="rounded-control p-1.5 text-steel-400 hover:bg-red-50 hover:text-red-600"
+                            className="rounded-control p-1.5 text-steel-400 hover:bg-status-delayed/10 hover:text-status-delayed"
                             aria-label="Delete event"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -283,19 +278,16 @@ export default function ShipmentDetail() {
               })}
             </ol>
           )}
-        </div>
+        </SectionCard>
       </div>
 
       {/* Billing — admin only, mirroring the invoices RLS policy. */}
       {isAdmin && (
-        <div className="rounded-card border border-steel-100 bg-white shadow-elevation-1">
-          <div className="flex items-center justify-between border-b border-steel-100 px-6 py-4">
-            <div>
-              <h2 className="font-bold text-navy-900">Billing</h2>
-              <p className="mt-0.5 text-xs text-steel-500">
-                Invoices raised against this shipment and what has been collected.
-              </p>
-            </div>
+        <SectionCard
+          title="Billing"
+          description="Invoices raised against this shipment and what has been collected."
+          flush
+          action={
             <Button
               variant="primary"
               size="sm"
@@ -304,8 +296,8 @@ export default function ShipmentDetail() {
             >
               Raise invoice
             </Button>
-          </div>
-
+          }
+        >
           {invoices.length === 0 ? (
             <EmptyState
               icon={<Receipt className="h-6 w-6" />}
@@ -318,7 +310,7 @@ export default function ShipmentDetail() {
                 <li key={inv.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
                   <div className="min-w-0">
                     <p className="font-mono text-sm font-semibold text-navy-900">{inv.invoice_number}</p>
-                    <p className="text-xs text-steel-500">
+                    <p className="text-xs text-text-secondary">
                       Issued {formatDate(inv.issued_at)}
                       {inv.due_date && ` · due ${formatDate(inv.due_date)}`}
                     </p>
@@ -328,7 +320,7 @@ export default function ShipmentDetail() {
                       <p className="font-tabular text-sm font-bold text-navy-900">
                         {formatCurrency(inv.amount, 2)}
                       </p>
-                      <p className="font-tabular text-xs text-steel-500">
+                      <p className="font-tabular text-xs text-text-secondary">
                         {formatCurrency(inv.amount_paid, 2)} paid
                       </p>
                     </div>
@@ -341,7 +333,7 @@ export default function ShipmentDetail() {
               ))}
             </ul>
           )}
-        </div>
+        </SectionCard>
       )}
 
       <InvoiceFormModal
@@ -381,31 +373,34 @@ export default function ShipmentDetail() {
   )
 }
 
-function InfoCard({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: typeof MapPin
-  title: string
-  children: React.ReactNode
-}) {
+/** Mirrors the loaded layout's shape so the swap from skeleton to data causes no layout shift. */
+function ShipmentDetailSkeleton() {
   return (
-    <div className="rounded-card border border-steel-100 bg-white p-5 shadow-elevation-1">
-      <div className="mb-3 flex items-center gap-2">
-        <Icon className="h-4 w-4 text-accent-500" />
-        <h3 className="text-sm font-bold text-navy-900">{title}</h3>
+    <div className="space-y-6">
+      <div className="border-b border-gray-200 pb-5">
+        <Skeleton className="mb-3 h-4 w-28" />
+        <Skeleton className="h-8 w-64" />
       </div>
-      <dl className="space-y-2">{children}</dl>
-    </div>
-  )
-}
-
-function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div className="flex items-center justify-between gap-4 text-sm">
-      <dt className="text-steel-500">{label}</dt>
-      <dd className={`text-right font-medium text-navy-800 ${mono ? 'font-tabular' : ''}`}>{value}</dd>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-1">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-card border border-gray-200 bg-white p-5 shadow-elevation-1">
+              <Skeleton className="mb-3 h-4 w-24" />
+              <SkeletonText lines={3} />
+            </div>
+          ))}
+        </div>
+        <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1 lg:col-span-2">
+          <div className="border-b border-gray-200 px-6 py-4">
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <div className="space-y-4 p-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

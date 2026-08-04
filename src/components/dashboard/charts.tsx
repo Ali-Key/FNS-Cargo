@@ -23,23 +23,23 @@ import type {
   MixPoint,
 } from '@/types'
 import { SHIPMENT_STATUSES } from '@/types'
-import { STATUS_LABEL, STATUS_HEX } from '@/utils/status'
+import { STATUS_LABEL, STATUS_HEX, NAVY_HEX, primary_HEX } from '@/utils/status'
 import { formatCurrency } from '@/utils/format'
 
 // Shared chart chrome so every surface reads as one system.
-const AXIS = { fontSize: 12, fill: '#5a6673' } as const
+const AXIS = { fontSize: 12, fill: '#64748b' } as const
 const TOOLTIP = {
-  contentStyle: { borderRadius: 10, border: '1px solid #e5e8ec', fontSize: 13 },
-  labelStyle: { fontWeight: 600, color: '#0f1720' },
+  contentStyle: { borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 13 },
+  labelStyle: { fontWeight: 600, color: '#0f172a' },
 } as const
 
-const NAVY = '#1b3a5c'
-const ACCENT = '#f26b1d'
-const GREEN = '#0f8a54'
-const STEEL = '#94a3b1'
+const NAVY = NAVY_HEX
+const primary = primary_HEX
+const GREEN = '#16a34a'
+const STEEL = '#94a3b8'
 
 /** Categorical ramp for mix charts, ordered so neighbours stay distinguishable. */
-const MIX_COLORS = [NAVY, ACCENT, GREEN, '#5b7fa6', '#d97706', '#7c8b99', '#2d5f8a', '#b45309']
+const MIX_COLORS = [NAVY, primary, GREEN, '#5b7fa6', '#f59e0b', '#7c8b99', '#2d5f8a', '#b45309']
 
 export function StatusMixChart({ byStatus }: { byStatus: Partial<Record<ShipmentStatus, number>> }) {
   const data = SHIPMENT_STATUSES.map((s) => ({ status: s, label: STATUS_LABEL[s], value: byStatus[s] ?? 0 })).filter(
@@ -104,8 +104,8 @@ export function VolumeChart({ data }: { data: MonthlyVolumePoint[] }) {
         <AreaChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
           <defs>
             <linearGradient id="volumeFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f26b1d" stopOpacity={0.28} />
-              <stop offset="100%" stopColor="#f26b1d" stopOpacity={0} />
+              <stop offset="0%" stopColor={primary} stopOpacity={0.28} />
+              <stop offset="100%" stopColor={primary} stopOpacity={0} />
             </linearGradient>
           </defs>
           <XAxis
@@ -129,10 +129,10 @@ export function VolumeChart({ data }: { data: MonthlyVolumePoint[] }) {
           <Area
             type="monotone"
             dataKey="shipments"
-            stroke="#f26b1d"
+            stroke={primary}
             strokeWidth={2.5}
             fill="url(#volumeFill)"
-            dot={{ r: 3, fill: '#f26b1d' }}
+            dot={{ r: 3, fill: primary }}
             activeDot={{ r: 5 }}
           />
         </AreaChart>
@@ -201,7 +201,7 @@ export function CustomerGrowthChart({ data }: { data: CustomerGrowthPoint[] }) {
           <YAxis allowDecimals={false} tick={AXIS} axisLine={false} tickLine={false} width={36} />
           <Tooltip {...TOOLTIP} cursor={{ fill: '#f5f7f9' }} />
           <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-          <Bar dataKey="new_customers" name="New" fill={ACCENT} radius={[4, 4, 0, 0]} maxBarSize={36} />
+          <Bar dataKey="new_customers" name="New" fill={primary} radius={[4, 4, 0, 0]} maxBarSize={36} />
           <Bar dataKey="total" name="Total" fill={NAVY} radius={[4, 4, 0, 0]} maxBarSize={36} />
         </BarChart>
       </ResponsiveContainer>

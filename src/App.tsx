@@ -24,7 +24,9 @@ const ShipmentDetail = lazy(() => import('@/pages/admin/ShipmentDetail'))
 const TrackingUpdates = lazy(() => import('@/pages/admin/TrackingUpdates'))
 const Customers = lazy(() => import('@/pages/admin/Customers'))
 const Quotes = lazy(() => import('@/pages/admin/Quotes'))
-const Finance = lazy(() => import('@/pages/admin/Finance'))
+const Invoices = lazy(() => import('@/pages/admin/Invoices'))
+const Payments = lazy(() => import('@/pages/admin/Payments'))
+const Reports = lazy(() => import('@/pages/admin/Reports'))
 const Analytics = lazy(() => import('@/pages/admin/Analytics'))
 const Users = lazy(() => import('@/pages/admin/Users'))
 const Settings = lazy(() => import('@/pages/admin/Settings'))
@@ -32,7 +34,7 @@ const Profile = lazy(() => import('@/pages/admin/Profile'))
 
 function RouteFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-steel-50">
+    <div className="flex min-h-screen items-center justify-center bg-surface">
       <Spinner className="h-7 w-7 text-navy-700" />
     </div>
   )
@@ -67,7 +69,9 @@ export default function App() {
             {/* Admin-only areas. Finance and Analytics expose revenue, which the
                 invoices RLS policy and analytics_report() also restrict to admins. */}
             <Route element={<ProtectedRoute allow={['Admin']} />}>
-              <Route path="/dashboard/finance" element={<Finance />} />
+              <Route path="/dashboard/payments" element={<Payments />} />
+              <Route path="/dashboard/invoices" element={<Invoices />} />
+              <Route path="/dashboard/reports" element={<Reports />} />
               <Route path="/dashboard/analytics" element={<Analytics />} />
               <Route path="/dashboard/users" element={<Users />} />
               <Route path="/dashboard/settings" element={<Settings />} />

@@ -27,11 +27,11 @@
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-accent-500 ring-offset-2 ring-offset-white;
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white;
   }
 
   ::selection {
-    @apply bg-accent-500/20 text-navy-900;
+    @apply bg-primary-500/20 text-navy-900;
   }
 
   /*
@@ -103,7 +103,7 @@
   }
 
   .skeleton-shimmer {
-    background: linear-gradient(90deg, rgba(148, 163, 184, 0.12) 25%, rgba(148, 163, 184, 0.24) 37%, rgba(148, 163, 184, 0.12) 63%);
+    background: linear-gradient(90deg, rgba(152, 165, 180, 0.12) 25%, rgba(152, 165, 180, 0.24) 37%, rgba(152, 165, 180, 0.12) 63%);
     background-size: 400% 100%;
     animation: shimmer 1.6s ease-in-out infinite;
   }

@@ -8,9 +8,9 @@ export default function Terms() {
   return (
     <div className="container-page py-16 sm:py-20">
       <div className="mx-auto max-w-3xl">
-        <p className="text-sm font-bold uppercase tracking-wider text-accent-600">Legal</p>
+        <p className="text-sm font-bold uppercase tracking-wider text-primary-600">Legal</p>
         <h1 className="mt-3 text-3xl font-extrabold text-navy-900 sm:text-4xl">Terms of Service</h1>
-        <p className="mt-3 text-sm text-steel-500">Last updated: January 2026</p>
+        <p className="mt-3 text-sm text-text-secondary">Last updated: January 2026</p>
         <p className="mt-6 leading-relaxed text-steel-600">
           These are the terms for shipping with us and using our tracking. We've kept them short and plain. If
           anything needs explaining, get in touch.
@@ -75,7 +75,7 @@ export default function Terms() {
               If anything here needs explaining, email us at{' '}
               <a
                 href={`mailto:${settings.company_email}`}
-                className="rounded-control font-semibold text-navy-800 hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                className="rounded-control font-semibold text-navy-800 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 {settings.company_email}
               </a>{' '}

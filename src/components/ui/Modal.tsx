@@ -53,12 +53,12 @@ export function Modal({ open, onClose, title, description, children, footer, siz
         )}
       >
         {title && (
-          <div className="flex items-start justify-between gap-4 border-b border-steel-100 px-6 py-5">
+          <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
             <div>
               <h2 id="modal-title" className="text-lg font-bold text-navy-900">
                 {title}
               </h2>
-              {description && <p className="mt-1 text-sm text-steel-500">{description}</p>}
+              {description && <p className="mt-1 text-sm text-text-secondary">{description}</p>}
             </div>
             <button
               onClick={onClose}
@@ -70,7 +70,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
           </div>
         )}
         <div className="px-6 py-5">{children}</div>
-        {footer && <div className="flex items-center justify-end gap-3 border-t border-steel-100 px-6 py-4">{footer}</div>}
+        {footer && <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4">{footer}</div>}
       </div>
     </div>,
     document.body,

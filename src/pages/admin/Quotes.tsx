@@ -12,6 +12,7 @@ import {
   Pagination,
   EmptyState,
   SkeletonTableRows,
+  RowActions,
 } from '@/components/ui'
 import { PageHeader, DataToolbar, ConfirmDialog } from '@/components/dashboard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -122,7 +123,7 @@ export default function Quotes() {
         />
       </DataToolbar>
 
-      <div className="overflow-hidden rounded-card border border-steel-100 bg-white shadow-elevation-1">
+      <div className="overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1">
         <Table className="border-0">
           <TableHead>
             <TableRow>
@@ -177,7 +178,7 @@ export default function Quotes() {
                       {q.destination}
                     </span>
                     {q.message && (
-                      <p className="mt-1 max-w-xs truncate text-xs text-steel-500" title={q.message}>
+                      <p className="mt-1 max-w-xs truncate text-xs text-text-secondary" title={q.message}>
                         {q.message}
                       </p>
                     )}
@@ -185,17 +186,17 @@ export default function Quotes() {
                   <TableCell className="text-sm text-steel-600">
                     {q.cargo_type}
                     {q.weight != null && (
-                      <span className="block font-tabular text-xs text-steel-500">{q.weight} kg</span>
+                      <span className="block font-tabular text-xs text-text-secondary">{q.weight} kg</span>
                     )}
                   </TableCell>
                   <TableCell>
                     <Badge variant={STATUS_VARIANT[q.status]}>{q.status}</Badge>
                   </TableCell>
-                  <TableCell className="font-tabular text-sm text-steel-500">
+                  <TableCell className="font-tabular text-sm text-text-secondary">
                     {formatDate(q.created_at)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1.5">
                       <Select
                         options={QUOTE_STATUSES.map((s) => ({ value: s, label: s }))}
                         value={q.status}
@@ -203,13 +204,17 @@ export default function Quotes() {
                         aria-label={`Change status for ${q.full_name}`}
                         className="h-9 text-xs"
                       />
-                      <button
-                        onClick={() => setDeleting(q)}
-                        className="rounded-control p-1.5 text-steel-500 hover:bg-red-50 hover:text-red-600"
-                        aria-label="Delete request"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      <RowActions
+                        label={`Actions for ${q.full_name}`}
+                        items={[
+                          {
+                            label: 'Delete request',
+                            icon: <Trash2 className="h-4 w-4" />,
+                            onClick: () => setDeleting(q),
+                            danger: true,
+                          },
+                        ]}
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

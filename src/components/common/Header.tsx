@@ -39,7 +39,7 @@ export function Header() {
       className={cn(
         'sticky top-0 z-50 w-full transition-all duration-240 ease-out-premium',
         scrolled
-          ? 'border-b border-steel-100 bg-white/85 shadow-elevation-1 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75'
+          ? 'border-b border-gray-200 bg-white/85 shadow-elevation-1 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75'
           : 'border-b border-transparent bg-white',
       )}
     >
@@ -55,10 +55,10 @@ export function Header() {
               className={({ isActive }) =>
                 cn(
                   'relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors',
-                  'after:absolute after:inset-x-3.5 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-accent-500 after:transition-transform after:duration-240 after:ease-out-premium',
+                  'after:absolute after:inset-x-3.5 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-primary-500 after:transition-transform after:duration-240 after:ease-out-premium',
                   isActive
                     ? 'text-navy-900 after:scale-x-100'
-                    : 'text-steel-500 hover:text-navy-800 after:scale-x-0 hover:after:scale-x-100',
+                    : 'text-text-secondary hover:text-navy-800 after:scale-x-0 hover:after:scale-x-100',
                 )
               }
             >
@@ -70,22 +70,22 @@ export function Header() {
         <div className="hidden items-center gap-2.5 lg:flex">
           <Link
             to="/login"
-            className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-steel-500 transition-colors hover:text-navy-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-text-secondary transition-colors hover:text-navy-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
           >
             <LogIn className="h-4 w-4" />
             Login
           </Link>
           <Link
             to="/tracking"
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-control bg-accent-500 px-4 text-sm font-semibold text-white shadow-elevation-2 transition-all duration-180 ease-out-premium hover:bg-accent-600 hover:shadow-elevation-3 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-control bg-primary-500 px-4 text-sm font-semibold text-white  shadow-elevation-2 transition-all duration-180 ease-out-premium hover:bg-primary-500 hover:shadow-elevation-3 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
           >
-            <PackageSearch className="h-4 w-4" />
+            <PackageSearch className="h-4 w-4 " />
             Track Shipment
           </Link>
         </div>
 
         <button
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-navy-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 lg:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-navy-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 lg:hidden"
           onClick={() => setMobileOpen(true)}
           aria-label="Open navigation menu"
           aria-expanded={mobileOpen}
@@ -107,7 +107,7 @@ export function Header() {
               <button
                 onClick={() => setMobileOpen(false)}
                 aria-label="Close navigation menu"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-steel-500 hover:bg-steel-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary hover:bg-steel-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -122,13 +122,13 @@ export function Header() {
                   className={({ isActive }) =>
                     cn(
                       'flex items-center justify-between rounded-card px-4 py-3.5 text-base font-semibold transition-colors',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2',
-                      isActive ? 'bg-navy-50 text-navy-900' : 'text-steel-600 hover:bg-steel-50',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+                      isActive ? 'bg-navy-50 text-navy-900' : 'text-steel-600 hover:bg-surface',
                     )
                   }
                 >
                   {link.label}
-                  <ChevronRight className="h-4 w-4 text-steel-300" />
+                  <ChevronRight className="h-4 w-4 text-gray-300" />
                 </NavLink>
               ))}
             </nav>
@@ -139,7 +139,7 @@ export function Header() {
                 </Button>
               </Link>
               <Link to="/tracking" onClick={() => setMobileOpen(false)}>
-                <Button variant="accent" className="w-full" icon={<PackageSearch className="h-4 w-4" />}>
+                <Button variant="primary" className="w-full" icon={<PackageSearch className="h-4 w-4" />}>
                   Track Shipment
                 </Button>
               </Link>

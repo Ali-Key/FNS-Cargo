@@ -58,9 +58,9 @@ export const STATUS_STYLES: Record<ShipmentStatus, StatusStyle> = {
 }
 
 // Hex mirrors of the status buckets — Recharts / inline styles need literal colors.
-const GREEN_HEX = '#0f8a54'
-const BLUE_HEX = '#f26b1d'
-const AMBER_HEX = '#d97706'
+const GREEN_HEX = '#16a34a'
+const BLUE_HEX = '#3865f2'
+const AMBER_HEX = '#f59e0b'
 
 export const STATUS_HEX: Record<ShipmentStatus, string> = {
   Received: AMBER_HEX,
@@ -73,6 +73,10 @@ export const STATUS_HEX: Record<ShipmentStatus, string> = {
   'Out for Delivery': BLUE_HEX,
   Delivered: GREEN_HEX,
 }
+
+// Hex mirrors of the brand tokens (primary-500 / primary-500) for Recharts, which needs literal colors.
+export const NAVY_HEX = '#3865f2'
+export const primary_HEX = '#f4b400'
 
 // Approximate journey completion per status, for the public route bar.
 export const STATUS_PROGRESS: Record<ShipmentStatus, number> = {
@@ -106,6 +110,11 @@ export const INVOICE_STATUS_VARIANT: Record<InvoiceStatus, BadgeVariant> = {
   'Partially Paid': 'info',
   Paid: 'success',
   Void: 'neutral',
+}
+
+/** Shared Active/Disabled badge variant for account-status columns (Users, Customers). */
+export function activeVariant(status: string): BadgeVariant {
+  return status === 'Active' ? 'success' : 'neutral'
 }
 
 /** True when an unsettled invoice has passed its due date. */

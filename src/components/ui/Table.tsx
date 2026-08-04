@@ -3,14 +3,14 @@ import { cn } from '@/utils/cn'
 
 export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-steel-100">
+    <div className="w-full overflow-x-auto">
       <table className={cn('w-full min-w-[720px] border-collapse text-sm', className)} {...props} />
     </div>
   )
 }
 
 export function TableHead({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn('bg-steel-50/80', className)} {...props} />
+  return <thead className={cn('bg-surface/80', className)} {...props} />
 }
 
 export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
@@ -25,7 +25,7 @@ export function TableHeadCell({ className, ...props }: ThHTMLAttributes<HTMLTabl
   return (
     <th
       className={cn(
-        'whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-steel-500',
+        'whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary',
         className,
       )}
       {...props}

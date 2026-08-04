@@ -220,7 +220,7 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
               )}
             </div>
             {errors.tracking_number && (
-              <p className="text-xs font-medium text-red-600">{errors.tracking_number.message}</p>
+              <p className="text-xs font-medium text-status-delayed">{errors.tracking_number.message}</p>
             )}
           </div>
           <Select label="Linked customer" options={customerSelectOptions} {...register('customer_id')} />
@@ -272,7 +272,7 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
           />
         </div>
 
-        <div className="rounded-lg border border-steel-200 bg-steel-50 p-4">
+        <div className="rounded-lg border border-gray-300 bg-surface p-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:items-start">
             <Input
               label="Weight (kg)"
@@ -304,7 +304,7 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
               </div>
             </div>
           </div>
-          <p className="mt-2 text-xs text-steel-500">
+          <p className="mt-2 text-xs text-text-secondary">
             Calculated automatically as weight x price per kg. It cannot be edited by hand.
           </p>
         </div>

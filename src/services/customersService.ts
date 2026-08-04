@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import type { Customer, UserStatus } from '@/types'
 import { logActivity } from './activityService'
+import { fetchAllRows } from '@/lib/exportBatch'
 
 // Customers live in their own table; `profiles` is dashboard accounts only.
 const CUSTOMER_COLUMNS =
@@ -17,25 +18,32 @@ export interface CustomerListResult {
   count: number
 }
 
+function baseCustomerQuery(search?: string) {
+  let query = supabase.from('customers').select(CUSTOMER_COLUMNS, { count: 'exact' }).order('created_at', { ascending: false })
+  if (search && search.trim()) {
+    const term = search.trim().replace(/[%,]/g, '')
+    query = query.or([`full_name.ilike.%${term}%`, `email.ilike.%${term}%`, `phone.ilike.%${term}%`].join(','))
+  }
+  return query
+}
+
 export async function listCustomers(params: CustomerListParams): Promise<CustomerListResult> {
   const { page, pageSize, search } = params
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
-  let query = supabase
-    .from('customers')
-    .select(CUSTOMER_COLUMNS, { count: 'exact' })
-    .order('created_at', { ascending: false })
-    .range(from, to)
-
-  if (search && search.trim()) {
-    const term = search.trim().replace(/[%,]/g, '')
-    query = query.or([`full_name.ilike.%${term}%`, `email.ilike.%${term}%`, `phone.ilike.%${term}%`].join(','))
-  }
-
-  const { data, error, count } = await query
+  const { data, error, count } = await baseCustomerQuery(search).range(from, to)
   if (error) throw error
   return { rows: (data as Customer[]) ?? [], count: count ?? 0 }
+}
+
+/** Every customer matching the search term, unpaginated — for the customer list Excel export. */
+export async function listCustomersForExport(search?: string): Promise<Customer[]> {
+  return fetchAllRows(async (from, to) => {
+    const { data, error, count } = await baseCustomerQuery(search).range(from, to)
+    if (error) throw error
+    return { rows: (data as Customer[]) ?? [], count: count ?? 0 }
+  })
 }
 
 /** Lightweight list for the shipment customer <select> (active customers only). */

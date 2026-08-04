@@ -1,14 +1,15 @@
+import { Link } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
 type Tone = 'navy' | 'delivered' | 'transit' | 'pending' | 'delayed'
 
-const TONE_STYLES: Record<Tone, { icon: string; ring: string }> = {
-  navy: { icon: 'bg-navy-50 text-navy-700', ring: '' },
-  delivered: { icon: 'bg-status-delivered/10 text-status-delivered', ring: '' },
-  transit: { icon: 'bg-status-transit/10 text-status-transit', ring: '' },
-  pending: { icon: 'bg-status-pending/10 text-status-pending', ring: '' },
-  delayed: { icon: 'bg-status-delayed/10 text-status-delayed', ring: 'ring-1 ring-status-delayed/30' },
+const TONE_ICON: Record<Tone, string> = {
+  navy: 'bg-navy-50 text-navy-700',
+  delivered: 'bg-status-delivered/10 text-status-delivered',
+  transit: 'bg-status-transit/10 text-status-transit',
+  pending: 'bg-status-pending/10 text-status-pending',
+  delayed: 'bg-status-delayed/10 text-status-delayed',
 }
 
 interface StatTileProps {
@@ -17,20 +18,44 @@ interface StatTileProps {
   icon: LucideIcon
   tone?: Tone
   hint?: string
+  /** When set, the tile becomes a link to this route. */
+  to?: string
+  /** When true and value > 0, the tile takes on a warm attention border (only with `to`). */
+  attention?: boolean
 }
 
-export function StatTile({ label, value, icon: Icon, tone = 'navy', hint }: StatTileProps) {
-  const style = TONE_STYLES[tone]
-  return (
-    <div className={cn('rounded-card border border-steel-100 bg-white p-5 shadow-elevation-1', style.ring)}>
+/** Dashboard stat tile — the single stat-tile component (Overview, Finance, Analytics). */
+export function StatTile({ label, value, icon: Icon, tone = 'navy', hint, to, attention }: StatTileProps) {
+  const numeric = typeof value === 'number' ? value : Number(value) || 0
+  const alert = attention && numeric > 0
+
+  const content = (
+    <>
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-steel-500">{label}</span>
-        <span className={cn('flex h-9 w-9 items-center justify-center rounded-xl', style.icon)}>
+        <span className="text-sm font-semibold text-text-secondary">{label}</span>
+        <span className={cn('flex h-9 w-9 items-center justify-center rounded-xl', TONE_ICON[tone])}>
           <Icon className="h-5 w-5" />
         </span>
       </div>
-      <p className="mt-3 font-tabular text-3xl font-bold text-navy-900">{value}</p>
-      {hint && <p className="mt-1 text-xs font-medium text-steel-400">{hint}</p>}
-    </div>
+      <p className="mt-3 font-tabular text-3xl font-bold leading-none text-navy-900">{value}</p>
+      {hint && <p className="mt-2 text-xs font-medium text-steel-400">{hint}</p>}
+    </>
   )
+
+  const className = cn(
+    'rounded-card border bg-white p-5 shadow-elevation-1',
+    alert ? 'border-primary-300 ring-1 ring-primary-400/40' : 'border-gray-200',
+    to &&
+      'group flex flex-col transition-all duration-180 ease-out-premium hover:shadow-elevation-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-2',
+  )
+
+  if (to) {
+    return (
+      <Link to={to} className={className}>
+        {content}
+      </Link>
+    )
+  }
+
+  return <div className={className}>{content}</div>
 }

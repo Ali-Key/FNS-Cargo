@@ -100,21 +100,21 @@ export function DeliveryProofCard({
   const isPdf = proofPath?.toLowerCase().endsWith('.pdf')
 
   return (
-    <div className="rounded-card border border-steel-100 bg-white p-5 shadow-elevation-1">
+    <div className="rounded-card border border-gray-200 bg-white p-5 shadow-elevation-1">
       <div className="mb-3 flex items-center gap-2">
-        <Camera className="h-4 w-4 text-accent-500" />
+        <Camera className="h-4 w-4 text-primary-500" />
         <h3 className="text-sm font-bold text-navy-900">Delivery proof</h3>
       </div>
 
       {proofPath ? (
         <div className="space-y-3">
-          <div className="overflow-hidden rounded-lg border border-steel-200 bg-steel-50">
+          <div className="overflow-hidden rounded-lg border border-gray-300 bg-surface">
             {resolving ? (
               <div className="flex h-32 items-center justify-center">
                 <Spinner className="h-5 w-5 text-navy-700" />
               </div>
             ) : isPdf || !url ? (
-              <div className="flex h-32 items-center justify-center text-sm text-steel-500">
+              <div className="flex h-32 items-center justify-center text-sm text-text-secondary">
                 {url ? 'PDF document' : 'Preview unavailable'}
               </div>
             ) : (
@@ -156,7 +156,7 @@ export function DeliveryProofCard({
         </div>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm text-steel-500">
+          <p className="text-sm text-text-secondary">
             Attach a signed receipt or photo once the shipment has been handed over.
           </p>
           <Button

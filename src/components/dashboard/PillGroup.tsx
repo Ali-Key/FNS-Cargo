@@ -31,7 +31,7 @@ export function PillGroup<T extends string>({ label, options, value, onChange }:
               'inline-flex items-center gap-1.5 rounded-badge border px-3 py-1.5 text-sm font-semibold transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-1',
               active
                 ? 'border-navy-800 bg-navy-800 text-white'
-                : 'border-steel-200 bg-white text-steel-600 hover:border-navy-300 hover:text-navy-800',
+                : 'border-gray-300 bg-white text-steel-600 hover:border-navy-300 hover:text-navy-800',
             )}
           >
             {Icon && <Icon className="h-3.5 w-3.5" />}

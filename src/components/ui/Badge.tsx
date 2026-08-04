@@ -45,7 +45,24 @@ export function Badge({ className, variant = 'neutral', ...props }: BadgeProps) 
 }
 
 // Status is never conveyed by color alone: icon + text label always accompany it.
-export function StatusBadge({ status, className }: { status: ShipmentStatus; className?: string }) {
+// `delayed` overrides the stage styling because it is the actionable case — mirrors InvoiceBadge's `overdue`.
+export function StatusBadge({
+  status,
+  delayed,
+  className,
+}: {
+  status: ShipmentStatus
+  delayed?: boolean
+  className?: string
+}) {
+  if (delayed) {
+    return (
+      <Badge variant="danger" className={className}>
+        <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+        Delayed
+      </Badge>
+    )
+  }
   const style = STATUS_STYLES[status]
   const Icon = STATUS_ICON[status]
   return (

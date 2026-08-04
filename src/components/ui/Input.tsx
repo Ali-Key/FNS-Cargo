@@ -35,11 +35,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full rounded-control border border-steel-200 bg-white text-navy-900 placeholder:text-steel-400 transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:border-navy-500',
+              'w-full rounded-control border border-gray-300 bg-white text-navy-900 placeholder:text-steel-400 transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:border-navy-500',
               SIZE_STYLES[inputSize],
               icon && (inputSize === 'lg' ? 'pl-12' : 'pl-10'),
-              error && 'border-red-400 focus-visible:ring-red-500 focus-visible:border-red-500',
-              props.disabled && 'cursor-not-allowed bg-steel-50 text-steel-400',
+              error && 'border-status-delayed focus-visible:ring-status-delayed focus-visible:border-status-delayed',
+              props.disabled && 'cursor-not-allowed bg-surface text-steel-400',
               className,
             )}
             aria-invalid={!!error}
@@ -48,12 +48,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           />
         </div>
         {error && (
-          <p id={`${inputId}-error`} className="text-xs font-medium text-red-600">
+          <p id={`${inputId}-error`} className="text-xs font-medium text-status-delayed">
             {error}
           </p>
         )}
         {!error && hint && (
-          <p id={`${inputId}-hint`} className="text-xs text-steel-500">
+          <p id={`${inputId}-hint`} className="text-xs text-text-secondary">
             {hint}
           </p>
         )}

@@ -15,7 +15,7 @@ export function Logo({ companyName = 'FNS Cargo', variant = 'dark', className }:
       className={cn('group inline-flex items-center gap-2.5', className)}
       aria-label={`${companyName} home`}
     >
-      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent-500 to-accent-600 shadow-elevation-2">
+      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 shadow-elevation-2">
         <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none">
           <path
             d="M3 16.5 9 12l4 3 8-6.5"

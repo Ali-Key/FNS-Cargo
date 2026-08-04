@@ -1,5 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Plus, Users, Pencil, Trash2, Mail, Phone } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Plus,
+  Users,
+  Pencil,
+  Trash2,
+  Mail,
+  Phone,
+  FileText,
+} from "lucide-react";
 import {
   Button,
   Badge,
@@ -12,82 +20,170 @@ import {
   Pagination,
   EmptyState,
   SkeletonTableRows,
-} from '@/components/ui'
-import { PageHeader, DataToolbar, ConfirmDialog } from '@/components/dashboard'
-import { CustomerFormModal } from '@/components/dashboard/CustomerFormModal'
-import { useDocumentTitle } from '@/hooks/useDocumentTitle'
-import { useDebouncedValue } from '@/hooks/useDebouncedValue'
-import { useToast } from '@/context/ToastContext'
-import { useAuth } from '@/context/AuthContext'
-import { listCustomers, deleteCustomer } from '@/services/customersService'
-import type { Customer } from '@/types'
-import { formatDate } from '@/utils/date'
-import { initials } from '@/utils/format'
+  Avatar,
+  RowActions,
+} from "@/components/ui";
+import {
+  PageHeader,
+  DataToolbar,
+  ConfirmDialog,
+  ExportMenu,
+} from "@/components/dashboard";
+import { CustomerFormModal } from "@/components/dashboard/CustomerFormModal";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useCachedResource } from "@/hooks/useCachedResource";
+import { useToast } from "@/context/ToastContext";
+import { useAuth } from "@/context/AuthContext";
+import {
+  listCustomers,
+  listCustomersForExport,
+  deleteCustomer,
+} from "@/services/customersService";
+import { listShipmentsForCustomer } from "@/services/shipmentsService";
+import { listCustomerInvoices } from "@/services/financeService";
+import { getSystemSettings } from "@/services/settingsService";
+import type { Customer } from "@/types";
+import { formatDate } from "@/utils/date";
+import { activeVariant } from "@/utils/status";
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 10;
 
 export default function Customers() {
-  useDocumentTitle('Customers | FNS Cargo')
-  const toast = useToast()
-  const { role } = useAuth()
-  const isAdmin = role === 'Admin'
+  useDocumentTitle("Customers | FNS Cargo");
+  const toast = useToast();
+  const { role } = useAuth();
+  const isAdmin = role === "Admin";
 
-  const [rows, setRows] = useState<Customer[]>([])
-  const [count, setCount] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
-  const debouncedSearch = useDebouncedValue(search)
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
 
-  const [formOpen, setFormOpen] = useState(false)
-  const [editing, setEditing] = useState<Customer | null>(null)
-  const [deleting, setDeleting] = useState<Customer | null>(null)
-  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Customer | null>(null);
+  const [deleting, setDeleting] = useState<Customer | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  // Keyed by page + search so the common default view (page 1, no search)
+  // paints instantly from cache while a background request confirms it.
+  const customersKey = useMemo(
+    () => `customers:${JSON.stringify({ page, search: debouncedSearch })}`,
+    [page, debouncedSearch],
+  );
+  const fetchCustomers = useCallback(
+    () => listCustomers({ page, pageSize: PAGE_SIZE, search: debouncedSearch }),
+    [page, debouncedSearch],
+  );
+  const {
+    data,
+    loading,
+    error,
+    reload: load,
+  } = useCachedResource(customersKey, fetchCustomers);
+  const rows = data?.rows ?? [];
+  const count = data?.count ?? 0;
+
+  useEffect(() => {
+    if (error)
+      toast.error(
+        "Unable to load customers",
+        "Please refresh the page to try again.",
+      );
+  }, [error, toast]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
+  const pageCount = Math.max(1, Math.ceil(count / PAGE_SIZE));
+
+  async function exportCustomersExcel() {
+    const rows = await listCustomersForExport(debouncedSearch);
+    const { downloadWorkbook } = await import("@/lib/excel/generateExcel");
+    await downloadWorkbook(
+      [
+        {
+          name: "Customers",
+          columns: [
+            { header: "Name", key: "full_name", width: 22 },
+            { header: "Email", key: "email", width: 26 },
+            { header: "Phone", key: "phone", width: 16 },
+            { header: "Company", key: "company", width: 20 },
+            { header: "Address", key: "address", width: 28 },
+            { header: "Status", key: "status", width: 12 },
+            { header: "Added", key: "created_at", width: 14 },
+          ],
+          rows: rows.map((c) => ({
+            full_name: c.full_name,
+            email: c.email ?? "",
+            phone: c.phone ?? "",
+            company: c.company ?? "",
+            address: c.address ?? "",
+            status: c.status,
+            created_at: formatDate(c.created_at),
+          })),
+        },
+      ],
+      `customers-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    );
+  }
+
+  async function downloadCustomerStatement(customer: Customer) {
     try {
-      const result = await listCustomers({ page, pageSize: PAGE_SIZE, search: debouncedSearch })
-      setRows(result.rows)
-      setCount(result.count)
-    } catch {
-      toast.error('Unable to load customers', 'Please refresh the page to try again.')
-    } finally {
-      setLoading(false)
+      const [shipments, invoices, settings] = await Promise.all([
+        listShipmentsForCustomer(customer.id),
+        listCustomerInvoices(customer.id),
+        getSystemSettings(),
+      ]);
+      const [{ CustomerStatementDocument }, { downloadPdf }] =
+        await Promise.all([
+          import("@/lib/documents/CustomerStatementDocument"),
+          import("@/lib/documents/generatePdf"),
+        ]);
+      await downloadPdf(
+        <CustomerStatementDocument
+          customer={customer}
+          shipments={shipments}
+          invoices={invoices}
+          company={settings ?? { company_name: "FNS Cargo" }}
+        />,
+        `statement-${customer.full_name.trim().replace(/\s+/g, "-").toLowerCase()}.pdf`,
+      );
+    } catch (err) {
+      toast.error(
+        "Unable to generate statement",
+        err instanceof Error ? err.message : "Please try again.",
+      );
     }
-  }, [page, debouncedSearch, toast])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
-  useEffect(() => {
-    setPage(1)
-  }, [debouncedSearch])
-
-  const pageCount = Math.max(1, Math.ceil(count / PAGE_SIZE))
+  }
 
   async function confirmDelete() {
-    if (!deleting) return
-    setDeleteLoading(true)
+    if (!deleting) return;
+    setDeleteLoading(true);
     try {
-      await deleteCustomer(deleting.id, deleting.full_name)
-      toast.success('Customer removed', `${deleting.full_name}'s record has been deleted.`)
-      setDeleting(null)
-      if (rows.length === 1 && page > 1) setPage((p) => p - 1)
-      else load()
+      await deleteCustomer(deleting.id, deleting.full_name);
+      toast.success(
+        "Customer removed",
+        `${deleting.full_name}'s record has been deleted.`,
+      );
+      setDeleting(null);
+      if (rows.length === 1 && page > 1) setPage((p) => p - 1);
+      else load();
     } catch (err) {
-      const message = err instanceof Error ? err.message : ''
+      const message = err instanceof Error ? err.message : "";
       if (/foreign key|violates/i.test(message)) {
         toast.error(
-          'Customer is in use',
-          'This customer is linked to existing shipments and cannot be deleted.',
-        )
+          "Customer is in use",
+          "This customer is linked to existing shipments and cannot be deleted.",
+        );
       } else {
-        toast.error('Unable to remove customer', 'Please try again in a moment.')
+        toast.error(
+          "Unable to remove customer",
+          "Please try again in a moment.",
+        );
       }
     } finally {
-      setDeleteLoading(false)
+      setDeleteLoading(false);
     }
   }
 
@@ -95,15 +191,20 @@ export default function Customers() {
     <div className="space-y-6">
       <PageHeader
         title="Customers"
-        description={isAdmin ? "Keep track of your customers and how to reach them." : 'A read-only list of your customers.'}
+        description={
+          isAdmin
+            ? "Keep track of your customers and how to reach them."
+            : "A read-only list of your customers."
+        }
         actions={
           isAdmin ? (
             <Button
-              variant="accent"
+              variant="primary"
               icon={<Plus className="h-4 w-4" />}
+              className="text-white"
               onClick={() => {
-                setEditing(null)
-                setFormOpen(true)
+                setEditing(null);
+                setFormOpen(true);
               }}
             >
               New customer
@@ -112,9 +213,19 @@ export default function Customers() {
         }
       />
 
-      <DataToolbar search={search} onSearchChange={setSearch} placeholder="Search name, email, phone, city…" />
+      <DataToolbar
+        search={search}
+        onSearchChange={setSearch}
+        placeholder="Search name, email, phone, city…"
+      >
+        <ExportMenu
+          items={[
+            { label: "Customer list (Excel)", onClick: exportCustomersExcel },
+          ]}
+        />
+      </DataToolbar>
 
-      <div className="overflow-hidden rounded-card border border-steel-100 bg-white shadow-elevation-1">
+      <div className="overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1">
         <Table className="border-0">
           <TableHead>
             <TableRow>
@@ -122,7 +233,9 @@ export default function Customers() {
               <TableHeadCell>Contact</TableHeadCell>
               <TableHeadCell>Status</TableHeadCell>
               <TableHeadCell>Added</TableHeadCell>
-              {isAdmin && <TableHeadCell className="text-right">Actions</TableHeadCell>}
+              {isAdmin && (
+                <TableHeadCell className="text-right">Actions</TableHeadCell>
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -134,7 +247,11 @@ export default function Customers() {
                   <EmptyState
                     icon={<Users className="h-6 w-6" />}
                     title="No customers found"
-                    description={search ? 'Try a different search.' : 'Add your first customer to get started.'}
+                    description={
+                      search
+                        ? "Try a different search."
+                        : "Add your first customer to get started."
+                    }
                   />
                 </td>
               </tr>
@@ -143,55 +260,66 @@ export default function Customers() {
                 <TableRow key={c.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy-100 text-xs font-bold text-navy-700">
-                        {initials(c.full_name)}
+                      <Avatar name={c.full_name} />
+                      <span className="font-medium text-navy-900">
+                        {c.full_name}
                       </span>
-                      <span className="font-medium text-navy-900">{c.full_name}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-sm">
                     <div className="space-y-0.5">
                       {c.email && (
                         <span className="flex items-center gap-1.5 text-steel-600">
-                          <Mail className="h-3.5 w-3.5 text-steel-400" /> {c.email}
+                          <Mail className="h-3.5 w-3.5 text-steel-400" />{" "}
+                          {c.email}
                         </span>
                       )}
                       {c.phone && (
                         <span className="flex items-center gap-1.5 text-steel-600">
-                          <Phone className="h-3.5 w-3.5 text-steel-400" /> {c.phone}
+                          <Phone className="h-3.5 w-3.5 text-steel-400" />{" "}
+                          {c.phone}
                         </span>
                       )}
-                      {!c.email && !c.phone && <span className="text-steel-400">—</span>}
+                      {!c.email && !c.phone && (
+                        <span className="text-steel-400">—</span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    {c.status === 'Active' ? (
-                      <Badge variant="success">Active</Badge>
-                    ) : (
-                      <Badge variant="neutral">Disabled</Badge>
-                    )}
+                    <Badge variant={activeVariant(c.status)}>
+                      {c.status === "Active" ? "Active" : "Disabled"}
+                    </Badge>
                   </TableCell>
-                  <TableCell className="font-tabular text-sm text-steel-500">{formatDate(c.created_at)}</TableCell>
+                  <TableCell className="font-tabular text-sm text-text-secondary">
+                    {formatDate(c.created_at)}
+                  </TableCell>
                   {isAdmin && (
                     <TableCell>
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => {
-                            setEditing(c)
-                            setFormOpen(true)
-                          }}
-                          className="rounded-control p-1.5 text-steel-500 hover:bg-steel-100 hover:text-navy-800"
-                          aria-label="Edit customer"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleting(c)}
-                          className="rounded-control p-1.5 text-steel-500 hover:bg-red-50 hover:text-red-600"
-                          aria-label="Delete customer"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                      <div className="flex justify-end">
+                        <RowActions
+                          label={`Actions for ${c.full_name}`}
+                          items={[
+                            {
+                              label: "Edit customer",
+                              icon: <Pencil className="h-4 w-4" />,
+                              onClick: () => {
+                                setEditing(c);
+                                setFormOpen(true);
+                              },
+                            },
+                            {
+                              label: "Statement (PDF)",
+                              icon: <FileText className="h-4 w-4" />,
+                              onClick: () => void downloadCustomerStatement(c),
+                            },
+                            {
+                              label: "Delete customer",
+                              icon: <Trash2 className="h-4 w-4" />,
+                              onClick: () => setDeleting(c),
+                              danger: true,
+                            },
+                          ]}
+                        />
                       </div>
                     </TableCell>
                   )}
@@ -227,11 +355,14 @@ export default function Customers() {
         confirmLabel="Remove"
         description={
           <>
-            This permanently removes <span className="font-semibold text-navy-800">{deleting?.full_name}</span> from
-            your customer records.
+            This permanently removes{" "}
+            <span className="font-semibold text-navy-800">
+              {deleting?.full_name}
+            </span>{" "}
+            from your customer records.
           </>
         }
       />
     </div>
-  )
+  );
 }

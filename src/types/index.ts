@@ -64,6 +64,36 @@ export type PaymentWithInvoice = Payment & {
   invoice: Pick<Invoice, 'id' | 'invoice_number' | 'shipment_id'> | null
 }
 
+/** Invoice joined with every field the invoice PDF/preview needs (fuller than `InvoiceWithRelations`). */
+export type InvoiceDocumentData = Invoice & {
+  shipment:
+    | (Pick<
+        Shipment,
+        | 'id'
+        | 'tracking_number'
+        | 'origin'
+        | 'destination'
+        | 'status'
+        | 'shipping_method'
+        | 'cargo_type'
+        | 'weight'
+        | 'price_per_kg'
+        | 'total_price'
+      >)
+    | null
+  customer: Pick<Customer, 'id' | 'full_name' | 'email' | 'phone' | 'company' | 'address'> | null
+}
+
+/** A payment joined with the invoice, customer, and shipment it receipts against. */
+export type PaymentReceiptData = Payment & {
+  invoice:
+    | (Pick<Invoice, 'id' | 'invoice_number'> & {
+        customer: Pick<Customer, 'full_name' | 'email' | 'phone'> | null
+        shipment: Pick<Shipment, 'tracking_number'> | null
+      })
+    | null
+}
+
 /** A tracking update joined with its parent shipment (activity feed). */
 export type TrackingUpdateWithShipment = TrackingUpdate & {
   shipment: Pick<Shipment, 'id' | 'tracking_number'> | null

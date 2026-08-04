@@ -2,7 +2,7 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'accent'
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
 type Size = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -15,15 +15,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_STYLES: Record<Variant, string> = {
   primary:
-    'bg-navy-800 text-white hover:bg-navy-900 shadow-elevation-2 hover:shadow-elevation-3 focus-visible:ring-navy-600 disabled:hover:bg-navy-800',
+    'bg-primary-500 text-white hover:bg-primary-600 shadow-elevation-2 hover:shadow-elevation-3 focus-visible:ring-primary-600 disabled:hover:bg-primary-500',
   secondary:
-    'bg-white text-navy-800 border border-steel-200 hover:border-navy-300 hover:bg-navy-50 shadow-sm',
+    'bg-white text-ink border border-gray-300 hover:border-primary-300 hover:bg-primary-50 shadow-sm',
   outline:
     'bg-transparent text-white border border-white/40 hover:bg-white/10',
-  ghost: 'bg-transparent text-steel-600 hover:bg-steel-100 hover:text-navy-800',
-  danger: 'bg-red-600 text-white hover:bg-red-700 shadow-elevation-2',
-  accent:
-    'bg-accent-500 text-white hover:bg-accent-600 shadow-elevation-2 hover:shadow-elevation-3',
+  ghost: 'bg-transparent text-text-secondary hover:bg-steel-100 hover:text-ink',
+  danger: 'bg-status-delayed text-white hover:bg-status-delayed/90 shadow-elevation-2',
 }
 
 const SIZE_STYLES: Record<Size, string> = {

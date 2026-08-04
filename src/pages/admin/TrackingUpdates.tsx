@@ -74,9 +74,9 @@ export default function TrackingUpdates() {
       />
 
       {/* Quick add by tracking number */}
-      <div className="rounded-card border border-steel-100 bg-white p-6 shadow-elevation-1">
+      <div className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1">
         <h2 className="font-bold text-navy-900">Post an update</h2>
-        <p className="mt-1 text-sm text-steel-500">Find a shipment by its tracking number to add a new event.</p>
+        <p className="mt-1 text-sm text-text-secondary">Find a shipment by its tracking number to add a new event.</p>
         <form onSubmit={handleSearch} className="mt-4 flex flex-col gap-2 sm:flex-row">
           <Input
             value={query}
@@ -93,7 +93,7 @@ export default function TrackingUpdates() {
         </form>
 
         {notFound && (
-          <div className="mt-4 rounded-control border border-steel-200 bg-steel-50 px-4 py-3 text-sm text-steel-600">
+          <div className="mt-4 rounded-control border border-gray-300 bg-surface px-4 py-3 text-sm text-steel-600">
             No shipment matches that tracking number.
           </div>
         )}
@@ -103,11 +103,11 @@ export default function TrackingUpdates() {
             <div>
               <Link
                 to={`/dashboard/shipments/${found.id}`}
-                className="font-mono text-sm font-bold text-navy-900 hover:text-accent-600"
+                className="font-mono text-sm font-bold text-navy-900 hover:text-primary-600"
               >
                 {found.tracking_number}
               </Link>
-              <p className="text-xs text-steel-500">
+              <p className="text-xs text-text-secondary">
                 {found.origin} → {found.destination}
               </p>
             </div>
@@ -122,8 +122,8 @@ export default function TrackingUpdates() {
       </div>
 
       {/* Recent events feed */}
-      <div className="rounded-card border border-steel-100 bg-white shadow-elevation-1">
-        <div className="border-b border-steel-100 px-6 py-4">
+      <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
+        <div className="border-b border-gray-200 px-6 py-4">
           <h2 className="font-bold text-navy-900">Latest updates</h2>
         </div>
         {loading ? (
@@ -146,7 +146,7 @@ export default function TrackingUpdates() {
                     {event.shipment && (
                       <Link
                         to={`/dashboard/shipments/${event.shipment.id}`}
-                        className="font-mono text-sm font-semibold text-navy-900 hover:text-accent-600"
+                        className="font-mono text-sm font-semibold text-navy-900 hover:text-primary-600"
                       >
                         {event.shipment.tracking_number}
                       </Link>

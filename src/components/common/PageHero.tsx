@@ -20,7 +20,7 @@ export function PageHero({ eyebrow, title, description, align = 'left' }: PageHe
     <section className="relative overflow-hidden bg-navy-950 py-16 text-white sm:py-20">
       <div aria-hidden className="absolute inset-0 bg-grid-pattern bg-[size:48px_48px] opacity-10" />
       <div className={cn('container-page relative animate-fade-up', centered && 'text-center')}>
-        <p className="text-sm font-bold uppercase tracking-wider text-accent-400">{eyebrow}</p>
+        <p className="text-sm font-bold uppercase tracking-wider text-primary-400">{eyebrow}</p>
         <h1
           className={cn(
             'mt-3 max-w-2xl text-balance text-4xl font-extrabold text-white sm:text-5xl',
@@ -30,7 +30,7 @@ export function PageHero({ eyebrow, title, description, align = 'left' }: PageHe
           {title}
         </h1>
         {description && (
-          <p className={cn('mt-4 max-w-xl text-pretty text-steel-300', centered && 'mx-auto')}>{description}</p>
+          <p className={cn('mt-4 max-w-xl text-pretty text-gray-300', centered && 'mx-auto')}>{description}</p>
         )}
       </div>
     </section>

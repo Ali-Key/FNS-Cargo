@@ -12,7 +12,7 @@ export default function NotFound() {
         <Compass className="h-8 w-8" />
       </div>
       <h1 className="text-3xl font-extrabold text-navy-900">This page took a wrong turn</h1>
-      <p className="max-w-sm text-steel-500">
+      <p className="max-w-sm text-text-secondary">
         We couldn't find the page you were after. It may have moved, or never existed. Let's get you back on
         track.
       </p>

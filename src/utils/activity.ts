@@ -27,7 +27,7 @@ const META: Record<string, { label: string; icon: LucideIcon; tone: string }> = 
 }
 
 export function describeActivity(log: ActivityLog): { label: string; icon: LucideIcon; tone: string; detail: string } {
-  const meta = META[log.action] ?? { label: log.action, icon: Activity, tone: 'text-steel-500' }
+  const meta = META[log.action] ?? { label: log.action, icon: Activity, tone: 'text-text-secondary' }
   const details = (log.details ?? {}) as Record<string, unknown>
   const detail =
     (typeof details.tracking_number === 'string' && details.tracking_number) ||

@@ -184,11 +184,11 @@ export function InvoiceFormModal({
         />
 
         {selected && (
-          <div className="rounded-lg border border-steel-200 bg-steel-50 px-4 py-3 text-sm">
+          <div className="rounded-lg border border-gray-300 bg-surface px-4 py-3 text-sm">
             <p className="text-steel-600">
               {selected.origin} → {selected.destination}
             </p>
-            <p className="mt-1 text-xs text-steel-500">
+            <p className="mt-1 text-xs text-text-secondary">
               Shipment total {formatCurrency(selected.total_price, 2)}
             </p>
           </div>

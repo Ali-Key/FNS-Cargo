@@ -2,14 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Timer, Target, TrendingUp, Users } from 'lucide-react'
-import { PageHeader, PillGroup } from '@/components/dashboard'
+import { PageHeader, PillGroup, StatTile, ExportMenu } from '@/components/dashboard'
 import {
   RevenueTrendChart,
   CustomerGrowthChart,
   RouteVolumeChart,
   MixDonutChart,
 } from '@/components/dashboard/charts'
-import { Alert, Button, Spinner, EmptyState } from '@/components/ui'
+import { Alert, Button, EmptyState, SectionCard, Skeleton, SkeletonCard } from '@/components/ui'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { getAnalyticsReport } from '@/services/analyticsService'
 import type { AnalyticsReport } from '@/types'
@@ -56,18 +56,61 @@ export default function Analytics() {
   const invoiced = report?.revenue_trend.reduce((sum, p) => sum + p.invoiced, 0) ?? 0
   const newCustomers = report?.customer_growth.reduce((sum, p) => sum + p.new_customers, 0) ?? 0
 
+  async function exportRevenueExcel() {
+    if (!report) return
+    const { downloadWorkbook } = await import('@/lib/excel/generateExcel')
+    await downloadWorkbook(
+      [
+        {
+          name: 'Revenue trend',
+          columns: [
+            { header: 'Month', key: 'month', width: 14 },
+            { header: 'Collected', key: 'collected', width: 14 },
+            { header: 'Invoiced', key: 'invoiced', width: 14 },
+          ],
+          rows: report.revenue_trend,
+        },
+        {
+          name: 'Top customers',
+          columns: [
+            { header: 'Customer', key: 'full_name', width: 24 },
+            { header: 'Email', key: 'email', width: 26 },
+            { header: 'Shipments', key: 'shipments', width: 12 },
+            { header: 'Value', key: 'value', width: 14 },
+          ],
+          rows: report.top_customers,
+        },
+        {
+          name: 'Top routes',
+          columns: [
+            { header: 'Origin', key: 'origin', width: 16 },
+            { header: 'Destination', key: 'destination', width: 16 },
+            { header: 'Shipments', key: 'shipments', width: 12 },
+            { header: 'Value', key: 'value', width: 14 },
+            { header: 'Avg weight (kg)', key: 'avg_weight', width: 16 },
+          ],
+          rows: report.top_routes,
+        },
+      ],
+      `revenue-report-${range}mo-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    )
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Analytics & Reports"
         description="Revenue, lane performance, and customer growth across the operation."
-        actions={<PillGroup label="Reporting period" options={RANGE_PILLS} value={range} onChange={setRange} />}
+        actions={
+          <div className="flex items-center gap-2">
+            <PillGroup label="Reporting period" options={RANGE_PILLS} value={range} onChange={setRange} />
+            <ExportMenu items={[{ label: 'Revenue report (Excel)', onClick: exportRevenueExcel }]} />
+          </div>
+        }
       />
 
       {loading ? (
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <Spinner className="h-7 w-7 text-navy-700" />
-        </div>
+        <AnalyticsSkeleton />
       ) : error || !report ? (
         <Alert variant="error" title="Could not load the report">
           <p>{error ?? 'No data was returned.'}</p>
@@ -86,25 +129,27 @@ export default function Analytics() {
           key={range}
         >
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <KpiCard
+            <StatTile
               icon={TrendingUp}
               label="Collected"
               value={formatCurrency(collected)}
               hint={`of ${formatCurrency(invoiced)} invoiced`}
+              tone="delivered"
             />
-            <KpiCard
+            <StatTile
               icon={Target}
               label="On-time delivery"
               value={onTimeRate === null ? '—' : `${onTimeRate}%`}
               hint={rated > 0 ? `${perf?.on_time ?? 0} of ${rated} rated` : 'No rated deliveries yet'}
             />
-            <KpiCard
+            <StatTile
               icon={Timer}
               label="Avg transit"
               value={perf?.avg_transit_days != null ? `${perf.avg_transit_days} d` : '—'}
               hint={`${formatNumber(perf?.delivered ?? 0)} delivered`}
+              tone="transit"
             />
-            <KpiCard
+            <StatTile
               icon={Users}
               label="New customers"
               value={formatNumber(newCustomers)}
@@ -112,35 +157,35 @@ export default function Analytics() {
             />
           </div>
 
-          <Panel title="Revenue trend" note="Collected against invoiced">
+          <SectionCard title="Revenue trend" note="Collected against invoiced">
             <RevenueTrendChart data={report.revenue_trend} />
-          </Panel>
+          </SectionCard>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Panel title="Busiest routes" note="By shipment volume">
+            <SectionCard title="Busiest routes" note="By shipment volume">
               <RouteVolumeChart
                 data={report.top_routes.map((r) => ({
                   label: `${r.origin} → ${r.destination}`,
                   shipments: r.shipments,
                 }))}
               />
-            </Panel>
-            <Panel title="Customer growth" note="New against running total">
+            </SectionCard>
+            <SectionCard title="Customer growth" note="New against running total">
               <CustomerGrowthChart data={report.customer_growth} />
-            </Panel>
+            </SectionCard>
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Panel title="Shipping method mix">
+            <SectionCard title="Shipping method mix">
               <MixDonutChart data={report.method_mix} label="Shipments" />
-            </Panel>
-            <Panel title="Cargo type mix">
+            </SectionCard>
+            <SectionCard title="Cargo type mix">
               <MixDonutChart data={report.cargo_mix} label="Shipments" />
-            </Panel>
+            </SectionCard>
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Panel title="Top customers" note="By lifetime shipment value" flush>
+            <SectionCard title="Top customers" note="By lifetime shipment value" flush>
               {report.top_customers.length === 0 ? (
                 <EmptyState title="No customers yet" description="Customer value appears here once shipments are priced." />
               ) : (
@@ -150,11 +195,11 @@ export default function Analytics() {
                       <div className="min-w-0">
                         <Link
                           to="/dashboard/customers"
-                          className="truncate rounded text-sm font-semibold text-navy-900 hover:text-accent-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+                          className="truncate rounded text-sm font-semibold text-navy-900 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
                         >
                           {c.full_name}
                         </Link>
-                        <p className="truncate text-xs text-steel-500">
+                        <p className="truncate text-xs text-text-secondary">
                           {formatNumber(c.shipments)} shipments
                         </p>
                       </div>
@@ -165,9 +210,9 @@ export default function Analytics() {
                   ))}
                 </ul>
               )}
-            </Panel>
+            </SectionCard>
 
-            <Panel title="Route value" note="Revenue booked per lane" flush>
+            <SectionCard title="Route value" note="Revenue booked per lane" flush>
               {report.top_routes.length === 0 ? (
                 <EmptyState title="No routes yet" description="Lane performance appears once shipments are created." />
               ) : (
@@ -181,7 +226,7 @@ export default function Analytics() {
                         <p className="truncate text-sm font-semibold text-navy-900">
                           {r.origin} → {r.destination}
                         </p>
-                        <p className="truncate text-xs text-steel-500">
+                        <p className="truncate text-xs text-text-secondary">
                           {formatNumber(r.shipments)} shipments
                           {r.avg_weight != null && ` · avg ${r.avg_weight} kg`}
                         </p>
@@ -193,7 +238,7 @@ export default function Analytics() {
                   ))}
                 </ul>
               )}
-            </Panel>
+            </SectionCard>
           </div>
         </motion.div>
       )}
@@ -201,51 +246,27 @@ export default function Analytics() {
   )
 }
 
-function KpiCard({
-  icon: Icon,
-  label,
-  value,
-  hint,
-}: {
-  icon: typeof TrendingUp
-  label: string
-  value: string
-  hint: string
-}) {
+/** Mirrors the loaded layout's shape so the swap from skeleton to data causes no layout shift. */
+function AnalyticsSkeleton() {
   return (
-    <div className="rounded-card border border-steel-100 bg-white p-5 shadow-elevation-1">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-steel-500">{label}</span>
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy-50 text-navy-700">
-          <Icon className="h-4 w-4" />
-        </span>
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
       </div>
-      <p className="mt-3 font-tabular text-3xl font-bold leading-none text-navy-900">{value}</p>
-      <p className="mt-2 text-xs font-medium text-steel-400">{hint}</p>
-    </div>
-  )
-}
-
-function Panel({
-  title,
-  note,
-  children,
-  flush,
-}: {
-  title: string
-  note?: string
-  children: React.ReactNode
-  flush?: boolean
-}) {
-  return (
-    <div className="rounded-card border border-steel-100 bg-white shadow-elevation-1">
-      <div className="flex items-center justify-between border-b border-steel-100 px-6 py-4">
-        <h2 className="font-bold text-navy-900">{title}</h2>
-        {note && (
-          <span className="text-xs font-semibold uppercase tracking-[0.1em] text-steel-400">{note}</span>
-        )}
+      <div className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1">
+        <Skeleton className="mb-4 h-4 w-40" />
+        <Skeleton className="h-56 w-full" />
       </div>
-      <div className={flush ? '' : 'p-6'}>{children}</div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1">
+            <Skeleton className="mb-4 h-4 w-32" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

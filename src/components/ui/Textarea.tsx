@@ -22,15 +22,15 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={inputId}
           rows={rows}
           className={cn(
-            'w-full rounded-control border border-steel-200 bg-white px-3.5 py-3 text-sm text-navy-900 placeholder:text-steel-400 transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:border-navy-500',
-            error && 'border-red-400 focus-visible:ring-red-500 focus-visible:border-red-500',
+            'w-full rounded-control border border-gray-300 bg-white px-3.5 py-3 text-sm text-navy-900 placeholder:text-steel-400 transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:border-navy-500',
+            error && 'border-status-delayed focus-visible:ring-status-delayed focus-visible:border-status-delayed',
             className,
           )}
           aria-invalid={!!error}
           {...props}
         />
-        {error && <p className="text-xs font-medium text-red-600">{error}</p>}
-        {!error && hint && <p className="text-xs text-steel-500">{hint}</p>}
+        {error && <p className="text-xs font-medium text-status-delayed">{error}</p>}
+        {!error && hint && <p className="text-xs text-text-secondary">{hint}</p>}
       </div>
     )
   },

@@ -45,5 +45,8 @@ enabled = true
 [functions.admin-create-user]
 verify_jwt = true
 
+[functions.send-invoice-email]
+verify_jwt = true              # admin-gated inside the function too; requires RESEND_API_KEY / RESEND_FROM_EMAIL secrets
+
 [functions.track]
 verify_jwt = false             # public tracking endpoint; rate-limited by IP hash inside the function
