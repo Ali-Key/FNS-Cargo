@@ -7,7 +7,7 @@ import { Button, Input, Textarea, SectionCard, Skeleton, FieldGroup } from '@/co
 import { PageHeader } from '@/components/dashboard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/context/ToastContext'
-import { getSystemSettings, updateSystemSettings } from '@/services/settingsService'
+import { getAdminSystemSettings, updateSystemSettings } from '@/services/settingsService'
 import { logActivity } from '@/services/activityService'
 
 const schema = z.object({
@@ -41,7 +41,7 @@ export default function Settings() {
 
   useEffect(() => {
     let active = true
-    getSystemSettings()
+    getAdminSystemSettings()
       .then((data) => {
         if (!active) return
         if (!data) {

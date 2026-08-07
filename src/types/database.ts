@@ -134,10 +134,13 @@ export type Database = {
           issued_at: string
           issued_by: string | null
           notes: string | null
+          receiver_signature_path: string | null
+          receiver_signed_at: string | null
           shipment_id: string
           status: Database["public"]["Enums"]["invoice_status"]
           updated_at: string
           vat_amount: number
+          vat_rate: number | null
         }
         Insert: {
           amount: number
@@ -153,10 +156,13 @@ export type Database = {
           issued_at?: string
           issued_by?: string | null
           notes?: string | null
+          receiver_signature_path?: string | null
+          receiver_signed_at?: string | null
           shipment_id: string
           status?: Database["public"]["Enums"]["invoice_status"]
           updated_at?: string
           vat_amount?: number
+          vat_rate?: number | null
         }
         Update: {
           amount?: number
@@ -172,10 +178,13 @@ export type Database = {
           issued_at?: string
           issued_by?: string | null
           notes?: string | null
+          receiver_signature_path?: string | null
+          receiver_signed_at?: string | null
           shipment_id?: string
           status?: Database["public"]["Enums"]["invoice_status"]
           updated_at?: string
           vat_amount?: number
+          vat_rate?: number | null
         }
         Relationships: [
           {
@@ -359,6 +368,7 @@ export type Database = {
           delivery_proof_url: string | null
           destination: string
           estimated_delivery: string | null
+          flight_number: string | null
           id: string
           origin: string
           payment_status: Database["public"]["Enums"]["payment_status"]
@@ -386,6 +396,7 @@ export type Database = {
           delivery_proof_url?: string | null
           destination: string
           estimated_delivery?: string | null
+          flight_number?: string | null
           id?: string
           origin: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -413,6 +424,7 @@ export type Database = {
           delivery_proof_url?: string | null
           destination?: string
           estimated_delivery?: string | null
+          flight_number?: string | null
           id?: string
           origin?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]

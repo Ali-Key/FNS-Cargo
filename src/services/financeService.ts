@@ -110,7 +110,7 @@ export async function getInvoice(id: string): Promise<InvoiceWithRelations | nul
 // Fuller select than INVOICE_SELECT — the invoice PDF/preview needs cargo/pricing fields
 // and customer phone/company/address that the list view has no use for.
 const INVOICE_DOCUMENT_SELECT =
-  '*, shipment:shipments(id, tracking_number, origin, destination, status, shipping_method, cargo_type, weight, price_per_kg, total_price, pieces, booking_contact, created_at), customer:customers(id, full_name, email, phone, company, address), issuer:profiles!invoices_issued_by_fkey(full_name)'
+  '*, shipment:shipments(id, tracking_number, origin, destination, status, shipping_method, cargo_type, weight, price_per_kg, total_price, pieces, booking_contact, flight_number, created_at), customer:customers(id, full_name, email, phone, company, address), issuer:profiles!invoices_issued_by_fkey(full_name)'
 
 /** Every field the invoice document (PDF/preview/email) needs, in one query. */
 export async function getInvoiceForDocument(id: string): Promise<InvoiceDocumentData | null> {
@@ -164,6 +164,42 @@ export async function deleteInvoice(id: string, invoiceNumber: string): Promise<
   const { error } = await supabase.from('invoices').delete().eq('id', id)
   if (error) throw error
   await logActivity('invoice.deleted', 'invoice', id, { invoice_number: invoiceNumber })
+}
+
+// ---- Receiver signature -----------------------------------------------------
+
+const SIGNATURE_BUCKET = 'signature-proofs'
+
+/**
+ * Uploads a captured receiver signature (PNG) and stamps the invoice as signed.
+ * The bucket is private, so what is persisted is the object path, not a URL —
+ * read it back through `getReceiverSignatureUrl`, mirroring shipmentsService's
+ * delivery-proof pattern.
+ */
+export async function uploadReceiverSignature(invoiceId: string, signature: Blob): Promise<string> {
+  const path = `${invoiceId}/${crypto.randomUUID()}.png`
+
+  const { error: uploadError } = await supabase.storage
+    .from(SIGNATURE_BUCKET)
+    .upload(path, signature, { cacheControl: '3600', upsert: false, contentType: 'image/png' })
+  if (uploadError) throw uploadError
+
+  const { error } = await supabase
+    .from('invoices')
+    .update({ receiver_signature_path: path, receiver_signed_at: new Date().toISOString() })
+    .eq('id', invoiceId)
+  if (error) throw error
+
+  await logActivity('invoice.signed', 'invoice', invoiceId, { path })
+  return path
+}
+
+/** Short-lived signed URL for a stored receiver signature. Null when not yet signed. */
+export async function getReceiverSignatureUrl(path: string | null): Promise<string | null> {
+  if (!path) return null
+  const { data, error } = await supabase.storage.from(SIGNATURE_BUCKET).createSignedUrl(path, 300)
+  if (error) throw error
+  return data?.signedUrl ?? null
 }
 
 // ---- Payments --------------------------------------------------------------

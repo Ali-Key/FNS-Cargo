@@ -41,43 +41,51 @@ export interface LabelDocumentProps {
   size?: LabelSize
 }
 
-/** Thermal-printer-friendly waybill label — one page per shipment. */
+/**
+ * Thermal-printer-friendly waybill label — one physical package can be one of
+ * several pieces in a shipment, so this renders one page per piece (matching
+ * the reference label's "No of Pcs: 1 of 1" per-package numbering), all
+ * sharing the same barcode/waybill number.
+ */
 export function LabelDocument({ shipment, companyName, companyWebsite, size = '100x150' }: LabelDocumentProps) {
   const barcodeUrl = generateBarcodeDataUrl(shipment.tracking_number)
+  const pieceCount = Math.max(1, shipment.pieces)
 
   return (
     <Document title={`Waybill ${shipment.tracking_number}`}>
-      <Page size={PAGE_SIZE[size]} style={styles.page}>
-        <Text style={styles.companyName}>{companyName}</Text>
-        <Text style={styles.tagline}>Reliable shipping partner</Text>
-        <View style={styles.rule} />
+      {Array.from({ length: pieceCount }, (_, i) => (
+        <Page key={i} size={PAGE_SIZE[size]} style={styles.page}>
+          <Text style={styles.companyName}>{companyName}</Text>
+          <Text style={styles.tagline}>Reliable shipping partner</Text>
+          <View style={styles.rule} />
 
-        <Text style={styles.waybillLabel}>Way bill no</Text>
-        <Image src={barcodeUrl} style={styles.barcode} />
-        <Text style={styles.waybillNumber}>{shipment.tracking_number}</Text>
+          <Text style={styles.waybillLabel}>Way bill no</Text>
+          <Image src={barcodeUrl} style={styles.barcode} />
+          <Text style={styles.waybillNumber}>{shipment.tracking_number}</Text>
 
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Origin</Text>
-          <Text style={styles.fieldValue}>{shipment.origin}</Text>
-        </View>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>Destination</Text>
-          <Text style={styles.fieldValue}>{shipment.destination}</Text>
-        </View>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>CN no</Text>
-          <Text style={styles.fieldValue}>{shipment.cn_number ?? '—'}</Text>
-        </View>
-        <View style={styles.fieldRow}>
-          <Text style={styles.fieldLabel}>No of pcs</Text>
-          <Text style={styles.fieldValue}>{shipment.pieces}</Text>
-        </View>
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Origin</Text>
+            <Text style={styles.fieldValue}>{shipment.origin}</Text>
+          </View>
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Destination</Text>
+            <Text style={styles.fieldValue}>{shipment.destination}</Text>
+          </View>
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>CN No</Text>
+            <Text style={styles.fieldValue}>{shipment.cn_number ?? '—'}</Text>
+          </View>
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>No of Pcs</Text>
+            <Text style={styles.fieldValue}>{i + 1} of {pieceCount}</Text>
+          </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerBranch}>Branch: {shipment.branch_code ?? '—'}</Text>
-          {companyWebsite && <Text style={styles.footerWebsite}>{companyWebsite}</Text>}
-        </View>
-      </Page>
+          <View style={styles.footer}>
+            <Text style={styles.footerBranch}>Branch: {shipment.branch_code ?? '—'}</Text>
+            {companyWebsite && <Text style={styles.footerWebsite}>{companyWebsite}</Text>}
+          </View>
+        </Page>
+      ))}
     </Document>
   )
 }

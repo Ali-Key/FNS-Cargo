@@ -5,7 +5,6 @@ import { z } from 'zod'
 import { Button, Input, Select, Textarea, Modal } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
 import { createTrackingEvent, updateTrackingEvent } from '@/services/trackingHistoryService'
-import { updateShipment } from '@/services/shipmentsService'
 import type { ShipmentStatus, TrackingUpdate } from '@/types'
 import { SHIPMENT_STATUSES } from '@/types'
 import { STATUS_LABEL } from '@/utils/status'
@@ -18,7 +17,6 @@ const schema = z.object({
   city: z.string().trim().min(2, 'Enter a city'),
   location: z.string().trim().min(2, 'Enter a location'),
   description: z.string().trim().optional(),
-  sync_status: z.boolean().optional(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -73,7 +71,6 @@ export function TrackingEventFormModal({
         city: event.city,
         location: event.location,
         description: event.description ?? '',
-        sync_status: false,
       })
     } else {
       reset({
@@ -84,7 +81,6 @@ export function TrackingEventFormModal({
         city: '',
         location: '',
         description: '',
-        sync_status: true,
       })
     }
   }, [open, event, currentStatus, reset])
@@ -114,9 +110,6 @@ export function TrackingEventFormModal({
           location: values.location,
           description: values.description || null,
         })
-        if (values.sync_status) {
-          await updateShipment(shipmentId, { status })
-        }
         toast.success('Tracking event added', 'Customers will now see this update on their tracking page.')
       }
       onSaved()
@@ -169,16 +162,9 @@ export function TrackingEventFormModal({
           placeholder="Add any detail visible to the customer on the tracking page"
           {...register('description')}
         />
-        {!isEdit && (
-          <label className="flex items-center gap-2.5 text-sm text-steel-600">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-steel-300 text-navy-700 focus:ring-navy-500"
-              {...register('sync_status')}
-            />
-            Set the shipment’s current status to match this event
-          </label>
-        )}
+        <p className="text-sm text-steel-600">
+          The shipment’s status and current location always follow its most recent tracking event.
+        </p>
       </form>
     </Modal>
   )

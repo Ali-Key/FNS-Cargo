@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Download, Printer } from 'lucide-react'
 import { Button, Modal, Spinner } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
-import { getInvoiceForDocument, listPaymentsForInvoice } from '@/services/financeService'
+import { getInvoiceForDocument, getReceiverSignatureUrl, listPaymentsForInvoice } from '@/services/financeService'
 import { getSystemSettings } from '@/services/settingsService'
 import type { InvoiceDocumentData, Payment, SystemSettings } from '@/types'
 import type { DocumentCompanyInfo } from '@/lib/documents/DocumentHeader'
@@ -26,6 +26,7 @@ export function InvoicePreviewModal({ open, onClose, invoiceId }: InvoicePreview
   const [data, setData] = useState<InvoiceDocumentData | null>(null)
   const [settings, setSettings] = useState<SystemSettings | null>(null)
   const [lastPayment, setLastPayment] = useState<Payment | null>(null)
+  const [receiverSignatureUrl, setReceiverSignatureUrl] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const [downloading, setDownloading] = useState(false)
@@ -36,10 +37,11 @@ export function InvoicePreviewModal({ open, onClose, invoiceId }: InvoicePreview
     if (!open || !invoiceId) return
     setLoading(true)
     Promise.all([getInvoiceForDocument(invoiceId), getSystemSettings(), listPaymentsForInvoice(invoiceId)])
-      .then(([inv, settingsResult, payments]) => {
+      .then(async ([inv, settingsResult, payments]) => {
         setData(inv)
         setSettings(settingsResult)
         setLastPayment(payments[0] ?? null)
+        setReceiverSignatureUrl(inv ? await getReceiverSignatureUrl(inv.receiver_signature_path) : null)
       })
       .catch(() => toast.error('Unable to load invoice', 'Please try again.'))
       .finally(() => setLoading(false))
@@ -52,7 +54,12 @@ export function InvoicePreviewModal({ open, onClose, invoiceId }: InvoicePreview
     if (!data) throw new Error('Invoice not loaded')
     const { InvoiceDocument } = await import('@/lib/documents/InvoiceDocument')
     return (
-      <InvoiceDocument invoice={data} company={company} lastPaymentMethod={lastPayment?.method ?? null} />
+      <InvoiceDocument
+        invoice={data}
+        company={company}
+        lastPaymentMethod={lastPayment?.method ?? null}
+        receiverSignatureUrl={receiverSignatureUrl}
+      />
     )
   }
 

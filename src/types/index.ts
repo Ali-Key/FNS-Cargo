@@ -86,6 +86,7 @@ export type InvoiceDocumentData = Invoice & {
         | 'total_price'
         | 'pieces'
         | 'booking_contact'
+        | 'flight_number'
         | 'created_at'
       >)
     | null

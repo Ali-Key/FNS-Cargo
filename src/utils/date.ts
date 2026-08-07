@@ -26,6 +26,12 @@ export function formatDateTime(value: string | Date | null | undefined, fallback
   }).format(date)
 }
 
+export function formatTime(value: string | Date | null | undefined, fallback = '—'): string {
+  const date = toValidDate(value)
+  if (!date) return fallback
+  return new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).format(date)
+}
+
 export function formatRelativeToNow(value: string | Date | null | undefined): string {
   const date = toValidDate(value)
   if (!date) return 'Unknown'

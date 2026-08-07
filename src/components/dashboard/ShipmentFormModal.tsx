@@ -48,6 +48,7 @@ const schema = z.object({
   booking_contact: z.string().optional(),
   cn_number: z.string().optional(),
   branch_code: z.string().optional(),
+  flight_number: z.string().optional(),
 })
 
 /** Total = weight x price per kg, rounded to cents. Mirrors the generated column in Postgres. */
@@ -87,6 +88,7 @@ const EMPTY: FormValues = {
   booking_contact: '',
   cn_number: '',
   branch_code: '',
+  flight_number: '',
 }
 
 export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOptions }: ShipmentFormModalProps) {
@@ -128,6 +130,7 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
         booking_contact: shipment.booking_contact ?? '',
         cn_number: shipment.cn_number ?? '',
         branch_code: shipment.branch_code ?? '',
+        flight_number: shipment.flight_number ?? '',
       })
     } else {
       reset(EMPTY)
@@ -175,6 +178,7 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
       booking_contact: parsed.booking_contact?.trim() || null,
       cn_number: parsed.cn_number?.trim() || null,
       branch_code: parsed.branch_code?.trim() || null,
+      flight_number: parsed.flight_number?.trim() || null,
     }
 
     try {
@@ -300,8 +304,8 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
           />
         </div>
 
-        {/* Waybill label fields: printed on the label alongside the tracking number/barcode. */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {/* Waybill label + invoice fields: printed on the label/invoice alongside the tracking number/barcode. */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <Input
             label="Booking contact"
             type="tel"
@@ -310,6 +314,7 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
           />
           <Input label="CN number" placeholder="1352503" {...register('cn_number')} />
           <Input label="Branch code" placeholder="GZ2025" {...register('branch_code')} />
+          <Input label="Flight number" placeholder="F77" {...register('flight_number')} />
         </div>
 
         <div className="rounded-lg border border-gray-300 bg-surface p-4">

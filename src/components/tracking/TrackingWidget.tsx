@@ -71,12 +71,15 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
       } else {
         setResult(null)
         setState('notfound')
-        toast.warning('No match found', 'Check the tracking number and try again.')
+        toast.warning('Tracking number not found', 'Check the number and try again.')
       }
     } catch {
       setResult(null)
       setState('error')
-      toast.error('Tracking unavailable', 'We could not reach the tracking service. Please try again shortly.')
+      toast.error(
+        'Tracking temporarily unavailable',
+        "We're unable to connect to the tracking service right now. Please try again shortly.",
+      )
     }
   }
 
@@ -131,10 +134,10 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
           <div className="flex h-14 w-14 items-center justify-center rounded-card bg-primary-50 text-primary-600">
             <PackageX className="h-7 w-7" />
           </div>
-          <h3 className="text-base font-bold text-navy-900">No shipment found</h3>
+          <h3 className="text-base font-bold text-navy-900">Tracking number not found</h3>
           <p className="max-w-sm text-sm leading-relaxed text-text-secondary">
-            We could not match that tracking number. Check it against your booking confirmation and
-            try again, or contact our team and we will locate the consignment for you.
+            We could not find a shipment with this tracking number. Check it against your booking
+            confirmation and try again, or contact our team and we will locate the consignment for you.
           </p>
           <Link to="/contact">
             <Button variant="secondary" size="sm">
@@ -149,10 +152,10 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
           <div className="flex h-14 w-14 items-center justify-center rounded-card bg-status-delayed/10 text-status-delayed">
             <AlertCircle className="h-7 w-7" />
           </div>
-          <h3 className="text-base font-bold text-navy-900">Tracking unavailable</h3>
+          <h3 className="text-base font-bold text-navy-900">Tracking temporarily unavailable</h3>
           <p className="max-w-sm text-sm leading-relaxed text-text-secondary">
-            We could not reach the tracking service. Please try again in a moment. If the problem
-            continues, contact our operations team.
+            We are unable to connect to the tracking service right now. Please try again shortly. If
+            the problem continues, contact our operations team.
           </p>
           <Link to="/contact">
             <Button variant="secondary" size="sm">

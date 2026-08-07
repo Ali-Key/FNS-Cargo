@@ -138,7 +138,7 @@ export default function Home() {
       {/* HERO — clean blue & white split layout. Extra bottom padding
           reserves room for the tracking widget rendered as a SIBLING below, so
           the section's overflow-hidden never clips the widget. */}
-      <section className="relative overflow-hidden border-b border-gray-200 bg-white pb-24 pt-14 sm:pb-28 sm:pt-16">
+      <section className="relative overflow-hidden border-b border-gray-200 bg-white pb-24 pt-14 sm:pb-28 sm:pt-16 ">
         {" "}
         <div className="container-page relative">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-10">

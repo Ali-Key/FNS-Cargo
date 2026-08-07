@@ -14,6 +14,18 @@ export async function getSystemSettings(): Promise<SystemSettings | null> {
   return fallback.data
 }
 
+/**
+ * Full settings row, including admin-only fields. `public_settings()` deliberately
+ * omits `vat_rate` (it is not part of the anon-facing payload), so anything that
+ * reads or edits the VAT rate must go through this direct, RLS-gated read —
+ * otherwise the rate silently reads as 0 and a save would overwrite the real one.
+ */
+export async function getAdminSystemSettings(): Promise<SystemSettings | null> {
+  const { data, error } = await supabase.from('system_settings').select('*').limit(1).maybeSingle()
+  if (error) throw error
+  return data
+}
+
 export async function updateSystemSettings(
   id: string,
   updates: Partial<

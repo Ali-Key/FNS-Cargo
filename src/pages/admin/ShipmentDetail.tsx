@@ -12,6 +12,8 @@ import {
   Warehouse,
   Receipt,
   Eye,
+  PenLine,
+  CheckCircle2,
 } from 'lucide-react'
 import {
   Button,
@@ -25,13 +27,14 @@ import {
   Skeleton,
   SkeletonText,
 } from '@/components/ui'
-import { PageHeader, ConfirmDialog, ExportMenu } from '@/components/dashboard'
+import { PageHeader, ConfirmDialog, ExportMenu, WorkflowStepper } from '@/components/dashboard'
 import { ShipmentFormModal } from '@/components/dashboard/ShipmentFormModal'
 import { TrackingEventFormModal } from '@/components/dashboard/TrackingEventFormModal'
 import { InvoiceFormModal } from '@/components/dashboard/InvoiceFormModal'
 import { InvoicePreviewModal } from '@/components/dashboard/InvoicePreviewModal'
 import { RecordPaymentModal } from '@/components/dashboard/RecordPaymentModal'
 import { DeliveryProofCard } from '@/components/dashboard/DeliveryProofCard'
+import { ReceiverSignatureModal } from '@/components/dashboard/ReceiverSignatureModal'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
@@ -76,6 +79,7 @@ export default function ShipmentDetail() {
   const [invoiceOpen, setInvoiceOpen] = useState(false)
   const [previewingInvoiceId, setPreviewingInvoiceId] = useState<string | null>(null)
   const [paying, setPaying] = useState<Invoice | null>(null)
+  const [signing, setSigning] = useState<Invoice | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [eventOpen, setEventOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<TrackingUpdate | null>(null)
@@ -180,6 +184,22 @@ export default function ShipmentDetail() {
         }
       />
 
+      <WorkflowStepper
+        steps={[
+          { label: 'Received', done: true },
+          { label: 'Weighed', done: shipment.weight != null && shipment.price_per_kg != null },
+          { label: 'Waybill', done: !!shipment.cn_number && !!shipment.branch_code },
+          ...(isAdmin
+            ? [
+                { label: 'Invoiced', done: invoices.length > 0 },
+                { label: 'Paid', done: shipment.payment_status === 'Paid' },
+                { label: 'Signed', done: invoices.some((inv) => !!inv.receiver_signature_path) },
+              ]
+            : []),
+          { label: 'Delivered', done: status === 'Delivered' },
+        ]}
+      />
+
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
@@ -215,6 +235,7 @@ export default function ShipmentDetail() {
             <DetailRow label="Booking contact" value={shipment.booking_contact ?? 'Not set'} />
             <DetailRow label="CN number" value={shipment.cn_number ?? 'Not set'} mono />
             <DetailRow label="Branch code" value={shipment.branch_code ?? 'Not set'} mono />
+            <DetailRow label="Flight number" value={shipment.flight_number ?? 'Not set'} mono />
             {shipment.delivered_at && (
               <DetailRow label="Delivered" value={formatDateTime(shipment.delivered_at)} mono />
             )}
@@ -374,6 +395,22 @@ export default function ShipmentDetail() {
                         Record payment
                       </Button>
                     )}
+                    {inv.status !== 'Void' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={
+                          inv.receiver_signature_path ? (
+                            <CheckCircle2 className="h-4 w-4 text-status-delivered" />
+                          ) : (
+                            <PenLine className="h-4 w-4" />
+                          )
+                        }
+                        onClick={() => setSigning(inv)}
+                      >
+                        {inv.receiver_signature_path ? 'Signed' : 'Capture signature'}
+                      </Button>
+                    )}
                   </div>
                 </li>
               ))}
@@ -400,6 +437,13 @@ export default function ShipmentDetail() {
         onClose={() => setPaying(null)}
         onSaved={load}
         invoice={paying}
+      />
+
+      <ReceiverSignatureModal
+        open={!!signing}
+        onClose={() => setSigning(null)}
+        onSaved={load}
+        invoice={signing}
       />
 
       <ShipmentFormModal

@@ -12,16 +12,9 @@ import {
   Button,
   StatusBadge,
   PaymentBadge,
-  Table,
-  TableBody,
   TableCell,
-  TableHead,
   TableHeadCell,
   TableRow,
-  Pagination,
-  EmptyState,
-  SkeletonTableRows,
-  SkeletonCard,
   RowActions,
   Avatar,
   DetailRow,
@@ -35,6 +28,7 @@ import {
   FilterDropdown,
   DataToolbar,
   ExportMenu,
+  ResponsiveDataList,
 } from "@/components/dashboard";
 import { ShipmentFormModal } from "@/components/dashboard/ShipmentFormModal";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -349,224 +343,86 @@ export default function Shipments() {
         />
       </DataToolbar>
 
-      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1 sm:block">
-        <Table className="min-w-[860px] border-0 lg:min-w-[1240px]">
-          <TableHead className="sticky top-0">
-            <TableRow>
-              <TableHeadCell>Tracking #</TableHeadCell>
-              <TableHeadCell>Customer</TableHeadCell>
-              <TableHeadCell>Route</TableHeadCell>
-              <TableHeadCell className="hidden lg:table-cell">
-                Method
-              </TableHeadCell>
-              <TableHeadCell className="hidden text-right lg:table-cell">
-                Weight
-              </TableHeadCell>
-              <TableHeadCell className="text-right">Value</TableHeadCell>
-              <TableHeadCell>Status</TableHeadCell>
-              <TableHeadCell>Payment</TableHeadCell>
-              <TableHeadCell className="hidden lg:table-cell">
-                Assigned
-              </TableHeadCell>
-              <TableHeadCell>Est. Delivery</TableHeadCell>
-              <TableHeadCell className="text-right">Actions</TableHeadCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <SkeletonTableRows rows={8} columns={11} />
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={11}>
-                  <EmptyState
-                    icon={<Package className="h-6 w-6" />}
-                    title={
-                      filtersActive
-                        ? "No matching shipments"
-                        : "No shipments yet"
-                    }
-                    description={
-                      filtersActive
-                        ? "Try changing your search or filters."
-                        : "Add your first shipment to get started."
-                    }
-                    action={
-                      filtersActive ? (
-                        <Button variant="secondary" onClick={clearFilters}>
-                          Clear filters
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="primary"
-                          icon={<Plus className="h-4 w-4" />}
-                          onClick={openCreate}
-                        >
-                          New shipment
-                        </Button>
-                      )
-                    }
-                  />
-                </td>
-              </tr>
-            ) : (
-              rows.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Link
-                        to={`/dashboard/shipments/${s.id}`}
-                        className="rounded font-mono text-sm font-semibold text-primary-600 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
-                      >
-                        {s.tracking_number}
-                      </Link>
-                      <CopyButton value={s.tracking_number} label="tracking number" />
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm font-medium text-navy-800">
-                    {s.customer_name}
-                  </TableCell>
-                  <TableCell className="text-sm text-steel-600">
-                    {s.origin} → {s.destination}
-                    {s.current_location && (
-                      <span className="block text-xs text-steel-400">
-                        at {s.current_location}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="hidden text-sm text-steel-600 lg:table-cell">
-                    {SHIPPING_METHOD_LABEL[s.shipping_method as ShippingMethod]}
-                  </TableCell>
-                  <TableCell className="hidden text-right font-tabular text-sm text-steel-600 lg:table-cell">
-                    {formatWeight(s.weight)}
-                  </TableCell>
-                  <TableCell className="text-right font-tabular text-sm text-steel-600">
-                    {formatCurrency(s.total_price, 2)}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge
-                      status={s.status as ShipmentStatus}
-                      delayed={isShipmentDelayed(
-                        s.status,
-                        s.estimated_delivery,
-                      )}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <PaymentBadge status={s.payment_status} />
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {s.assignee ? (
-                      <span className="inline-flex items-center gap-2">
-                        <Avatar name={s.assignee.full_name} size="sm" />
-                        <span className="text-sm text-steel-600">
-                          {s.assignee.full_name}
-                        </span>
-                      </span>
-                    ) : (
-                      <span className="text-sm text-steel-400">Unassigned</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-tabular text-sm">
-                    {isShipmentDelayed(s.status, s.estimated_delivery) ? (
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-status-delayed">
-                        <AlertTriangle
-                          className="h-3.5 w-3.5"
-                          aria-hidden="true"
-                        />
-                        {formatDate(s.estimated_delivery, "—")}
-                      </span>
-                    ) : (
-                      <span className="text-text-secondary">
-                        {formatDate(s.estimated_delivery, "—")}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end">
-                      <RowActions
-                        label={`Actions for ${s.tracking_number}`}
-                        items={[
-                          {
-                            label: "View shipment",
-                            icon: <Eye className="h-4 w-4" />,
-                            onClick: () =>
-                              navigate(`/dashboard/shipments/${s.id}`),
-                          },
-                          {
-                            label: "Edit shipment",
-                            icon: <Pencil className="h-4 w-4" />,
-                            onClick: () => openEdit(s),
-                          },
-                          ...(isAdmin
-                            ? [
-                                {
-                                  label: "Delete shipment",
-                                  icon: <Trash2 className="h-4 w-4" />,
-                                  onClick: () => setDeleting(s),
-                                  danger: true,
-                                },
-                              ]
-                            : []),
-                        ]}
-                      />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Mobile card list — same data as the table, one card per shipment */}
-      <div className="space-y-3 sm:hidden">
-        {loading ? (
-          Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-        ) : rows.length === 0 ? (
-          <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
-            <EmptyState
-              icon={<Package className="h-6 w-6" />}
-              title={
-                filtersActive ? "No matching shipments" : "No shipments yet"
-              }
-              description={
-                filtersActive
-                  ? "Try changing your search or filters."
-                  : "Add your first shipment to get started."
-              }
-              action={
-                filtersActive ? (
-                  <Button variant="secondary" onClick={clearFilters}>
-                    Clear filters
-                  </Button>
-                ) : (
-                  <Button
-                    variant="primary"
-                    icon={<Plus className="h-4 w-4" />}
-                    onClick={openCreate}
-                  >
-                    New shipment
-                  </Button>
-                )
-              }
-            />
-          </div>
-        ) : (
-          rows.map((s) => (
-            <MobileRowCard
-              key={s.id}
-              header={
-                <div className="flex items-center gap-1">
-                  <Link
-                    to={`/dashboard/shipments/${s.id}`}
-                    className="rounded font-mono text-sm font-semibold text-primary-600 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
-                  >
-                    {s.tracking_number}
-                  </Link>
-                  <CopyButton value={s.tracking_number} label="tracking number" />
-                </div>
-              }
-              actions={
+      <ResponsiveDataList
+        rows={rows}
+        loading={loading}
+        columnCount={11}
+        tableClassName="min-w-[860px] border-0 lg:min-w-[1240px]"
+        tableHead={
+          <TableRow>
+            <TableHeadCell>Tracking #</TableHeadCell>
+            <TableHeadCell>Customer</TableHeadCell>
+            <TableHeadCell>Route</TableHeadCell>
+            <TableHeadCell className="hidden lg:table-cell">Method</TableHeadCell>
+            <TableHeadCell className="hidden text-right lg:table-cell">Weight</TableHeadCell>
+            <TableHeadCell className="text-right">Value</TableHeadCell>
+            <TableHeadCell>Status</TableHeadCell>
+            <TableHeadCell>Payment</TableHeadCell>
+            <TableHeadCell className="hidden lg:table-cell">Assigned</TableHeadCell>
+            <TableHeadCell>Est. Delivery</TableHeadCell>
+            <TableHeadCell className="text-right">Actions</TableHeadCell>
+          </TableRow>
+        }
+        renderRow={(s) => (
+          <TableRow key={s.id}>
+            <TableCell>
+              <div className="flex items-center gap-1">
+                <Link
+                  to={`/dashboard/shipments/${s.id}`}
+                  className="rounded font-mono text-sm font-semibold text-primary-600 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+                >
+                  {s.tracking_number}
+                </Link>
+                <CopyButton value={s.tracking_number} label="tracking number" />
+              </div>
+            </TableCell>
+            <TableCell className="text-sm font-medium text-navy-800">{s.customer_name}</TableCell>
+            <TableCell className="text-sm text-steel-600">
+              {s.origin} → {s.destination}
+              {s.current_location && (
+                <span className="block text-xs text-steel-400">at {s.current_location}</span>
+              )}
+            </TableCell>
+            <TableCell className="hidden text-sm text-steel-600 lg:table-cell">
+              {SHIPPING_METHOD_LABEL[s.shipping_method as ShippingMethod]}
+            </TableCell>
+            <TableCell className="hidden text-right font-tabular text-sm text-steel-600 lg:table-cell">
+              {formatWeight(s.weight)}
+            </TableCell>
+            <TableCell className="text-right font-tabular text-sm text-steel-600">
+              {formatCurrency(s.total_price, 2)}
+            </TableCell>
+            <TableCell>
+              <StatusBadge
+                status={s.status as ShipmentStatus}
+                delayed={isShipmentDelayed(s.status, s.estimated_delivery)}
+              />
+            </TableCell>
+            <TableCell>
+              <PaymentBadge status={s.payment_status} />
+            </TableCell>
+            <TableCell className="hidden lg:table-cell">
+              {s.assignee ? (
+                <span className="inline-flex items-center gap-2">
+                  <Avatar name={s.assignee.full_name} size="sm" />
+                  <span className="text-sm text-steel-600">{s.assignee.full_name}</span>
+                </span>
+              ) : (
+                <span className="text-sm text-steel-400">Unassigned</span>
+              )}
+            </TableCell>
+            <TableCell className="font-tabular text-sm">
+              {isShipmentDelayed(s.status, s.estimated_delivery) ? (
+                <span className="inline-flex items-center gap-1.5 font-semibold text-status-delayed">
+                  <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                  {formatDate(s.estimated_delivery, "—")}
+                </span>
+              ) : (
+                <span className="text-text-secondary">{formatDate(s.estimated_delivery, "—")}</span>
+              )}
+            </TableCell>
+            <TableCell>
+              <div className="flex justify-end">
                 <RowActions
                   label={`Actions for ${s.tracking_number}`}
                   items={[
@@ -592,57 +448,97 @@ export default function Shipments() {
                       : []),
                   ]}
                 />
-              }
-            >
-              <DetailRow label="Customer" value={s.customer_name} />
-              <DetailRow
-                label="Route"
-                value={`${s.origin} → ${s.destination}`}
-              />
-              <DetailRow
-                label="Value"
-                value={formatCurrency(s.total_price, 2)}
-                mono
-              />
-              <DetailRow label="Status">
-                <StatusBadge
-                  status={s.status as ShipmentStatus}
-                  delayed={isShipmentDelayed(s.status, s.estimated_delivery)}
-                />
-              </DetailRow>
-              <DetailRow label="Payment">
-                <PaymentBadge status={s.payment_status} />
-              </DetailRow>
-              <DetailRow
-                label="Est. delivery"
-                value={
-                  isShipmentDelayed(s.status, s.estimated_delivery) ? (
-                    <span className="inline-flex items-center gap-1.5 font-semibold text-status-delayed">
-                      <AlertTriangle
-                        className="h-3.5 w-3.5"
-                        aria-hidden="true"
-                      />
-                      {formatDate(s.estimated_delivery, "—")}
-                    </span>
-                  ) : (
-                    formatDate(s.estimated_delivery, "—")
-                  )
-                }
-              />
-            </MobileRowCard>
-          ))
+              </div>
+            </TableCell>
+          </TableRow>
         )}
-      </div>
-
-      {!loading && rows.length > 0 && (
-        <Pagination
-          page={page}
-          pageCount={pageCount}
-          onPageChange={setPage}
-          totalItems={count}
-          pageSize={PAGE_SIZE}
-        />
-      )}
+        renderMobileCard={(s) => (
+          <MobileRowCard
+            key={s.id}
+            header={
+              <div className="flex items-center gap-1">
+                <Link
+                  to={`/dashboard/shipments/${s.id}`}
+                  className="rounded font-mono text-sm font-semibold text-primary-600 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+                >
+                  {s.tracking_number}
+                </Link>
+                <CopyButton value={s.tracking_number} label="tracking number" />
+              </div>
+            }
+            actions={
+              <RowActions
+                label={`Actions for ${s.tracking_number}`}
+                items={[
+                  {
+                    label: "View shipment",
+                    icon: <Eye className="h-4 w-4" />,
+                    onClick: () => navigate(`/dashboard/shipments/${s.id}`),
+                  },
+                  {
+                    label: "Edit shipment",
+                    icon: <Pencil className="h-4 w-4" />,
+                    onClick: () => openEdit(s),
+                  },
+                  ...(isAdmin
+                    ? [
+                        {
+                          label: "Delete shipment",
+                          icon: <Trash2 className="h-4 w-4" />,
+                          onClick: () => setDeleting(s),
+                          danger: true,
+                        },
+                      ]
+                    : []),
+                ]}
+              />
+            }
+          >
+            <DetailRow label="Customer" value={s.customer_name} />
+            <DetailRow label="Route" value={`${s.origin} → ${s.destination}`} />
+            <DetailRow label="Value" value={formatCurrency(s.total_price, 2)} mono />
+            <DetailRow label="Status">
+              <StatusBadge
+                status={s.status as ShipmentStatus}
+                delayed={isShipmentDelayed(s.status, s.estimated_delivery)}
+              />
+            </DetailRow>
+            <DetailRow label="Payment">
+              <PaymentBadge status={s.payment_status} />
+            </DetailRow>
+            <DetailRow
+              label="Est. delivery"
+              value={
+                isShipmentDelayed(s.status, s.estimated_delivery) ? (
+                  <span className="inline-flex items-center gap-1.5 font-semibold text-status-delayed">
+                    <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                    {formatDate(s.estimated_delivery, "—")}
+                  </span>
+                ) : (
+                  formatDate(s.estimated_delivery, "—")
+                )
+              }
+            />
+          </MobileRowCard>
+        )}
+        emptyIcon={<Package className="h-6 w-6" />}
+        emptyTitle={filtersActive ? "No matching shipments" : "No shipments yet"}
+        emptyDescription={
+          filtersActive ? "Try changing your search or filters." : "Add your first shipment to get started."
+        }
+        emptyAction={
+          filtersActive ? (
+            <Button variant="secondary" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          ) : (
+            <Button variant="primary" icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+              New shipment
+            </Button>
+          )
+        }
+        pagination={{ page, pageCount, onPageChange: setPage, totalItems: count, pageSize: PAGE_SIZE }}
+      />
 
       <ShipmentFormModal
         open={formOpen}

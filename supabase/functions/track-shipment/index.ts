@@ -23,26 +23,19 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-// Only these origins may read the response from a browser. Anything else
-// still gets a response (there is no auth boundary here beyond rate limiting
-// -- this endpoint is meant to be public), but the browser will refuse to
-// expose it to page script from an untrusted origin.
-const ALLOWED_ORIGINS = new Set([
-  'https://fnscargo.com',
-  'https://www.fnscargo.com',
-  'http://localhost:5173',
-  'http://localhost:4173',
-]);
-function corsFor(req: Request) {
-  const origin = req.headers.get('Origin') ?? '';
-  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : 'https://fnscargo.com';
-  return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    Vary: 'Origin',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  };
-}
+// This endpoint is public by design: no cookies, no credentialed session, and
+// the only data it returns is the same safe field set track_shipment() exposes.
+// An origin allowlist therefore buys no security -- a non-browser client
+// ignores CORS entirely -- while silently breaking every legitimate origin that
+// is not literally in the list (drifted Vite dev ports, 127.0.0.1, Netlify
+// deploy previews), which surfaces to the user as "tracking unavailable".
+// Abuse is handled by the per-IP rate limit below, not by CORS.
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-region',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+};
 
 // Same shape as the shipments.tracking_number check constraint.
 const TRACKING_RE = /^[A-Z0-9][A-Z0-9-]{5,31}$/;
@@ -52,11 +45,10 @@ const RATE_LIMIT_MAX = 15;
 const PRUNE_OLDER_THAN_MS = 60 * 60 * 1000;
 
 Deno.serve(async (req) => {
-  const cors = corsFor(req);
   const json = (body: unknown, status = 200) =>
-    new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
+    new Response(JSON.stringify(body), { status, headers: { ...CORS, 'Content-Type': 'application/json' } });
 
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
   let body: { tracking_number?: string };

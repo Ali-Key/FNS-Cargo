@@ -7,9 +7,10 @@ import { useToast } from '@/context/ToastContext'
 import { useAuth } from '@/context/AuthContext'
 import { createInvoice, updateInvoice } from '@/services/financeService'
 import { listShipments } from '@/services/shipmentsService'
-import { getSystemSettings } from '@/services/settingsService'
+import { getAdminSystemSettings } from '@/services/settingsService'
 import type { InvoiceStatus, InvoiceWithRelations, ShipmentWithCustomer } from '@/types'
 import { formatCurrency } from '@/utils/format'
+import { round2, deriveVatRatePercent } from '@/utils/vat'
 
 // Paid and Partially Paid are derived by the payments trigger from the ledger.
 // Offering them here lets someone mark an invoice Paid with nothing collected,
@@ -62,11 +63,6 @@ const EMPTY: FormValues = {
   notes: '',
 }
 
-/** Cents-rounded, mirroring the DB's `balance` generated column expression. */
-function round2(n: number): number {
-  return Math.round(n * 100) / 100
-}
-
 export function InvoiceFormModal({
   open,
   onClose,
@@ -103,8 +99,9 @@ export function InvoiceFormModal({
   useEffect(() => {
     if (!open) return
     if (invoice) {
-      // vat_amount is stored, not the rate — back out a rate to show/edit here.
-      const rate = invoice.amount > 0 ? round2((invoice.vat_amount / invoice.amount) * 100) : 0
+      // Prefer the stored per-invoice override; older invoices without one
+      // fall back to deriving a rate from the frozen vat_amount.
+      const rate = deriveVatRatePercent(invoice.amount, invoice.vat_amount, invoice.vat_rate)
       reset({
         shipment_id: invoice.shipment_id,
         amount: invoice.amount as unknown as number,
@@ -116,7 +113,7 @@ export function InvoiceFormModal({
         notes: invoice.notes ?? '',
       })
     } else {
-      getSystemSettings()
+      getAdminSystemSettings()
         .then((settings) => {
           reset({
             ...EMPTY,
@@ -155,9 +152,12 @@ export function InvoiceFormModal({
       // history survives the shipment being reassigned.
       customer_id: shipment?.customer_id ?? invoice?.customer_id ?? null,
       amount: parsed.amount,
-      // Stored as a computed amount (not the rate) so a later rate change never
-      // rewrites an already-issued invoice.
+      // vat_amount is stored as a computed dollar figure so a later global rate
+      // change never rewrites an already-issued invoice; vat_rate is stored
+      // alongside it purely as the record of which rate produced that figure
+      // (and to let it be overridden per-invoice, e.g. VAT-exempt shipments).
       vat_amount: round2((parsed.amount * parsed.vat_rate) / 100),
+      vat_rate: parsed.vat_rate,
       discount: parsed.discount,
       status: parsed.status as InvoiceStatus,
       issued_at: parsed.issued_at,
@@ -293,8 +293,8 @@ export function InvoiceFormModal({
             </div>
           </div>
           <p className="mt-2 text-xs text-text-secondary">
-            Grand total = amount + VAT − discount. VAT is stored as a fixed amount at issue time, so a
-            later rate change never rewrites this invoice.
+            Grand total = amount + VAT − discount. Defaults to the rate in Settings but can be overridden
+            per invoice (e.g. a VAT-exempt shipment); once raised, the rate and amount are frozen.
           </p>
         </div>
 

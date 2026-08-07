@@ -13,16 +13,9 @@ import {
 import {
   Button,
   InvoiceBadge,
-  Table,
-  TableBody,
   TableCell,
-  TableHead,
   TableHeadCell,
   TableRow,
-  Pagination,
-  EmptyState,
-  SkeletonTableRows,
-  SkeletonCard,
   RowActions,
   DetailRow,
   CopyButton,
@@ -37,6 +30,7 @@ import {
   DataToolbar,
   InvoicePreviewModal,
   ExportMenu,
+  ResponsiveDataList,
 } from "@/components/dashboard";
 import { InvoiceFormModal } from "@/components/dashboard/InvoiceFormModal";
 import { RecordPaymentModal } from "@/components/dashboard/RecordPaymentModal";
@@ -232,215 +226,81 @@ export default function Invoices() {
         />
       </DataToolbar>
 
-      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1 sm:block">
-        <Table className="min-w-[640px] border-0 lg:min-w-[900px]">
-          <TableHead className="sticky top-0">
-            <TableRow>
-              <TableHeadCell>Invoice</TableHeadCell>
-              <TableHeadCell className="hidden lg:table-cell">
-                Shipment
-              </TableHeadCell>
-              <TableHeadCell>Customer</TableHeadCell>
-              <TableHeadCell className="text-right">Amount</TableHeadCell>
-              <TableHeadCell className="hidden text-right lg:table-cell">
-                Paid
-              </TableHeadCell>
-              <TableHeadCell className="text-right">Balance</TableHeadCell>
-              <TableHeadCell>Status</TableHeadCell>
-              <TableHeadCell className="hidden lg:table-cell">
-                Due
-              </TableHeadCell>
-              <TableHeadCell className="text-right">Actions</TableHeadCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <SkeletonTableRows rows={8} columns={9} />
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={9}>
-                  <EmptyState
-                    icon={<Receipt className="h-6 w-6" />}
-                    title={
-                      filtersActive ? "No matching invoices" : "No invoices yet"
-                    }
-                    description={
-                      filtersActive
-                        ? "Try changing your search or filter."
-                        : "Raise an invoice against a shipment to start tracking revenue."
-                    }
-                    action={
-                      filtersActive ? (
-                        <Button variant="secondary" onClick={clearFilters}>
-                          Clear filters
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="primary"
-                          icon={<Plus className="h-4 w-4" />}
-                          onClick={openCreate}
-                        >
-                          Raise invoice
-                        </Button>
-                      )
-                    }
-                  />
-                </td>
-              </tr>
-            ) : (
-              rows.map((inv) => {
-                const overdue = isInvoiceOverdue(
-                  inv.status,
-                  inv.due_date,
-                  inv.balance,
-                );
-                return (
-                  <TableRow key={inv.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <span className="font-mono text-sm font-semibold text-primary-600">
-                          {inv.invoice_number}
-                        </span>
-                        <CopyButton value={inv.invoice_number} label="invoice number" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      {inv.shipment ? (
-                        <Link
-                          to={`/dashboard/shipments/${inv.shipment.id}`}
-                          className="rounded font-mono text-sm text-navy-700 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
-                        >
-                          {inv.shipment.tracking_number}
-                        </Link>
-                      ) : (
-                        <span className="text-sm text-steel-400">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-steel-600">
-                      {inv.customer?.full_name ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="font-tabular text-sm font-semibold text-navy-900">
-                        {formatCurrency(inv.amount, 2)}
-                      </span>
-                      {(inv.amount ?? 0) > 0 && (
-                        <div className="mt-1 h-1 w-full min-w-[64px] overflow-hidden rounded-full bg-steel-100">
-                          <div
-                            className="h-full rounded-full bg-status-delivered"
-                            style={{
-                              width: `${Math.min(100, Math.round(((inv.amount_paid ?? 0) / inv.amount) * 100))}%`,
-                            }}
-                          />
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="hidden text-right font-tabular text-sm text-status-delivered lg:table-cell">
-                      {formatCurrency(inv.amount_paid, 2)}
-                    </TableCell>
-                    <TableCell className="text-right font-tabular text-sm font-semibold text-navy-900">
-                      {formatCurrency(inv.balance, 2)}
-                    </TableCell>
-                    <TableCell>
-                      <InvoiceBadge status={inv.status} overdue={overdue} />
-                    </TableCell>
-                    <TableCell className="hidden font-tabular text-sm text-text-secondary lg:table-cell">
-                      {formatDate(inv.due_date, "—")}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-1">
-                        {(inv.balance ?? 0) > 0 && inv.status !== "Void" && (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => setPaying(inv)}
-                          >
-                            Record payment
-                          </Button>
-                        )}
-                        <RowActions
-                          label={`Actions for ${inv.invoice_number}`}
-                          items={[
-                            {
-                              label: "View invoice",
-                              icon: <Eye className="h-4 w-4" />,
-                              onClick: () => setPreviewInvoiceId(inv.id),
-                            },
-                            {
-                              label: "Edit invoice",
-                              icon: <Pencil className="h-4 w-4" />,
-                              onClick: () => {
-                                setEditing(inv);
-                                setFormOpen(true);
-                              },
-                            },
-                            {
-                              label: "Delete invoice",
-                              icon: <Trash2 className="h-4 w-4" />,
-                              onClick: () => setDeleting(inv),
-                              danger: true,
-                            },
-                          ]}
-                        />
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Mobile card list — same data as the table, one card per invoice */}
-      <div className="space-y-3 sm:hidden">
-        {loading ? (
-          Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-        ) : rows.length === 0 ? (
-          <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
-            <EmptyState
-              icon={<Receipt className="h-6 w-6" />}
-              title={filtersActive ? "No matching invoices" : "No invoices yet"}
-              description={
-                filtersActive
-                  ? "Try changing your search or filter."
-                  : "Raise an invoice against a shipment to start tracking revenue."
-              }
-              action={
-                filtersActive ? (
-                  <Button variant="secondary" onClick={clearFilters}>
-                    Clear filters
-                  </Button>
-                ) : (
-                  <Button
-                    variant="primary"
-                    icon={<Plus className="h-4 w-4" />}
-                    onClick={openCreate}
+      <ResponsiveDataList
+        rows={rows}
+        loading={loading}
+        columnCount={9}
+        tableClassName="min-w-[640px] border-0 lg:min-w-[900px]"
+        tableHead={
+          <TableRow>
+            <TableHeadCell>Invoice</TableHeadCell>
+            <TableHeadCell className="hidden lg:table-cell">Shipment</TableHeadCell>
+            <TableHeadCell>Customer</TableHeadCell>
+            <TableHeadCell className="text-right">Amount</TableHeadCell>
+            <TableHeadCell className="hidden text-right lg:table-cell">Paid</TableHeadCell>
+            <TableHeadCell className="text-right">Balance</TableHeadCell>
+            <TableHeadCell>Status</TableHeadCell>
+            <TableHeadCell className="hidden lg:table-cell">Due</TableHeadCell>
+            <TableHeadCell className="text-right">Actions</TableHeadCell>
+          </TableRow>
+        }
+        renderRow={(inv) => {
+          const overdue = isInvoiceOverdue(inv.status, inv.due_date, inv.balance);
+          return (
+            <TableRow key={inv.id}>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <span className="font-mono text-sm font-semibold text-primary-600">{inv.invoice_number}</span>
+                  <CopyButton value={inv.invoice_number} label="invoice number" />
+                </div>
+              </TableCell>
+              <TableCell className="hidden lg:table-cell">
+                {inv.shipment ? (
+                  <Link
+                    to={`/dashboard/shipments/${inv.shipment.id}`}
+                    className="rounded font-mono text-sm text-navy-700 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
                   >
-                    Raise invoice
-                  </Button>
-                )
-              }
-            />
-          </div>
-        ) : (
-          rows.map((inv) => {
-            const overdue = isInvoiceOverdue(
-              inv.status,
-              inv.due_date,
-              inv.balance,
-            );
-            return (
-              <MobileRowCard
-                key={inv.id}
-                header={
-                  <div className="flex items-center gap-1">
-                    <span className="font-mono text-sm font-semibold text-primary-600">
-                      {inv.invoice_number}
-                    </span>
-                    <CopyButton value={inv.invoice_number} label="invoice number" />
+                    {inv.shipment.tracking_number}
+                  </Link>
+                ) : (
+                  <span className="text-sm text-steel-400">—</span>
+                )}
+              </TableCell>
+              <TableCell className="text-sm text-steel-600">{inv.customer?.full_name ?? "—"}</TableCell>
+              <TableCell className="text-right">
+                <span className="font-tabular text-sm font-semibold text-navy-900">
+                  {formatCurrency(inv.amount, 2)}
+                </span>
+                {(inv.amount ?? 0) > 0 && (
+                  <div className="mt-1 h-1 w-full min-w-[64px] overflow-hidden rounded-full bg-steel-100">
+                    <div
+                      className="h-full rounded-full bg-status-delivered"
+                      style={{
+                        width: `${Math.min(100, Math.round(((inv.amount_paid ?? 0) / inv.amount) * 100))}%`,
+                      }}
+                    />
                   </div>
-                }
-                actions={
+                )}
+              </TableCell>
+              <TableCell className="hidden text-right font-tabular text-sm text-status-delivered lg:table-cell">
+                {formatCurrency(inv.amount_paid, 2)}
+              </TableCell>
+              <TableCell className="text-right font-tabular text-sm font-semibold text-navy-900">
+                {formatCurrency(inv.balance, 2)}
+              </TableCell>
+              <TableCell>
+                <InvoiceBadge status={inv.status} overdue={overdue} />
+              </TableCell>
+              <TableCell className="hidden font-tabular text-sm text-text-secondary lg:table-cell">
+                {formatDate(inv.due_date, "—")}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center justify-end gap-1">
+                  {(inv.balance ?? 0) > 0 && inv.status !== "Void" && (
+                    <Button size="sm" variant="secondary" onClick={() => setPaying(inv)}>
+                      Record payment
+                    </Button>
+                  )}
                   <RowActions
                     label={`Actions for ${inv.invoice_number}`}
                     items={[
@@ -465,56 +325,86 @@ export default function Invoices() {
                       },
                     ]}
                   />
-                }
-                footer={
-                  (inv.balance ?? 0) > 0 && inv.status !== "Void" ? (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="mt-3 w-full"
-                      onClick={() => setPaying(inv)}
-                    >
-                      Record payment
-                    </Button>
-                  ) : undefined
-                }
-              >
-                <DetailRow
-                  label="Customer"
-                  value={inv.customer?.full_name ?? "—"}
+                </div>
+              </TableCell>
+            </TableRow>
+          );
+        }}
+        renderMobileCard={(inv) => {
+          const overdue = isInvoiceOverdue(inv.status, inv.due_date, inv.balance);
+          return (
+            <MobileRowCard
+              key={inv.id}
+              header={
+                <div className="flex items-center gap-1">
+                  <span className="font-mono text-sm font-semibold text-primary-600">{inv.invoice_number}</span>
+                  <CopyButton value={inv.invoice_number} label="invoice number" />
+                </div>
+              }
+              actions={
+                <RowActions
+                  label={`Actions for ${inv.invoice_number}`}
+                  items={[
+                    {
+                      label: "View invoice",
+                      icon: <Eye className="h-4 w-4" />,
+                      onClick: () => setPreviewInvoiceId(inv.id),
+                    },
+                    {
+                      label: "Edit invoice",
+                      icon: <Pencil className="h-4 w-4" />,
+                      onClick: () => {
+                        setEditing(inv);
+                        setFormOpen(true);
+                      },
+                    },
+                    {
+                      label: "Delete invoice",
+                      icon: <Trash2 className="h-4 w-4" />,
+                      onClick: () => setDeleting(inv),
+                      danger: true,
+                    },
+                  ]}
                 />
-                <DetailRow
-                  label="Amount"
-                  value={formatCurrency(inv.amount, 2)}
-                  mono
-                />
-                <DetailRow
-                  label="Balance"
-                  value={formatCurrency(inv.balance, 2)}
-                  mono
-                />
-                <DetailRow label="Status">
-                  <InvoiceBadge status={inv.status} overdue={overdue} />
-                </DetailRow>
-                <DetailRow
-                  label="Due"
-                  value={formatDate(inv.due_date, "—")}
-                />
-              </MobileRowCard>
-            );
-          })
-        )}
-      </div>
-
-      {!loading && rows.length > 0 && (
-        <Pagination
-          page={page}
-          pageCount={pageCount}
-          onPageChange={setPage}
-          totalItems={count}
-          pageSize={PAGE_SIZE}
-        />
-      )}
+              }
+              footer={
+                (inv.balance ?? 0) > 0 && inv.status !== "Void" ? (
+                  <Button size="sm" variant="secondary" className="mt-3 w-full" onClick={() => setPaying(inv)}>
+                    Record payment
+                  </Button>
+                ) : undefined
+              }
+            >
+              <DetailRow label="Customer" value={inv.customer?.full_name ?? "—"} />
+              <DetailRow label="Amount" value={formatCurrency(inv.amount, 2)} mono />
+              <DetailRow label="Balance" value={formatCurrency(inv.balance, 2)} mono />
+              <DetailRow label="Status">
+                <InvoiceBadge status={inv.status} overdue={overdue} />
+              </DetailRow>
+              <DetailRow label="Due" value={formatDate(inv.due_date, "—")} />
+            </MobileRowCard>
+          );
+        }}
+        emptyIcon={<Receipt className="h-6 w-6" />}
+        emptyTitle={filtersActive ? "No matching invoices" : "No invoices yet"}
+        emptyDescription={
+          filtersActive
+            ? "Try changing your search or filter."
+            : "Raise an invoice against a shipment to start tracking revenue."
+        }
+        emptyAction={
+          filtersActive ? (
+            <Button variant="secondary" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          ) : (
+            <Button variant="primary" icon={<Plus className="h-4 w-4" />} onClick={openCreate}>
+              Raise invoice
+            </Button>
+          )
+        }
+        pagination={{ page, pageCount, onPageChange: setPage, totalItems: count, pageSize: PAGE_SIZE }}
+      />
 
       <InvoicePreviewModal
         open={!!previewInvoiceId}

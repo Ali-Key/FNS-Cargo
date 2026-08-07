@@ -1,24 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Wallet, TrendingUp, Download, Trash2, Receipt } from 'lucide-react'
+import { TableCell, TableHeadCell, TableRow, RowActions, DetailRow, Button, MobileRowCard, Alert } from '@/components/ui'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  Pagination,
-  EmptyState,
-  SkeletonTableRows,
-  SkeletonCard,
-  RowActions,
-  DetailRow,
-  Button,
-  MobileRowCard,
-  Alert,
-} from '@/components/ui'
-import { StatTile, PageHeader, ConfirmDialog, FilterDropdown, DataToolbar, ExportMenu } from '@/components/dashboard'
+  StatTile,
+  PageHeader,
+  ConfirmDialog,
+  FilterDropdown,
+  DataToolbar,
+  ExportMenu,
+  ResponsiveDataList,
+} from '@/components/dashboard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useToast } from '@/context/ToastContext'
@@ -167,123 +159,43 @@ export default function Payments() {
         />
       </DataToolbar>
 
-      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1 sm:block">
-        <Table className="min-w-[640px] border-0 lg:min-w-[840px]">
-          <TableHead className="sticky top-0">
-            <TableRow>
-              <TableHeadCell>Date</TableHeadCell>
-              <TableHeadCell>Invoice</TableHeadCell>
-              <TableHeadCell className="text-right">Amount</TableHeadCell>
-              <TableHeadCell>Method</TableHeadCell>
-              <TableHeadCell className="hidden lg:table-cell">Reference</TableHeadCell>
-              <TableHeadCell className="text-right">Actions</TableHeadCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <SkeletonTableRows rows={8} columns={6} />
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={6}>
-                  <EmptyState
-                    icon={<Wallet className="h-6 w-6" />}
-                    title={filtersActive ? 'No matching payments' : 'No payments yet'}
-                    description={
-                      filtersActive
-                        ? 'Try changing your search or filter.'
-                        : 'Recorded payments appear here as they are received.'
-                    }
-                    action={
-                      filtersActive ? (
-                        <Button variant="secondary" onClick={clearFilters}>
-                          Clear filters
-                        </Button>
-                      ) : undefined
-                    }
-                  />
-                </td>
-              </tr>
-            ) : (
-              rows.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-tabular text-sm text-steel-600">{formatDate(p.paid_at)}</TableCell>
-                  <TableCell>
-                    {p.invoice ? (
-                      <Link
-                        to="/dashboard/invoices"
-                        className="rounded font-mono text-sm text-navy-700 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
-                      >
-                        {p.invoice.invoice_number}
-                      </Link>
-                    ) : (
-                      <span className="text-sm text-steel-400">Invoice removed</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right font-tabular text-sm font-semibold text-status-delivered">
-                    {formatCurrency(p.amount, 2)}
-                  </TableCell>
-                  <TableCell className="text-sm text-steel-600">{p.method}</TableCell>
-                  <TableCell className="hidden text-sm text-text-secondary lg:table-cell">{p.reference ?? '—'}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end">
-                      <RowActions
-                        label={`Actions for payment on ${formatDate(p.paid_at)}`}
-                        items={[
-                          {
-                            label: 'Download receipt',
-                            icon: <Download className="h-4 w-4" />,
-                            onClick: () => void handleDownloadReceipt(p.id),
-                          },
-                          {
-                            label: 'Remove payment',
-                            icon: <Trash2 className="h-4 w-4" />,
-                            onClick: () => setDeleting(p),
-                            danger: true,
-                          },
-                        ]}
-                      />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Mobile card list — same data as the table, one card per payment */}
-      <div className="space-y-3 sm:hidden">
-        {loading ? (
-          Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-        ) : rows.length === 0 ? (
-          <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
-            <EmptyState
-              icon={<Wallet className="h-6 w-6" />}
-              title={filtersActive ? 'No matching payments' : 'No payments yet'}
-              description={
-                filtersActive
-                  ? 'Try changing your search or filter.'
-                  : 'Recorded payments appear here as they are received.'
-              }
-              action={
-                filtersActive ? (
-                  <Button variant="secondary" onClick={clearFilters}>
-                    Clear filters
-                  </Button>
-                ) : undefined
-              }
-            />
-          </div>
-        ) : (
-          rows.map((p) => (
-            <MobileRowCard
-              key={p.id}
-              header={
-                <span className="font-tabular text-sm font-bold text-status-delivered">
-                  {formatCurrency(p.amount, 2)}
-                </span>
-              }
-              actions={
+      <ResponsiveDataList
+        rows={rows}
+        loading={loading}
+        columnCount={6}
+        tableClassName="min-w-[640px] border-0 lg:min-w-[840px]"
+        tableHead={
+          <TableRow>
+            <TableHeadCell>Date</TableHeadCell>
+            <TableHeadCell>Invoice</TableHeadCell>
+            <TableHeadCell className="text-right">Amount</TableHeadCell>
+            <TableHeadCell>Method</TableHeadCell>
+            <TableHeadCell className="hidden lg:table-cell">Reference</TableHeadCell>
+            <TableHeadCell className="text-right">Actions</TableHeadCell>
+          </TableRow>
+        }
+        renderRow={(p) => (
+          <TableRow key={p.id}>
+            <TableCell className="font-tabular text-sm text-steel-600">{formatDate(p.paid_at)}</TableCell>
+            <TableCell>
+              {p.invoice ? (
+                <Link
+                  to="/dashboard/invoices"
+                  className="rounded font-mono text-sm text-navy-700 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+                >
+                  {p.invoice.invoice_number}
+                </Link>
+              ) : (
+                <span className="text-sm text-steel-400">Invoice removed</span>
+              )}
+            </TableCell>
+            <TableCell className="text-right font-tabular text-sm font-semibold text-status-delivered">
+              {formatCurrency(p.amount, 2)}
+            </TableCell>
+            <TableCell className="text-sm text-steel-600">{p.method}</TableCell>
+            <TableCell className="hidden text-sm text-text-secondary lg:table-cell">{p.reference ?? '—'}</TableCell>
+            <TableCell>
+              <div className="flex justify-end">
                 <RowActions
                   label={`Actions for payment on ${formatDate(p.paid_at)}`}
                   items={[
@@ -300,20 +212,57 @@ export default function Payments() {
                     },
                   ]}
                 />
-              }
-            >
-              <DetailRow label="Date" value={formatDate(p.paid_at)} />
-              <DetailRow label="Invoice" value={p.invoice?.invoice_number ?? 'Invoice removed'} mono />
-              <DetailRow label="Method" value={p.method} />
-              <DetailRow label="Reference" value={p.reference ?? '—'} />
-            </MobileRowCard>
-          ))
+              </div>
+            </TableCell>
+          </TableRow>
         )}
-      </div>
-
-      {!loading && rows.length > 0 && (
-        <Pagination page={page} pageCount={pageCount} onPageChange={setPage} totalItems={count} pageSize={PAGE_SIZE} />
-      )}
+        renderMobileCard={(p) => (
+          <MobileRowCard
+            key={p.id}
+            header={
+              <span className="font-tabular text-sm font-bold text-status-delivered">
+                {formatCurrency(p.amount, 2)}
+              </span>
+            }
+            actions={
+              <RowActions
+                label={`Actions for payment on ${formatDate(p.paid_at)}`}
+                items={[
+                  {
+                    label: 'Download receipt',
+                    icon: <Download className="h-4 w-4" />,
+                    onClick: () => void handleDownloadReceipt(p.id),
+                  },
+                  {
+                    label: 'Remove payment',
+                    icon: <Trash2 className="h-4 w-4" />,
+                    onClick: () => setDeleting(p),
+                    danger: true,
+                  },
+                ]}
+              />
+            }
+          >
+            <DetailRow label="Date" value={formatDate(p.paid_at)} />
+            <DetailRow label="Invoice" value={p.invoice?.invoice_number ?? 'Invoice removed'} mono />
+            <DetailRow label="Method" value={p.method} />
+            <DetailRow label="Reference" value={p.reference ?? '—'} />
+          </MobileRowCard>
+        )}
+        emptyIcon={<Wallet className="h-6 w-6" />}
+        emptyTitle={filtersActive ? 'No matching payments' : 'No payments yet'}
+        emptyDescription={
+          filtersActive ? 'Try changing your search or filter.' : 'Recorded payments appear here as they are received.'
+        }
+        emptyAction={
+          filtersActive ? (
+            <Button variant="secondary" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          ) : undefined
+        }
+        pagination={{ page, pageCount, onPageChange: setPage, totalItems: count, pageSize: PAGE_SIZE }}
+      />
 
       <ConfirmDialog
         open={!!deleting}

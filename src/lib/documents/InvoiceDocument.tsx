@@ -1,9 +1,10 @@
-import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer'
 import { DocumentHeader, type DocumentCompanyInfo } from './DocumentHeader'
 import { PDF_COLORS } from './theme'
 import type { InvoiceDocumentData, InvoiceStatus, PaymentMethod } from '@/types'
 import { formatCurrency } from '@/utils/format'
-import { formatDate } from '@/utils/date'
+import { formatDate, formatTime } from '@/utils/date'
+import { deriveVatRatePercent } from '@/utils/vat'
 
 const STATUS_LABEL: Record<InvoiceStatus, string> = {
   Draft: 'Draft',
@@ -23,7 +24,7 @@ const STATUS_COLOR: Record<InvoiceStatus, string> = {
 
 const styles = StyleSheet.create({
   page: { padding: 32, fontSize: 9, color: PDF_COLORS.steel700, fontFamily: 'Helvetica' },
-  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
   title: { fontSize: 20, fontWeight: 700, color: PDF_COLORS.navy900, letterSpacing: 1 },
   statusPill: {
     alignSelf: 'flex-start',
@@ -35,62 +36,56 @@ const styles = StyleSheet.create({
   statusPillText: { fontSize: 7.5, fontWeight: 700, color: PDF_COLORS.white, textTransform: 'uppercase' },
   metaLabel: { fontSize: 8, color: PDF_COLORS.steel500, textAlign: 'right' },
   metaValue: { fontSize: 9, fontWeight: 700, color: PDF_COLORS.navy900, textAlign: 'right', marginBottom: 6 },
-  twoCol: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 18 },
+  twoCol: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
   block: { width: '48%' },
   blockLabel: { fontSize: 8, fontWeight: 700, color: PDF_COLORS.steel500, marginBottom: 4, textTransform: 'uppercase' },
   blockLine: { fontSize: 9.5, color: PDF_COLORS.steel700, marginBottom: 2 },
   blockName: { fontSize: 11, fontWeight: 700, color: PDF_COLORS.navy900, marginBottom: 2 },
   blockTagline: { fontSize: 8.5, color: PDF_COLORS.steel500 },
-  shipmentBox: {
+
+  // Dense grid table — mirrors the printed waybill/invoice's flat 3-column layout
+  // (FLT / Way Bill No / Name, Date / Booking Contact / Pcs, ...) rather than the
+  // airy card+sidebar layout a generic SaaS invoice would use.
+  grid: {
     borderWidth: 1,
-    borderColor: PDF_COLORS.steel200,
-    borderRadius: 4,
-    marginBottom: 20,
+    borderColor: PDF_COLORS.navy700,
+    marginBottom: 4,
   },
-  shipmentBoxLabel: {
-    fontSize: 8,
-    fontWeight: 700,
-    color: PDF_COLORS.steel500,
-    textTransform: 'uppercase',
-    paddingHorizontal: 10,
-    paddingTop: 8,
-  },
-  shipmentGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 10, paddingTop: 6 },
-  shipmentCell: { width: '33.33%', marginTop: 6 },
-  shipmentCellLabel: { fontSize: 7.5, color: PDF_COLORS.steel500, marginBottom: 2 },
-  shipmentCellValue: { fontSize: 9, fontWeight: 700, color: PDF_COLORS.navy900 },
-  table: { marginBottom: 20 },
-  tableHeadRow: { flexDirection: 'row', backgroundColor: PDF_COLORS.navy700, paddingVertical: 6, paddingHorizontal: 8 },
-  tableHeadCell: { fontSize: 8, fontWeight: 700, color: PDF_COLORS.white, textTransform: 'uppercase' },
-  tableRow: {
-    flexDirection: 'row',
-    paddingVertical: 8,
+  gridRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: PDF_COLORS.steel200 },
+  gridRowLast: { borderBottomWidth: 0 },
+  gridCell: {
+    flex: 1,
+    paddingVertical: 6,
     paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: PDF_COLORS.steel100,
+    borderRightWidth: 1,
+    borderRightColor: PDF_COLORS.steel200,
   },
-  tableCell: { fontSize: 9.5, color: PDF_COLORS.steel700 },
-  colDesc: { width: '32%' },
-  colPieces: { width: '10%', textAlign: 'right' },
-  colWeight: { width: '18%', textAlign: 'right' },
-  colRate: { width: '18%', textAlign: 'right' },
-  colAmount: { width: '22%', textAlign: 'right' },
-  summary: { alignSelf: 'flex-end', width: '45%', marginBottom: 24 },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  summaryLabel: { fontSize: 9.5, color: PDF_COLORS.steel500 },
-  summaryValue: { fontSize: 9.5, fontWeight: 700, color: PDF_COLORS.navy900 },
+  gridCellLast: { borderRightWidth: 0 },
+  gridCellWide: { flex: 2 },
+  gridLabel: { fontSize: 6.5, fontWeight: 700, color: PDF_COLORS.steel500, textTransform: 'uppercase', letterSpacing: 0.3 },
+  gridValue: { fontSize: 10, fontWeight: 700, color: PDF_COLORS.navy900, marginTop: 2 },
+  gridValueLg: { fontSize: 13, fontWeight: 700, color: PDF_COLORS.navy900, marginTop: 2 },
+
+  totalsHead: { backgroundColor: PDF_COLORS.navy700 },
+  totalsHeadLabel: { fontSize: 6.5, fontWeight: 700, color: PDF_COLORS.white, textTransform: 'uppercase', letterSpacing: 0.3 },
+  totalsHeadValue: { fontSize: 10, fontWeight: 700, color: PDF_COLORS.white, marginTop: 2 },
+
   balanceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-    borderTopWidth: 1.5,
-    borderTopColor: PDF_COLORS.navy700,
-    marginTop: 2,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    backgroundColor: PDF_COLORS.steel50,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: PDF_COLORS.navy700,
+    marginBottom: 18,
   },
   balanceLabel: { fontSize: 11, fontWeight: 700, color: PDF_COLORS.navy900, textTransform: 'uppercase', letterSpacing: 0.5 },
-  balanceValue: { fontSize: 15, fontWeight: 700, color: PDF_COLORS.navy900 },
-  notes: { marginTop: 4 },
+  balanceValue: { fontSize: 16, fontWeight: 700, color: PDF_COLORS.navy900 },
+
+  notes: { marginTop: 4, marginBottom: 12 },
   notesLabel: { fontSize: 8, fontWeight: 700, color: PDF_COLORS.steel500, marginBottom: 4, textTransform: 'uppercase' },
   notesText: { fontSize: 9, color: PDF_COLORS.steel700, lineHeight: 1.5 },
   footer: {
@@ -102,11 +97,13 @@ const styles = StyleSheet.create({
   },
   footerThanks: { fontSize: 8.5, fontWeight: 700, color: PDF_COLORS.navy800, marginBottom: 2 },
   footerContact: { fontSize: 7.5, color: PDF_COLORS.steel500 },
-  signatureRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 28, marginBottom: 12 },
+  signatureRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4, marginBottom: 12 },
   signatureBlock: { width: '45%' },
+  signatureImage: { height: 34, marginBottom: 2, objectFit: 'contain' },
   signatureLine: { borderTopWidth: 1, borderTopColor: PDF_COLORS.steel200, paddingTop: 4 },
   signatureLabel: { fontSize: 7.5, color: PDF_COLORS.steel500, textTransform: 'uppercase' },
   signatureName: { fontSize: 9, fontWeight: 700, color: PDF_COLORS.navy900, marginBottom: 2 },
+  signatureTimestamp: { fontSize: 7, color: PDF_COLORS.steel500, marginTop: 1 },
   paidStamp: {
     position: 'absolute',
     top: 140,
@@ -125,14 +122,18 @@ export interface InvoiceDocumentProps {
   company: DocumentCompanyInfo
   /** Method of the most recent payment recorded against this invoice, if any. */
   lastPaymentMethod?: PaymentMethod | null
+  /** Signed URL for the captured receiver signature image, if the invoice has been signed. */
+  receiverSignatureUrl?: string | null
 }
 
-export function InvoiceDocument({ invoice, company, lastPaymentMethod }: InvoiceDocumentProps) {
+export function InvoiceDocument({ invoice, company, lastPaymentMethod, receiverSignatureUrl }: InvoiceDocumentProps) {
   const shipment = invoice.shipment
   const customer = invoice.customer
   const contactLine = [company.company_phone, company.company_email, company.company_website]
     .filter(Boolean)
     .join('  ·  ')
+  const grandTotal = invoice.amount + invoice.vat_amount - invoice.discount
+  const vatRatePercent = deriveVatRatePercent(invoice.amount, invoice.vat_amount, invoice.vat_rate)
 
   return (
     <Document title={`Invoice ${invoice.invoice_number}`}>
@@ -149,10 +150,8 @@ export function InvoiceDocument({ invoice, company, lastPaymentMethod }: Invoice
             </View>
           </View>
           <View>
-            <Text style={styles.metaLabel}>Invoice number</Text>
+            <Text style={styles.metaLabel}>Invoice no #</Text>
             <Text style={styles.metaValue}>{invoice.invoice_number}</Text>
-            <Text style={styles.metaLabel}>Date issued</Text>
-            <Text style={styles.metaValue}>{formatDate(invoice.issued_at)}</Text>
             {invoice.due_date && (
               <>
                 <Text style={styles.metaLabel}>Due date</Text>
@@ -180,113 +179,109 @@ export function InvoiceDocument({ invoice, company, lastPaymentMethod }: Invoice
           </View>
         </View>
 
-        <View style={styles.shipmentBox}>
-          <Text style={styles.shipmentBoxLabel}>Shipment information</Text>
-          <View style={styles.shipmentGrid}>
-            <View style={styles.shipmentCell}>
-              <Text style={styles.shipmentCellLabel}>Way bill number</Text>
-              <Text style={styles.shipmentCellValue}>{shipment?.tracking_number ?? '—'}</Text>
+        {/* Row 1: FLT / Way Bill No / Name */}
+        <View style={styles.grid}>
+          <View style={styles.gridRow}>
+            <View style={styles.gridCell}>
+              <Text style={styles.gridLabel}>FLT</Text>
+              <Text style={styles.gridValue}>{shipment?.flight_number ?? '—'}</Text>
             </View>
-            <View style={styles.shipmentCell}>
-              <Text style={styles.shipmentCellLabel}>Booking contact</Text>
-              <Text style={styles.shipmentCellValue}>{shipment?.booking_contact ?? '—'}</Text>
+            <View style={styles.gridCell}>
+              <Text style={styles.gridLabel}>Way Bill No</Text>
+              <Text style={styles.gridValueLg}>{shipment?.tracking_number ?? '—'}</Text>
             </View>
-            <View style={styles.shipmentCell}>
-              <Text style={styles.shipmentCellLabel}>Origin</Text>
-              <Text style={styles.shipmentCellValue}>{shipment?.origin ?? '—'}</Text>
+            <View style={[styles.gridCell, styles.gridCellLast, styles.gridCellWide]}>
+              <Text style={styles.gridLabel}>Name</Text>
+              <Text style={styles.gridValue}>{customer?.full_name ?? 'Unknown customer'}</Text>
             </View>
-            <View style={styles.shipmentCell}>
-              <Text style={styles.shipmentCellLabel}>Destination</Text>
-              <Text style={styles.shipmentCellValue}>{shipment?.destination ?? '—'}</Text>
+          </View>
+
+          {/* Row 2: Date / Booking Contact No / Pcs */}
+          <View style={styles.gridRow}>
+            <View style={styles.gridCell}>
+              <Text style={styles.gridLabel}>Date</Text>
+              <Text style={styles.gridValue}>{formatDate(invoice.issued_at)}</Text>
             </View>
-            <View style={styles.shipmentCell}>
-              <Text style={styles.shipmentCellLabel}>Shipping method</Text>
-              <Text style={styles.shipmentCellValue}>{shipment?.shipping_method ?? '—'}</Text>
+            <View style={styles.gridCell}>
+              <Text style={styles.gridLabel}>Booking Contact No</Text>
+              <Text style={styles.gridValue}>{shipment?.booking_contact ?? '—'}</Text>
             </View>
-            <View style={styles.shipmentCell}>
-              <Text style={styles.shipmentCellLabel}>Weight</Text>
-              <Text style={styles.shipmentCellValue}>
-                {shipment?.weight != null ? `${shipment.weight} kg` : '—'}
-              </Text>
+            <View style={[styles.gridCell, styles.gridCellLast, styles.gridCellWide]}>
+              <Text style={styles.gridLabel}>Pcs</Text>
+              <Text style={styles.gridValue}>{shipment?.pieces ?? '—'}</Text>
             </View>
-            <View style={styles.shipmentCell}>
-              <Text style={styles.shipmentCellLabel}>Price per kg</Text>
-              <Text style={styles.shipmentCellValue}>
+          </View>
+
+          {/* Row 3: Time / Rate / Kg */}
+          <View style={[styles.gridRow, styles.gridRowLast]}>
+            <View style={styles.gridCell}>
+              <Text style={styles.gridLabel}>Time</Text>
+              <Text style={styles.gridValue}>{formatTime(shipment?.created_at)}</Text>
+            </View>
+            <View style={styles.gridCell}>
+              <Text style={styles.gridLabel}>Rate</Text>
+              <Text style={styles.gridValue}>
                 {shipment?.price_per_kg != null ? formatCurrency(shipment.price_per_kg, 2) : '—'}
               </Text>
             </View>
-            <View style={styles.shipmentCell}>
-              <Text style={styles.shipmentCellLabel}>Shipment date</Text>
-              <Text style={styles.shipmentCellValue}>
-                {shipment?.created_at ? formatDate(shipment.created_at) : '—'}
-              </Text>
+            <View style={[styles.gridCell, styles.gridCellLast, styles.gridCellWide]}>
+              <Text style={styles.gridLabel}>Kg</Text>
+              <Text style={styles.gridValue}>{shipment?.weight != null ? `${shipment.weight}` : '—'}</Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.table}>
-          <View style={styles.tableHeadRow}>
-            <Text style={[styles.tableHeadCell, styles.colDesc]}>Description</Text>
-            <Text style={[styles.tableHeadCell, styles.colPieces]}>Pcs</Text>
-            <Text style={[styles.tableHeadCell, styles.colWeight]}>Weight</Text>
-            <Text style={[styles.tableHeadCell, styles.colRate]}>Price / kg</Text>
-            <Text style={[styles.tableHeadCell, styles.colAmount]}>Amount</Text>
+        {/* Totals grid: Total USD / VAT / Discount, then VAT $ / Total amount / Paid */}
+        <View style={styles.grid}>
+          <View style={[styles.gridRow, styles.totalsHead]}>
+            <View style={styles.gridCell}>
+              <Text style={styles.totalsHeadLabel}>Total USD</Text>
+              <Text style={styles.totalsHeadValue}>{formatCurrency(invoice.amount, 2)}</Text>
+            </View>
+            <View style={styles.gridCell}>
+              <Text style={styles.totalsHeadLabel}>VAT ({vatRatePercent}%)</Text>
+              <Text style={styles.totalsHeadValue}>{formatCurrency(invoice.vat_amount, 2)}</Text>
+            </View>
+            <View style={[styles.gridCell, styles.gridCellLast]}>
+              <Text style={styles.totalsHeadLabel}>Discount</Text>
+              <Text style={styles.totalsHeadValue}>-{formatCurrency(invoice.discount, 2)}</Text>
+            </View>
           </View>
-          <View style={styles.tableRow}>
-            <Text style={[styles.tableCell, styles.colDesc]}>
-              {shipment?.cargo_type ?? 'Cargo'} shipment — {shipment?.tracking_number ?? 'N/A'}
-            </Text>
-            <Text style={[styles.tableCell, styles.colPieces]}>{shipment?.pieces ?? '—'}</Text>
-            <Text style={[styles.tableCell, styles.colWeight]}>
-              {shipment?.weight != null ? `${shipment.weight} kg` : '—'}
-            </Text>
-            <Text style={[styles.tableCell, styles.colRate]}>
-              {shipment?.price_per_kg != null ? formatCurrency(shipment.price_per_kg, 2) : '—'}
-            </Text>
-            <Text style={[styles.tableCell, styles.colAmount]}>{formatCurrency(invoice.amount, 2)}</Text>
+          <View style={[styles.gridRow, styles.gridRowLast]}>
+            <View style={styles.gridCell}>
+              <Text style={styles.gridLabel}>Total Amount USD</Text>
+              <Text style={styles.gridValue}>{formatCurrency(grandTotal, 2)}</Text>
+            </View>
+            <View style={styles.gridCell}>
+              <Text style={styles.gridLabel}>Paid USD</Text>
+              <Text style={styles.gridValue}>{formatCurrency(invoice.amount_paid, 2)}</Text>
+            </View>
+            <View style={[styles.gridCell, styles.gridCellLast]}>
+              <Text style={styles.gridLabel}>Payment method</Text>
+              <Text style={styles.gridValue}>{lastPaymentMethod ?? '—'}</Text>
+            </View>
           </View>
         </View>
 
-        <View style={styles.summary}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Invoice amount</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(invoice.amount, 2)}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>VAT</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(invoice.vat_amount, 2)}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Discount</Text>
-            <Text style={styles.summaryValue}>-{formatCurrency(invoice.discount, 2)}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Amount paid</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(invoice.amount_paid, 2)}</Text>
-          </View>
-          {lastPaymentMethod && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Payment method</Text>
-              <Text style={styles.summaryValue}>{lastPaymentMethod}</Text>
-            </View>
-          )}
-          <View style={styles.balanceRow}>
-            <Text style={styles.balanceLabel}>Total due</Text>
-            <Text style={styles.balanceValue}>{formatCurrency(invoice.balance, 2)}</Text>
-          </View>
+        <View style={styles.balanceRow}>
+          <Text style={styles.balanceLabel}>Balance due</Text>
+          <Text style={styles.balanceValue}>{formatCurrency(invoice.balance, 2)}</Text>
         </View>
 
         <View style={styles.signatureRow}>
           <View style={styles.signatureBlock}>
             <Text style={styles.signatureName}>{invoice.issuer?.full_name ?? ''}</Text>
             <View style={styles.signatureLine}>
-              <Text style={styles.signatureLabel}>Cashier signature</Text>
+              <Text style={styles.signatureLabel}>Cashier sign</Text>
             </View>
           </View>
           <View style={styles.signatureBlock}>
-            <Text style={styles.signatureName}> </Text>
+            {receiverSignatureUrl && <Image src={receiverSignatureUrl} style={styles.signatureImage} />}
             <View style={styles.signatureLine}>
-              <Text style={styles.signatureLabel}>Receiver signature</Text>
+              <Text style={styles.signatureLabel}>Receiver sign</Text>
+              {invoice.receiver_signed_at && (
+                <Text style={styles.signatureTimestamp}>Signed {formatDate(invoice.receiver_signed_at)}</Text>
+              )}
             </View>
           </View>
         </View>

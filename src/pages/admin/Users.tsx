@@ -1,22 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { UserPlus, ShieldCheck, UserMinus } from 'lucide-react'
-import {
-  Button,
-  Badge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  Pagination,
-  EmptyState,
-  SkeletonTableRows,
-  Avatar,
-  RowActions,
-  Alert,
-} from '@/components/ui'
-import { PageHeader, ConfirmDialog } from '@/components/dashboard'
+import { Button, Badge, TableCell, TableHeadCell, TableRow, Avatar, RowActions, DetailRow, MobileRowCard, Alert } from '@/components/ui'
+import { PageHeader, ConfirmDialog, ResponsiveDataList } from '@/components/dashboard'
 import { CreateUserModal } from '@/components/dashboard/CreateUserModal'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/context/ToastContext'
@@ -86,6 +71,23 @@ export default function Users() {
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
   const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
+  function userActionItems(u: DashboardUser) {
+    return [
+      ...(['Dispatcher', 'Admin'] as UserRole[])
+        .filter((role) => role !== u.role)
+        .map((role) => ({
+          label: `Set as ${role}`,
+          onClick: () => changeRole(u, role),
+        })),
+      {
+        label: 'Revoke access',
+        icon: <UserMinus className="h-4 w-4" />,
+        onClick: () => setRevoking(u),
+        danger: true,
+      },
+    ]
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -107,87 +109,82 @@ export default function Users() {
         </Alert>
       )}
 
-      <div className="overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1">
-        <Table className="border-0">
-          <TableHead>
-            <TableRow>
-              <TableHeadCell>User</TableHeadCell>
-              <TableHeadCell>Role</TableHeadCell>
-              <TableHeadCell>Status</TableHeadCell>
-              <TableHeadCell>Added</TableHeadCell>
-              <TableHeadCell className="text-right">Actions</TableHeadCell>
+      <ResponsiveDataList
+        rows={pageRows}
+        loading={loading}
+        columnCount={5}
+        skeletonRows={4}
+        tableClassName="border-0"
+        tableHead={
+          <TableRow>
+            <TableHeadCell>User</TableHeadCell>
+            <TableHeadCell>Role</TableHeadCell>
+            <TableHeadCell>Status</TableHeadCell>
+            <TableHeadCell>Added</TableHeadCell>
+            <TableHeadCell className="text-right">Actions</TableHeadCell>
+          </TableRow>
+        }
+        renderRow={(u) => {
+          const isSelf = u.auth_user_id === user?.id
+          return (
+            <TableRow key={u.id}>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <Avatar name={u.full_name || u.email} />
+                  <div>
+                    <span className="font-medium text-navy-900">{u.full_name}</span>
+                    {isSelf && <span className="ml-2 text-xs font-medium text-steel-400">(you)</span>}
+                    <p className="text-xs text-text-secondary">{u.email}</p>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant={u.role === 'Admin' ? 'info' : 'neutral'}>{u.role}</Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant={activeVariant(u.status)}>{u.status}</Badge>
+              </TableCell>
+              <TableCell className="font-tabular text-sm text-text-secondary">{formatDate(u.created_at)}</TableCell>
+              <TableCell>
+                <div className="flex justify-end">
+                  {!isSelf && <RowActions label={`Actions for ${u.email}`} items={userActionItems(u)} />}
+                </div>
+              </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              <SkeletonTableRows rows={4} columns={5} />
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={5}>
-                  <EmptyState icon={<ShieldCheck className="h-6 w-6" />} title="No dashboard users" />
-                </td>
-              </tr>
-            ) : (
-              pageRows.map((u) => {
-                const isSelf = u.auth_user_id === user?.id
-                return (
-                  <TableRow key={u.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar name={u.full_name || u.email} />
-                        <div>
-                          <span className="font-medium text-navy-900">{u.full_name}</span>
-                          {isSelf && <span className="ml-2 text-xs font-medium text-steel-400">(you)</span>}
-                          <p className="text-xs text-text-secondary">{u.email}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={u.role === 'Admin' ? 'info' : 'neutral'}>{u.role}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={activeVariant(u.status)}>{u.status}</Badge>
-                    </TableCell>
-                    <TableCell className="font-tabular text-sm text-text-secondary">{formatDate(u.created_at)}</TableCell>
-                    <TableCell>
-                      <div className="flex justify-end">
-                        {!isSelf && (
-                          <RowActions
-                            label={`Actions for ${u.email}`}
-                            items={[
-                              ...(['Dispatcher', 'Admin'] as UserRole[])
-                                .filter((role) => role !== u.role)
-                                .map((role) => ({
-                                  label: `Set as ${role}`,
-                                  onClick: () => changeRole(u, role),
-                                })),
-                              {
-                                label: 'Revoke access',
-                                icon: <UserMinus className="h-4 w-4" />,
-                                onClick: () => setRevoking(u),
-                                danger: true,
-                              },
-                            ]}
-                          />
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })
-            )}
-          </TableBody>
-        </Table>
-        {!loading && rows.length > 0 && (
-          <Pagination
-            page={page}
-            pageCount={pageCount}
-            onPageChange={setPage}
-            totalItems={rows.length}
-            pageSize={PAGE_SIZE}
-          />
-        )}
-      </div>
+          )
+        }}
+        renderMobileCard={(u) => {
+          const isSelf = u.auth_user_id === user?.id
+          return (
+            <MobileRowCard
+              key={u.id}
+              header={
+                <div className="flex items-center gap-2">
+                  <Avatar name={u.full_name || u.email} size="sm" />
+                  <span className="font-medium text-navy-900">
+                    {u.full_name}
+                    {isSelf && <span className="ml-2 text-xs font-medium text-steel-400">(you)</span>}
+                  </span>
+                </div>
+              }
+              actions={!isSelf ? <RowActions label={`Actions for ${u.email}`} items={userActionItems(u)} /> : undefined}
+            >
+              <DetailRow label="Email" value={u.email} />
+              <DetailRow label="Role">
+                <Badge variant={u.role === 'Admin' ? 'info' : 'neutral'}>{u.role}</Badge>
+              </DetailRow>
+              <DetailRow label="Status">
+                <Badge variant={activeVariant(u.status)}>{u.status}</Badge>
+              </DetailRow>
+              <DetailRow label="Added" value={formatDate(u.created_at)} />
+            </MobileRowCard>
+          )
+        }}
+        emptyIcon={<ShieldCheck className="h-6 w-6" />}
+        emptyTitle="No dashboard users"
+        emptyDescription=""
+        pagination={{ page, pageCount, onPageChange: setPage, totalItems: rows.length, pageSize: PAGE_SIZE }}
+      />
 
       <CreateUserModal open={createOpen} onClose={() => setCreateOpen(false)} onSaved={load} />
 
