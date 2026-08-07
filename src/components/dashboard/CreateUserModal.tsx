@@ -2,14 +2,16 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Button, Input, Modal, Alert } from '@/components/ui'
+import { Button, Input, Select, Modal, Alert } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
 import { createDashboardUser } from '@/services/usersService'
+import { OPS_ROLES } from '@/types'
 
 const schema = z.object({
   full_name: z.string().trim().min(2, 'Enter a name'),
   email: z.string().trim().min(1, 'Enter an email').email('Enter a valid email'),
   password: z.string().min(10, 'Use at least 10 characters'),
+  role: z.enum(['Admin', 'Dispatcher']),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -30,12 +32,12 @@ export function CreateUserModal({ open, onClose, onSaved }: CreateUserModalProps
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
   useEffect(() => {
-    if (open) reset({ full_name: '', email: '', password: '' })
+    if (open) reset({ full_name: '', email: '', password: '', role: 'Dispatcher' })
   }, [open, reset])
 
   async function onSubmit(values: FormValues) {
     try {
-      await createDashboardUser({ ...values, role: 'Admin' })
+      await createDashboardUser(values)
       toast.success('User invited', `${values.email} can now sign in with the temporary password.`)
       onSaved()
       onClose()
@@ -72,8 +74,14 @@ export function CreateUserModal({ open, onClose, onSaved }: CreateUserModalProps
           error={errors.password?.message}
           {...register('password')}
         />
+        <Select
+          label="Role"
+          error={errors.role?.message}
+          options={OPS_ROLES.map((role) => ({ value: role, label: role }))}
+          {...register('role')}
+        />
         <Alert variant="info">
-          This creates an administrator with full access to the operations dashboard.
+          Dispatchers get Overview, Shipments, Tracking, Customers, and Quotes. Admins get full dashboard access.
         </Alert>
       </form>
     </Modal>

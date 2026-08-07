@@ -25,6 +25,15 @@ export async function printPdf(doc: ReactElement): Promise<void> {
   // alive while it loads the PDF viewer.
 }
 
+/**
+ * Renders to an object URL for on-screen preview (e.g. an <iframe>). Caller owns the
+ * URL's lifetime — revoke it with `URL.revokeObjectURL` once the preview is done with it.
+ */
+export async function getPdfPreviewUrl(doc: ReactElement): Promise<string> {
+  const blob = await toBlob(doc)
+  return URL.createObjectURL(blob)
+}
+
 /** Base64-encodes the rendered document for use as an email attachment. */
 export async function pdfToBase64(doc: ReactElement): Promise<string> {
   const blob = await toBlob(doc)

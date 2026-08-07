@@ -74,9 +74,9 @@ export const STATUS_HEX: Record<ShipmentStatus, string> = {
   Delivered: GREEN_HEX,
 }
 
-// Hex mirrors of the brand tokens (primary-500 / primary-500) for Recharts, which needs literal colors.
-export const NAVY_HEX = '#3865f2'
-export const primary_HEX = '#f4b400'
+// Hex mirrors of the brand blue ramp for Recharts, which needs literal colors.
+export const BRAND_BLUE_HEX = '#3865f2'
+export const BRAND_BLUE_LIGHT_HEX = '#7397ff'
 
 // Approximate journey completion per status, for the public route bar.
 export const STATUS_PROGRESS: Record<ShipmentStatus, number> = {

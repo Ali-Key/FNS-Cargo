@@ -240,13 +240,13 @@ export default function Contact() {
                     </p>
 
                     <a
-                      href="https://wa.me/252611189286"
+                      href={`https://wa.me/${settings.company_phone.replace(/[^\d]/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label="Chat with FNS Cargo on WhatsApp"
+                      aria-label={`Chat with ${settings.company_name} on WhatsApp`}
                       className="mt-1 inline-block text-sm font-semibold text-navy-900 transition-colors duration-180 hover:text-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                     >
-                      +252 61 1189286
+                      {settings.company_phone}
                     </a>
                   </div>
                 </div>
@@ -280,8 +280,12 @@ export default function Contact() {
                     </p>
                   </div>
 
+                 
                   <p className="mt-2 text-sm text-secondary">
-                    Within one working day. 24/7 support for active shipments.
+                    Response within 1 business day. 24/7 support for active
+                  </p>
+                  <p className="text-sm text-secondary ">
+                    shipments. Saturday–Thursday, 8:00 AM–6:00 PM (EAT)
                   </p>
                 </div>
               </div>
@@ -332,7 +336,7 @@ export default function Contact() {
                 <div className="grid gap-5 sm:grid-cols-2">
                   <Input
                     label="Full name"
-                    placeholder="Ali Omar"
+                    placeholder="John Doe"
                     error={errors.fullName?.message}
                     {...register("fullName")}
                   />
@@ -347,7 +351,7 @@ export default function Contact() {
 
                   <Input
                     label="Phone"
-                    placeholder="+252 61 1189286"
+                    placeholder="+252 61 xxxxx"
                     error={errors.phone?.message}
                     {...register("phone")}
                   />

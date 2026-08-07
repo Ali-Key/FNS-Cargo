@@ -63,7 +63,7 @@ export default function Profile() {
               <DetailRow label="Role" divider>
                 <Badge variant={role === 'Admin' ? 'info' : 'neutral'}>
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  {role === 'Admin' ? 'Administrator' : 'Staff'}
+                  {role === 'Admin' ? 'Administrator' : (role ?? 'Dispatcher')}
                 </Badge>
               </DetailRow>
               <DetailRow label="Status" value={profile?.status ?? 'Unknown'} divider />

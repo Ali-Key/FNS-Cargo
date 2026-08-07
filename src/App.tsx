@@ -26,7 +26,6 @@ const Customers = lazy(() => import('@/pages/admin/Customers'))
 const Quotes = lazy(() => import('@/pages/admin/Quotes'))
 const Invoices = lazy(() => import('@/pages/admin/Invoices'))
 const Payments = lazy(() => import('@/pages/admin/Payments'))
-const Reports = lazy(() => import('@/pages/admin/Reports'))
 const Analytics = lazy(() => import('@/pages/admin/Analytics'))
 const Users = lazy(() => import('@/pages/admin/Users'))
 const Settings = lazy(() => import('@/pages/admin/Settings'))
@@ -71,7 +70,6 @@ export default function App() {
             <Route element={<ProtectedRoute allow={['Admin']} />}>
               <Route path="/dashboard/payments" element={<Payments />} />
               <Route path="/dashboard/invoices" element={<Invoices />} />
-              <Route path="/dashboard/reports" element={<Reports />} />
               <Route path="/dashboard/analytics" element={<Analytics />} />
               <Route path="/dashboard/users" element={<Users />} />
               <Route path="/dashboard/settings" element={<Settings />} />

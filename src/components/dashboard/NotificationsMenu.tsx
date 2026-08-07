@@ -46,7 +46,7 @@ export function NotificationsMenu() {
           key: `invoice:${inv.id}`,
           label: `Invoice ${inv.invoice_number} is overdue`,
           icon: <Receipt className="h-4 w-4 text-status-delayed" aria-hidden="true" />,
-          to: '/dashboard/finance',
+          to: '/dashboard/invoices',
         })),
         ...quotes.rows.map((q) => ({
           key: `quote:${q.id}`,

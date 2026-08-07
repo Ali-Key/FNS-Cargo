@@ -9,7 +9,7 @@ const HELP_POINTS = [
     icon: PackageSearch,
     title: "Finding your tracking number",
     description:
-      "Your tracking number appears on the booking confirmation we issued. It follows the format FNS-CN-100001.",
+      "Your tracking number appears on the booking confirmation we issued. It follows the format FNS-CN-XXXXXXXX.",
   },
   {
     icon: Clock,

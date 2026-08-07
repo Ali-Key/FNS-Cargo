@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { FileText, Trash2, Mail, Phone, ArrowRight } from 'lucide-react'
 import {
   Badge,
+  Button,
   Select,
   Table,
   TableBody,
@@ -13,11 +14,13 @@ import {
   EmptyState,
   SkeletonTableRows,
   RowActions,
+  Alert,
 } from '@/components/ui'
 import { PageHeader, DataToolbar, ConfirmDialog } from '@/components/dashboard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useToast } from '@/context/ToastContext'
+import { useAuth } from '@/context/AuthContext'
 import { listQuotes, updateQuoteStatus, deleteQuote } from '@/services/quotesService'
 import { QUOTE_STATUSES, type Quote, type QuoteStatus } from '@/types'
 import { formatDate } from '@/utils/date'
@@ -39,10 +42,12 @@ const STATUS_OPTIONS = [
 export default function Quotes() {
   useDocumentTitle('Quote Requests | FNS Cargo')
   const toast = useToast()
+  const { isAdmin } = useAuth()
 
   const [rows, setRows] = useState<Quote[]>([])
   const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<QuoteStatus | 'all'>('all')
@@ -57,12 +62,13 @@ export default function Quotes() {
       const result = await listQuotes({ page, pageSize: PAGE_SIZE, search: debouncedSearch, status })
       setRows(result.rows)
       setCount(result.count)
+      setLoadError(false)
     } catch {
-      toast.error('Unable to load quote requests', 'Please refresh the page to try again.')
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
-  }, [page, debouncedSearch, status, toast])
+  }, [page, debouncedSearch, status])
 
   useEffect(() => {
     load()
@@ -108,6 +114,15 @@ export default function Quotes() {
         title="Quote Requests"
         description="Enquiries submitted from the public contact form."
       />
+
+      {loadError && rows.length === 0 && (
+        <Alert variant="error" title="Could not load quote requests">
+          <p>Please try again.</p>
+          <Button variant="secondary" size="sm" className="mt-3" onClick={load}>
+            Retry
+          </Button>
+        </Alert>
+      )}
 
       <DataToolbar
         search={search}
@@ -196,23 +211,24 @@ export default function Quotes() {
                     {formatDate(q.created_at)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center justify-end gap-1.5">
-                      <Select
-                        options={QUOTE_STATUSES.map((s) => ({ value: s, label: s }))}
-                        value={q.status}
-                        onChange={(e) => changeStatus(q, e.target.value as QuoteStatus)}
-                        aria-label={`Change status for ${q.full_name}`}
-                        className="h-9 text-xs"
-                      />
+                    <div className="flex justify-end">
                       <RowActions
                         label={`Actions for ${q.full_name}`}
                         items={[
-                          {
-                            label: 'Delete request',
-                            icon: <Trash2 className="h-4 w-4" />,
-                            onClick: () => setDeleting(q),
-                            danger: true,
-                          },
+                          ...QUOTE_STATUSES.filter((s) => s !== q.status).map((s) => ({
+                            label: `Mark as ${s}`,
+                            onClick: () => changeStatus(q, s),
+                          })),
+                          ...(isAdmin
+                            ? [
+                                {
+                                  label: 'Delete request',
+                                  icon: <Trash2 className="h-4 w-4" />,
+                                  onClick: () => setDeleting(q),
+                                  danger: true,
+                                },
+                              ]
+                            : []),
                         ]}
                       />
                     </div>

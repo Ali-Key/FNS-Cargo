@@ -15,13 +15,15 @@ import {
   RowActions,
   DetailRow,
   Button,
+  MobileRowCard,
+  Alert,
 } from '@/components/ui'
-import { StatTile, PageHeader, ConfirmDialog, FilterDropdown, DataToolbar, ExportMenu, DateRangeFilter } from '@/components/dashboard'
+import { StatTile, PageHeader, ConfirmDialog, FilterDropdown, DataToolbar, ExportMenu } from '@/components/dashboard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useToast } from '@/context/ToastContext'
 import { listPayments, deletePayment, type PaymentListParams } from '@/services/financeService'
-import { exportPaymentsExcel, downloadPaymentReceipt } from '@/lib/exports/financeExports'
+import { downloadPaymentReceipt, exportPaymentsCsv } from '@/lib/exports/financeExports'
 import { getDashboardData } from '@/services/dashboardService'
 import { PAYMENT_METHODS } from '@/types'
 import type { DashboardStats, PaymentWithInvoice } from '@/types'
@@ -44,14 +46,13 @@ export default function Payments() {
   const [rows, setRows] = useState<PaymentWithInvoice[]>([])
   const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [method, setMethod] = useState<MethodFilter>('all')
   const debouncedSearch = useDebouncedValue(search)
 
   const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [exportFrom, setExportFrom] = useState('')
-  const [exportTo, setExportTo] = useState('')
   const [deleting, setDeleting] = useState<PaymentWithInvoice | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
 
@@ -61,12 +62,13 @@ export default function Payments() {
       const result = await listPayments({ page, pageSize: PAGE_SIZE, search: debouncedSearch, method })
       setRows(result.rows)
       setCount(result.count)
+      setLoadError(false)
     } catch {
-      toast.error('Unable to load payments', 'Please refresh the page to try again.')
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
-  }, [page, debouncedSearch, method, toast])
+  }, [page, debouncedSearch, method])
 
   useEffect(() => {
     load()
@@ -118,8 +120,17 @@ export default function Payments() {
     <div className="space-y-6">
       <PageHeader
         title="Payments"
-        description="Every payment received against an invoice, with receipts and export."
+        description="Every payment received against an invoice, with printable receipts."
       />
+
+      {loadError && rows.length === 0 && (
+        <Alert variant="error" title="Could not load payments">
+          <p>Please try again.</p>
+          <Button variant="secondary" size="sm" className="mt-3" onClick={load}>
+            Retry
+          </Button>
+        </Alert>
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatTile
@@ -138,29 +149,23 @@ export default function Payments() {
         <StatTile label="Payments recorded" value={count} icon={Receipt} tone="transit" />
       </div>
 
-      <div className="space-y-3 rounded-card border border-gray-200 bg-white p-3 shadow-elevation-1">
-        <DataToolbar search={search} onSearchChange={setSearch} placeholder="Search reference or notes…">
-          <span className="text-xs text-steel-400">Export range</span>
-          <DateRangeFilter from={exportFrom} to={exportTo} onFromChange={setExportFrom} onToChange={setExportTo} />
-          <ExportMenu
-            items={[
-              {
-                label: 'Payment records (Excel)',
-                onClick: () =>
-                  exportPaymentsExcel({ from: exportFrom || undefined, to: exportTo || undefined, method }),
-              },
-            ]}
-          />
-        </DataToolbar>
-        <div className="flex flex-wrap items-center gap-2">
-          <FilterDropdown label="Method" options={METHOD_OPTIONS} value={method} onChange={setMethod} />
-          {filtersActive && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              Reset filters
-            </Button>
-          )}
-        </div>
-      </div>
+      <DataToolbar
+        search={search}
+        onSearchChange={setSearch}
+        placeholder="Search reference or notes…"
+        filters={<FilterDropdown label="Method" options={METHOD_OPTIONS} value={method} onChange={setMethod} />}
+        filtersActive={filtersActive}
+        onReset={clearFilters}
+      >
+        <ExportMenu
+          items={[
+            {
+              label: 'Payments (CSV)',
+              onClick: () => exportPaymentsCsv({ search: debouncedSearch, method }),
+            },
+          ]}
+        />
+      </DataToolbar>
 
       <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1 sm:block">
         <Table className="min-w-[640px] border-0 lg:min-w-[840px]">
@@ -271,11 +276,14 @@ export default function Payments() {
           </div>
         ) : (
           rows.map((p) => (
-            <div key={p.id} className="rounded-card border border-gray-200 bg-white p-4 shadow-elevation-1">
-              <div className="flex items-start justify-between gap-3">
+            <MobileRowCard
+              key={p.id}
+              header={
                 <span className="font-tabular text-sm font-bold text-status-delivered">
                   {formatCurrency(p.amount, 2)}
                 </span>
+              }
+              actions={
                 <RowActions
                   label={`Actions for payment on ${formatDate(p.paid_at)}`}
                   items={[
@@ -292,14 +300,13 @@ export default function Payments() {
                     },
                   ]}
                 />
-              </div>
-              <div className="mt-3 space-y-2">
-                <DetailRow label="Date" value={formatDate(p.paid_at)} />
-                <DetailRow label="Invoice" value={p.invoice?.invoice_number ?? 'Invoice removed'} mono />
-                <DetailRow label="Method" value={p.method} />
-                <DetailRow label="Reference" value={p.reference ?? '—'} />
-              </div>
-            </div>
+              }
+            >
+              <DetailRow label="Date" value={formatDate(p.paid_at)} />
+              <DetailRow label="Invoice" value={p.invoice?.invoice_number ?? 'Invoice removed'} mono />
+              <DetailRow label="Method" value={p.method} />
+              <DetailRow label="Reference" value={p.reference ?? '—'} />
+            </MobileRowCard>
           ))
         )}
       </div>

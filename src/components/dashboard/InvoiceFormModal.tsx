@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button, Input, Select, Textarea, Modal } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
+import { useAuth } from '@/context/AuthContext'
 import { createInvoice, updateInvoice } from '@/services/financeService'
 import { listShipments } from '@/services/shipmentsService'
+import { getSystemSettings } from '@/services/settingsService'
 import type { InvoiceStatus, InvoiceWithRelations, ShipmentWithCustomer } from '@/types'
 import { formatCurrency } from '@/utils/format'
 
@@ -19,6 +21,14 @@ const schema = z.object({
   amount: z.preprocess(
     (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
     z.number({ invalid_type_error: 'Enter an amount' }).nonnegative('Amount cannot be negative'),
+  ),
+  vat_rate: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z.number({ invalid_type_error: 'Enter a VAT rate' }).nonnegative('VAT rate cannot be negative'),
+  ),
+  discount: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z.number({ invalid_type_error: 'Enter a discount' }).nonnegative('Discount cannot be negative'),
   ),
   status: z.string().min(1),
   issued_at: z.string().min(1, 'Choose an issue date'),
@@ -44,10 +54,17 @@ function today() {
 const EMPTY: FormValues = {
   shipment_id: '',
   amount: '' as unknown as number,
+  vat_rate: 0,
+  discount: 0,
   status: 'Issued',
   issued_at: today(),
   due_date: '',
   notes: '',
+}
+
+/** Cents-rounded, mirroring the DB's `balance` generated column expression. */
+function round2(n: number): number {
+  return Math.round(n * 100) / 100
 }
 
 export function InvoiceFormModal({
@@ -58,6 +75,7 @@ export function InvoiceFormModal({
   presetShipment,
 }: InvoiceFormModalProps) {
   const toast = useToast()
+  const { profile } = useAuth()
   const isEdit = !!invoice
   const [shipments, setShipments] = useState<ShipmentWithCustomer[]>([])
 
@@ -66,30 +84,55 @@ export function InvoiceFormModal({
     handleSubmit,
     reset,
     watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: EMPTY })
 
   const selectedShipmentId = watch('shipment_id')
   const selected = shipments.find((s) => s.id === selectedShipmentId) ?? presetShipment ?? null
 
+  const [watchedAmount, watchedVatRate, watchedDiscount] = useWatch({
+    control,
+    name: ['amount', 'vat_rate', 'discount'],
+  })
+  const amountNum = Number(watchedAmount) || 0
+  const vatAmount = round2(amountNum * (Number(watchedVatRate) || 0) / 100)
+  const discountNum = Number(watchedDiscount) || 0
+  const grandTotal = round2(amountNum + vatAmount - discountNum)
+
   useEffect(() => {
     if (!open) return
     if (invoice) {
+      // vat_amount is stored, not the rate — back out a rate to show/edit here.
+      const rate = invoice.amount > 0 ? round2((invoice.vat_amount / invoice.amount) * 100) : 0
       reset({
         shipment_id: invoice.shipment_id,
         amount: invoice.amount as unknown as number,
+        vat_rate: rate as unknown as number,
+        discount: invoice.discount as unknown as number,
         status: invoice.status,
         issued_at: invoice.issued_at.slice(0, 10),
         due_date: invoice.due_date ? invoice.due_date.slice(0, 10) : '',
         notes: invoice.notes ?? '',
       })
     } else {
-      reset({
-        ...EMPTY,
-        shipment_id: presetShipment?.id ?? '',
-        // Default the charge to what the shipment already prices out at.
-        amount: (presetShipment?.total_price ?? '') as unknown as number,
-      })
+      getSystemSettings()
+        .then((settings) => {
+          reset({
+            ...EMPTY,
+            shipment_id: presetShipment?.id ?? '',
+            // Default the charge to what the shipment already prices out at.
+            amount: (presetShipment?.total_price ?? '') as unknown as number,
+            vat_rate: (settings?.vat_rate ?? 0) as unknown as number,
+          })
+        })
+        .catch(() => {
+          reset({
+            ...EMPTY,
+            shipment_id: presetShipment?.id ?? '',
+            amount: (presetShipment?.total_price ?? '') as unknown as number,
+          })
+        })
     }
   }, [open, invoice, presetShipment, reset])
 
@@ -112,10 +155,15 @@ export function InvoiceFormModal({
       // history survives the shipment being reassigned.
       customer_id: shipment?.customer_id ?? invoice?.customer_id ?? null,
       amount: parsed.amount,
+      // Stored as a computed amount (not the rate) so a later rate change never
+      // rewrites an already-issued invoice.
+      vat_amount: round2((parsed.amount * parsed.vat_rate) / 100),
+      discount: parsed.discount,
       status: parsed.status as InvoiceStatus,
       issued_at: parsed.issued_at,
       due_date: parsed.due_date || null,
       notes: parsed.notes?.trim() || null,
+      ...(isEdit ? {} : { issued_by: profile?.id ?? null }),
     }
 
     try {
@@ -211,6 +259,43 @@ export function InvoiceFormModal({
             hint="Paid and Partially Paid are set automatically from recorded payments."
             {...register('status')}
           />
+        </div>
+
+        <div className="rounded-lg border border-gray-300 bg-surface p-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:items-start">
+            <Input
+              label="VAT (%)"
+              type="number"
+              step="0.01"
+              min="0"
+              inputMode="decimal"
+              error={errors.vat_rate?.message}
+              {...register('vat_rate')}
+            />
+            <Input
+              label="Discount ($)"
+              type="number"
+              step="0.01"
+              min="0"
+              inputMode="decimal"
+              placeholder="0.00"
+              error={errors.discount?.message}
+              {...register('discount')}
+            />
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-semibold text-navy-800">Grand total</span>
+              <div
+                aria-live="polite"
+                className="flex h-11 items-center rounded-lg border border-navy-100 bg-white px-3 font-mono text-lg font-bold tabular-nums text-navy-700"
+              >
+                {formatCurrency(grandTotal, 2)}
+              </div>
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-text-secondary">
+            Grand total = amount + VAT − discount. VAT is stored as a fixed amount at issue time, so a
+            later rate change never rewrites this invoice.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

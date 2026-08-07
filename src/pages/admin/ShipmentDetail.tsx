@@ -11,6 +11,7 @@ import {
   Weight,
   Warehouse,
   Receipt,
+  Eye,
 } from 'lucide-react'
 import {
   Button,
@@ -20,13 +21,16 @@ import {
   EmptyState,
   SectionCard,
   DetailRow,
+  RowActions,
   Skeleton,
   SkeletonText,
 } from '@/components/ui'
-import { PageHeader, ConfirmDialog } from '@/components/dashboard'
+import { PageHeader, ConfirmDialog, ExportMenu } from '@/components/dashboard'
 import { ShipmentFormModal } from '@/components/dashboard/ShipmentFormModal'
 import { TrackingEventFormModal } from '@/components/dashboard/TrackingEventFormModal'
 import { InvoiceFormModal } from '@/components/dashboard/InvoiceFormModal'
+import { InvoicePreviewModal } from '@/components/dashboard/InvoicePreviewModal'
+import { RecordPaymentModal } from '@/components/dashboard/RecordPaymentModal'
 import { DeliveryProofCard } from '@/components/dashboard/DeliveryProofCard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useAuth } from '@/context/AuthContext'
@@ -38,6 +42,7 @@ import {
   deleteTrackingEvent,
 } from '@/services/trackingHistoryService'
 import { listCustomerOptions } from '@/services/customersService'
+import { downloadWaybillLabel, printWaybillLabel } from '@/lib/exports/labelExports'
 import type {
   Customer,
   Invoice,
@@ -69,6 +74,8 @@ export default function ShipmentDetail() {
   const [customerOptions, setCustomerOptions] = useState<Pick<Customer, 'id' | 'full_name'>[]>([])
 
   const [invoiceOpen, setInvoiceOpen] = useState(false)
+  const [previewingInvoiceId, setPreviewingInvoiceId] = useState<string | null>(null)
+  const [paying, setPaying] = useState<Invoice | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [eventOpen, setEventOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<TrackingUpdate | null>(null)
@@ -149,9 +156,27 @@ export default function ShipmentDetail() {
           </span>
         }
         actions={
-          <Button variant="primary" icon={<Pencil className="h-4 w-4" />} onClick={() => setEditOpen(true)}>
-            Edit shipment
-          </Button>
+          <div className="flex items-center gap-2">
+            <ExportMenu
+              items={[
+                {
+                  label: 'Print waybill label',
+                  onClick: () => printWaybillLabel(id, '100x150'),
+                },
+                {
+                  label: 'Download label (100×150mm)',
+                  onClick: () => downloadWaybillLabel(id, '100x150'),
+                },
+                {
+                  label: 'Download label (A6)',
+                  onClick: () => downloadWaybillLabel(id, 'A6'),
+                },
+              ]}
+            />
+            <Button variant="primary" icon={<Pencil className="h-4 w-4" />} onClick={() => setEditOpen(true)}>
+              Edit shipment
+            </Button>
+          </div>
         }
       />
 
@@ -166,6 +191,7 @@ export default function ShipmentDetail() {
 
           <SectionCard icon={Weight} title="Cargo" variant="compact">
             <DetailRow label="Cargo type" value={shipment.cargo_type} />
+            <DetailRow label="Pieces" value={shipment.pieces} mono />
             <DetailRow label="Weight" value={formatWeight(shipment.weight)} mono />
             <DetailRow label="Price per kg" value={formatCurrency(shipment.price_per_kg, 2)} mono />
             <DetailRow label="Total price" value={formatCurrency(shipment.total_price, 2)} mono />
@@ -186,6 +212,9 @@ export default function ShipmentDetail() {
             <DetailRow label="Warehouse" value={shipment.warehouse ?? 'Not set'} />
             <DetailRow label="Current location" value={shipment.current_location ?? 'Not set'} />
             <DetailRow label="Assigned to" value={shipment.assignee?.full_name ?? 'Unassigned'} />
+            <DetailRow label="Booking contact" value={shipment.booking_contact ?? 'Not set'} />
+            <DetailRow label="CN number" value={shipment.cn_number ?? 'Not set'} mono />
+            <DetailRow label="Branch code" value={shipment.branch_code ?? 'Not set'} mono />
             {shipment.delivered_at && (
               <DetailRow label="Delivered" value={formatDateTime(shipment.delivered_at)} mono />
             )}
@@ -249,25 +278,29 @@ export default function ShipmentDetail() {
                             {formatDateTime(`${event.date}T${event.time}`)}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => {
-                              setEditingEvent(event)
-                              setEventOpen(true)
-                            }}
-                            className="rounded-control p-1.5 text-steel-400 hover:bg-steel-100 hover:text-navy-800"
-                            aria-label="Edit event"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setDeletingEvent(event)}
-                            className="rounded-control p-1.5 text-steel-400 hover:bg-status-delayed/10 hover:text-status-delayed"
-                            aria-label="Delete event"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                        <RowActions
+                          label={`Actions for update at ${event.location}`}
+                          items={[
+                            {
+                              label: 'Edit event',
+                              icon: <Pencil className="h-4 w-4" />,
+                              onClick: () => {
+                                setEditingEvent(event)
+                                setEventOpen(true)
+                              },
+                            },
+                            ...(isAdmin
+                              ? [
+                                  {
+                                    label: 'Delete event',
+                                    icon: <Trash2 className="h-4 w-4" />,
+                                    onClick: () => setDeletingEvent(event),
+                                    danger: true,
+                                  },
+                                ]
+                              : []),
+                          ]}
+                        />
                       </div>
                       {event.description && (
                         <p className="mt-1 text-sm leading-relaxed text-steel-600">{event.description}</p>
@@ -315,7 +348,7 @@ export default function ShipmentDetail() {
                       {inv.due_date && ` · due ${formatDate(inv.due_date)}`}
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-3">
                     <div className="text-right">
                       <p className="font-tabular text-sm font-bold text-navy-900">
                         {formatCurrency(inv.amount, 2)}
@@ -328,6 +361,19 @@ export default function ShipmentDetail() {
                       status={inv.status}
                       overdue={isInvoiceOverdue(inv.status, inv.due_date, inv.balance)}
                     />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={<Eye className="h-4 w-4" />}
+                      onClick={() => setPreviewingInvoiceId(inv.id)}
+                    >
+                      Preview
+                    </Button>
+                    {(inv.balance ?? 0) > 0 && inv.status !== 'Void' && (
+                      <Button size="sm" variant="secondary" onClick={() => setPaying(inv)}>
+                        Record payment
+                      </Button>
+                    )}
                   </div>
                 </li>
               ))}
@@ -341,6 +387,19 @@ export default function ShipmentDetail() {
         onClose={() => setInvoiceOpen(false)}
         onSaved={load}
         presetShipment={shipment}
+      />
+
+      <InvoicePreviewModal
+        open={!!previewingInvoiceId}
+        onClose={() => setPreviewingInvoiceId(null)}
+        invoiceId={previewingInvoiceId}
+      />
+
+      <RecordPaymentModal
+        open={!!paying}
+        onClose={() => setPaying(null)}
+        onSaved={load}
+        invoice={paying}
       />
 
       <ShipmentFormModal

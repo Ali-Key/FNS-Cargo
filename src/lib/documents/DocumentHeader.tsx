@@ -21,10 +21,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
+  brandText: {
+    justifyContent: 'center',
+  },
   companyName: {
     fontSize: 14,
     fontWeight: 700,
     color: PDF_COLORS.navy900,
+  },
+  companyTagline: {
+    fontSize: 7.5,
+    color: PDF_COLORS.steel500,
+    marginTop: 1,
   },
   companyLine: {
     fontSize: 8,
@@ -66,7 +74,10 @@ export function DocumentHeader({ company }: { company: DocumentCompanyInfo }) {
               <Circle cx={21} cy={8.5} r={1.8} fill={PDF_COLORS.white} />
             </Svg>
           </View>
-          <Text style={styles.companyName}>{company.company_name}</Text>
+          <View style={styles.brandText}>
+            <Text style={styles.companyName}>{company.company_name}</Text>
+            <Text style={styles.companyTagline}>Professional cargo &amp; logistics services</Text>
+          </View>
         </View>
         <View>
           {company.company_address && <Text style={styles.companyLine}>{company.company_address}</Text>}

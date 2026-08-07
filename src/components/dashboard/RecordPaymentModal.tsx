@@ -6,9 +6,11 @@ import { Button, Input, Select, Textarea, Modal } from '@/components/ui'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
 import { recordPayment } from '@/services/financeService'
-import type { InvoiceWithRelations, PaymentMethod } from '@/types'
+import type { Invoice, PaymentMethod } from '@/types'
 import { PAYMENT_METHODS } from '@/types'
 import { formatCurrency } from '@/utils/format'
+
+type PayableInvoice = Pick<Invoice, 'id' | 'invoice_number' | 'amount' | 'amount_paid' | 'balance'>
 
 const schema = z.object({
   amount: z.preprocess(
@@ -27,7 +29,7 @@ interface RecordPaymentModalProps {
   open: boolean
   onClose: () => void
   onSaved: () => void
-  invoice: InvoiceWithRelations | null
+  invoice: PayableInvoice | null
 }
 
 export function RecordPaymentModal({ open, onClose, onSaved, invoice }: RecordPaymentModalProps) {
@@ -38,6 +40,7 @@ export function RecordPaymentModal({ open, onClose, onSaved, invoice }: RecordPa
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
@@ -58,6 +61,11 @@ export function RecordPaymentModal({ open, onClose, onSaved, invoice }: RecordPa
   async function onSubmit(values: FormValues) {
     if (!invoice) return
     const parsed = schema.parse(values)
+
+    if (parsed.amount > balance) {
+      setError('amount', { message: `Amount cannot exceed the balance of ${formatCurrency(balance, 2)}` })
+      return
+    }
 
     try {
       await recordPayment({
@@ -126,6 +134,7 @@ export function RecordPaymentModal({ open, onClose, onSaved, invoice }: RecordPa
             type="number"
             step="0.01"
             min="0"
+            max={balance > 0 ? balance : undefined}
             inputMode="decimal"
             error={errors.amount?.message}
             {...register('amount')}

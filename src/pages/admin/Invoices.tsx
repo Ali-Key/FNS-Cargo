@@ -26,6 +26,8 @@ import {
   RowActions,
   DetailRow,
   CopyButton,
+  MobileRowCard,
+  Alert,
 } from "@/components/ui";
 import {
   StatTile,
@@ -33,8 +35,8 @@ import {
   ConfirmDialog,
   FilterDropdown,
   DataToolbar,
-  ExportMenu,
   InvoicePreviewModal,
+  ExportMenu,
 } from "@/components/dashboard";
 import { InvoiceFormModal } from "@/components/dashboard/InvoiceFormModal";
 import { RecordPaymentModal } from "@/components/dashboard/RecordPaymentModal";
@@ -46,7 +48,7 @@ import {
   deleteInvoice,
   type InvoiceListParams,
 } from "@/services/financeService";
-import { exportOutstandingExcel } from "@/lib/exports/financeExports";
+import { exportInvoicesCsv } from "@/lib/exports/financeExports";
 import { getDashboardData } from "@/services/dashboardService";
 import type { DashboardStats, InvoiceWithRelations } from "@/types";
 import { isInvoiceOverdue } from "@/utils/status";
@@ -70,6 +72,7 @@ export default function Invoices() {
   const [rows, setRows] = useState<InvoiceWithRelations[]>([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [view, setView] = useState<View>("all");
@@ -95,15 +98,13 @@ export default function Invoices() {
       });
       setRows(result.rows);
       setCount(result.count);
+      setLoadError(false);
     } catch {
-      toast.error(
-        "Unable to load invoices",
-        "Please refresh the page to try again.",
-      );
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch, view, toast]);
+  }, [page, debouncedSearch, view]);
 
   useEffect(() => {
     load();
@@ -180,6 +181,15 @@ export default function Invoices() {
         }
       />
 
+      {loadError && rows.length === 0 && (
+        <Alert variant="error" title="Could not load invoices">
+          <p>Please try again.</p>
+          <Button variant="secondary" size="sm" className="mt-3" onClick={load}>
+            Retry
+          </Button>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatTile
           label="Outstanding"
@@ -204,35 +214,23 @@ export default function Invoices() {
         />
       </div>
 
-      <div className="space-y-3 rounded-card border border-gray-200 bg-white p-3 shadow-elevation-1">
-        <DataToolbar
-          search={search}
-          onSearchChange={setSearch}
-          placeholder="Search invoice number…"
-        >
-          <ExportMenu
-            items={[
-              {
-                label: "Outstanding balances (Excel)",
-                onClick: exportOutstandingExcel,
-              },
-            ]}
-          />
-        </DataToolbar>
-        <div className="flex flex-wrap items-center gap-2">
-          <FilterDropdown
-            label="View"
-            options={VIEW_OPTIONS}
-            value={view}
-            onChange={setView}
-          />
-          {filtersActive && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              Reset filters
-            </Button>
-          )}
-        </div>
-      </div>
+      <DataToolbar
+        search={search}
+        onSearchChange={setSearch}
+        placeholder="Search invoice number…"
+        filters={<FilterDropdown label="View" options={VIEW_OPTIONS} value={view} onChange={setView} />}
+        filtersActive={filtersActive}
+        onReset={clearFilters}
+      >
+        <ExportMenu
+          items={[
+            {
+              label: "Invoices (CSV)",
+              onClick: () => exportInvoicesCsv({ search: debouncedSearch, view }),
+            },
+          ]}
+        />
+      </DataToolbar>
 
       <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1 sm:block">
         <Table className="min-w-[640px] border-0 lg:min-w-[900px]">
@@ -432,17 +430,17 @@ export default function Invoices() {
               inv.balance,
             );
             return (
-              <div
+              <MobileRowCard
                 key={inv.id}
-                className="rounded-card border border-gray-200 bg-white p-4 shadow-elevation-1"
-              >
-                <div className="flex items-start justify-between gap-3">
+                header={
                   <div className="flex items-center gap-1">
                     <span className="font-mono text-sm font-semibold text-primary-600">
                       {inv.invoice_number}
                     </span>
                     <CopyButton value={inv.invoice_number} label="invoice number" />
                   </div>
+                }
+                actions={
                   <RowActions
                     label={`Actions for ${inv.invoice_number}`}
                     items={[
@@ -467,41 +465,42 @@ export default function Invoices() {
                       },
                     ]}
                   />
-                </div>
-                <div className="mt-3 space-y-2">
-                  <DetailRow
-                    label="Customer"
-                    value={inv.customer?.full_name ?? "—"}
-                  />
-                  <DetailRow
-                    label="Amount"
-                    value={formatCurrency(inv.amount, 2)}
-                    mono
-                  />
-                  <DetailRow
-                    label="Balance"
-                    value={formatCurrency(inv.balance, 2)}
-                    mono
-                  />
-                  <DetailRow label="Status">
-                    <InvoiceBadge status={inv.status} overdue={overdue} />
-                  </DetailRow>
-                  <DetailRow
-                    label="Due"
-                    value={formatDate(inv.due_date, "—")}
-                  />
-                </div>
-                {(inv.balance ?? 0) > 0 && inv.status !== "Void" && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="mt-3 w-full"
-                    onClick={() => setPaying(inv)}
-                  >
-                    Record payment
-                  </Button>
-                )}
-              </div>
+                }
+                footer={
+                  (inv.balance ?? 0) > 0 && inv.status !== "Void" ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="mt-3 w-full"
+                      onClick={() => setPaying(inv)}
+                    >
+                      Record payment
+                    </Button>
+                  ) : undefined
+                }
+              >
+                <DetailRow
+                  label="Customer"
+                  value={inv.customer?.full_name ?? "—"}
+                />
+                <DetailRow
+                  label="Amount"
+                  value={formatCurrency(inv.amount, 2)}
+                  mono
+                />
+                <DetailRow
+                  label="Balance"
+                  value={formatCurrency(inv.balance, 2)}
+                  mono
+                />
+                <DetailRow label="Status">
+                  <InvoiceBadge status={inv.status} overdue={overdue} />
+                </DetailRow>
+                <DetailRow
+                  label="Due"
+                  value={formatDate(inv.due_date, "—")}
+                />
+              </MobileRowCard>
             );
           })
         )}

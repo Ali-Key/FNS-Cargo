@@ -132,7 +132,7 @@ export function Footer() {
             </ul>
             {whatsappNumber && (
               <a
-                href={`https://wa.me/+252611189286`}
+                href={`https://wa.me/${whatsappNumber}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`mt-6 inline-flex items-center gap-2.5 rounded-control border border-primary-500/40 px-4 py-2.5 text-sm font-semibold text-primary-100 transition-colors duration-180 ease-out-premium hover:border-primary-400 hover:bg-primary-500/10 hover:text-primary-25 ${focusRing}`}

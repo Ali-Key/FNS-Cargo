@@ -8,7 +8,6 @@ import {
   Trash2,
   AlertTriangle,
 } from "lucide-react";
-import { cn } from "@/utils/cn";
 import {
   Button,
   StatusBadge,
@@ -27,6 +26,8 @@ import {
   Avatar,
   DetailRow,
   CopyButton,
+  MobileRowCard,
+  Alert,
 } from "@/components/ui";
 import {
   PageHeader,
@@ -40,13 +41,10 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useCachedResource } from "@/hooks/useCachedResource";
 import { useToast } from "@/context/ToastContext";
-import {
-  listShipments,
-  listShipmentsForExport,
-  deleteShipment,
-} from "@/services/shipmentsService";
+import { useAuth } from "@/context/AuthContext";
+import { listShipments, deleteShipment } from "@/services/shipmentsService";
 import { listCustomerOptions } from "@/services/customersService";
-import { getSystemSettings } from "@/services/settingsService";
+import { exportShipmentReportPdf, exportShipmentsCsv } from "@/lib/exports/shipmentsExports";
 import type {
   Customer,
   PaymentStatus,
@@ -69,6 +67,7 @@ const FILTER_KEY = "fns.shipments.filters";
 type StatusFilter = ShipmentStatus | "all";
 type MethodFilter = ShippingMethod | "all";
 type PaymentFilter = PaymentStatus | "all";
+type DelayedFilter = "all" | "delayed";
 
 const STATUS_OPTIONS = [
   { value: "all" as StatusFilter, label: "All statuses" },
@@ -88,6 +87,10 @@ const PAYMENT_OPTIONS = [
   { value: "all" as PaymentFilter, label: "All payments" },
   ...PAYMENT_STATUSES.map((p) => ({ value: p as PaymentFilter, label: p })),
 ];
+const DELAYED_OPTIONS = [
+  { value: "all" as DelayedFilter, label: "All shipments" },
+  { value: "delayed" as DelayedFilter, label: "Delayed only" },
+];
 
 function isStatus(v: string | null): v is ShipmentStatus {
   return !!v && (SHIPMENT_STATUSES as readonly string[]).includes(v);
@@ -102,6 +105,7 @@ function isPayment(v: string | null): v is PaymentStatus {
 export default function Shipments() {
   useDocumentTitle("Shipments | FNS Cargo");
   const toast = useToast();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -194,14 +198,6 @@ export default function Shipments() {
   const count = data?.count ?? 0;
 
   useEffect(() => {
-    if (error)
-      toast.error(
-        "Unable to load shipments",
-        "Please refresh the page to try again.",
-      );
-  }, [error, toast]);
-
-  useEffect(() => {
     listCustomerOptions()
       .then(setCustomerOptions)
       .catch(() => setCustomerOptions([]));
@@ -233,74 +229,6 @@ export default function Shipments() {
     if (delayedOnly) parts.push("Delayed only");
     if (debouncedSearch) parts.push(`Search: "${debouncedSearch}"`);
     return parts.length ? parts.join(" · ") : "All shipments";
-  }
-
-  async function exportShipmentsExcel() {
-    const rows = await listShipmentsForExport({
-      search: debouncedSearch,
-      status,
-      method,
-      payment,
-      delayedOnly,
-    });
-    const { downloadWorkbook } = await import("@/lib/excel/generateExcel");
-    await downloadWorkbook(
-      [
-        {
-          name: "Shipments",
-          columns: [
-            { header: "Tracking #", key: "tracking_number", width: 16 },
-            { header: "Customer", key: "customer_name", width: 20 },
-            { header: "Origin", key: "origin", width: 16 },
-            { header: "Destination", key: "destination", width: 16 },
-            { header: "Method", key: "shipping_method", width: 14 },
-            { header: "Weight (kg)", key: "weight", width: 12 },
-            { header: "Value", key: "total_price", width: 12 },
-            { header: "Status", key: "status", width: 16 },
-            { header: "Payment", key: "payment_status", width: 14 },
-            { header: "Est. delivery", key: "estimated_delivery", width: 14 },
-          ],
-          rows: rows.map((s) => ({
-            tracking_number: s.tracking_number,
-            customer_name: s.customer_name,
-            origin: s.origin,
-            destination: s.destination,
-            shipping_method: s.shipping_method,
-            weight: s.weight,
-            total_price: s.total_price,
-            status: s.status,
-            payment_status: s.payment_status,
-            estimated_delivery: s.estimated_delivery
-              ? formatDate(s.estimated_delivery)
-              : "",
-          })),
-        },
-      ],
-      `shipments-${new Date().toISOString().slice(0, 10)}.xlsx`,
-    );
-  }
-
-  async function exportShipmentReportPdf() {
-    const rows = await listShipmentsForExport({
-      search: debouncedSearch,
-      status,
-      method,
-      payment,
-      delayedOnly,
-    });
-    const settings = await getSystemSettings();
-    const [{ ShipmentReportDocument }, { downloadPdf }] = await Promise.all([
-      import("@/lib/documents/ShipmentReportDocument"),
-      import("@/lib/documents/generatePdf"),
-    ]);
-    await downloadPdf(
-      <ShipmentReportDocument
-        shipments={rows}
-        company={settings ?? { company_name: "FNS Cargo" }}
-        filterSummary={shipmentFilterSummary()}
-      />,
-      `shipment-report-${new Date().toISOString().slice(0, 10)}.pdf`,
-    );
   }
 
   function clearFilters() {
@@ -356,63 +284,70 @@ export default function Shipments() {
         }
       />
 
+      {error && !data && (
+        <Alert variant="error" title="Could not load shipments">
+          <p>{error}</p>
+          <Button variant="secondary" size="sm" className="mt-3" onClick={load}>
+            Retry
+          </Button>
+        </Alert>
+      )}
+
       {/* Sticky filter bar — state persists across refresh */}
-      <div className="sticky top-16 z-20 space-y-3 rounded-card border border-gray-200 bg-white p-3 shadow-elevation-1">
-        <DataToolbar
-          search={search}
-          onSearchChange={setSearch}
-          placeholder="Search tracking #, customer, origin…"
-        >
-          <ExportMenu
-            items={[
-              { label: "Shipment list (Excel)", onClick: exportShipmentsExcel },
-              {
-                label: "Shipment report (PDF)",
-                onClick: exportShipmentReportPdf,
-              },
-            ]}
-          />
-        </DataToolbar>
-        <div className="flex flex-wrap items-center gap-2">
-          <FilterDropdown
-            label="Status"
-            options={STATUS_OPTIONS}
-            value={status}
-            onChange={setStatus}
-          />
-          <FilterDropdown
-            label="Method"
-            options={METHOD_OPTIONS}
-            value={method}
-            onChange={setMethod}
-          />
-          <FilterDropdown
-            label="Payment"
-            options={PAYMENT_OPTIONS}
-            value={payment}
-            onChange={setPayment}
-          />
-          <button
-            type="button"
-            aria-pressed={delayedOnly}
-            onClick={() => setDelayedOnly((v) => !v)}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-control border px-3 py-1.5 text-sm font-semibold transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-1",
-              delayedOnly
-                ? "border-status-delayed bg-status-delayed text-white"
-                : "border-gray-300 bg-white text-steel-600 hover:border-navy-300 hover:text-navy-800",
-            )}
-          >
-            <AlertTriangle className="h-3.5 w-3.5" />
-            Delayed only
-          </button>
-          {filtersActive && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              Reset filters
-            </Button>
-          )}
-        </div>
-      </div>
+      <DataToolbar
+        className="sticky top-16 z-20"
+        search={search}
+        onSearchChange={setSearch}
+        placeholder="Search tracking #, customer, origin…"
+        filtersActive={filtersActive}
+        onReset={clearFilters}
+        filters={
+          <>
+            <FilterDropdown
+              label="Status"
+              options={STATUS_OPTIONS}
+              value={status}
+              onChange={setStatus}
+            />
+            <FilterDropdown
+              label="Method"
+              options={METHOD_OPTIONS}
+              value={method}
+              onChange={setMethod}
+            />
+            <FilterDropdown
+              label="Payment"
+              options={PAYMENT_OPTIONS}
+              value={payment}
+              onChange={setPayment}
+            />
+            <FilterDropdown
+              label="Delayed"
+              options={DELAYED_OPTIONS}
+              value={delayedOnly ? "delayed" : "all"}
+              onChange={(v) => setDelayedOnly(v === "delayed")}
+            />
+          </>
+        }
+      >
+        <ExportMenu
+          items={[
+            {
+              label: "Shipment report (PDF)",
+              onClick: () =>
+                exportShipmentReportPdf(
+                  { search: debouncedSearch, status, method, payment, delayedOnly },
+                  shipmentFilterSummary(),
+                ),
+            },
+            {
+              label: "Shipment list (CSV)",
+              onClick: () =>
+                exportShipmentsCsv({ search: debouncedSearch, status, method, payment, delayedOnly }),
+            },
+          ]}
+        />
+      </DataToolbar>
 
       <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1 sm:block">
         <Table className="min-w-[860px] border-0 lg:min-w-[1240px]">
@@ -562,12 +497,16 @@ export default function Shipments() {
                             icon: <Pencil className="h-4 w-4" />,
                             onClick: () => openEdit(s),
                           },
-                          {
-                            label: "Delete shipment",
-                            icon: <Trash2 className="h-4 w-4" />,
-                            onClick: () => setDeleting(s),
-                            danger: true,
-                          },
+                          ...(isAdmin
+                            ? [
+                                {
+                                  label: "Delete shipment",
+                                  icon: <Trash2 className="h-4 w-4" />,
+                                  onClick: () => setDeleting(s),
+                                  danger: true,
+                                },
+                              ]
+                            : []),
                         ]}
                       />
                     </div>
@@ -614,11 +553,9 @@ export default function Shipments() {
           </div>
         ) : (
           rows.map((s) => (
-            <div
+            <MobileRowCard
               key={s.id}
-              className="rounded-card border border-gray-200 bg-white p-4 shadow-elevation-1"
-            >
-              <div className="flex items-start justify-between gap-3">
+              header={
                 <div className="flex items-center gap-1">
                   <Link
                     to={`/dashboard/shipments/${s.id}`}
@@ -628,6 +565,8 @@ export default function Shipments() {
                   </Link>
                   <CopyButton value={s.tracking_number} label="tracking number" />
                 </div>
+              }
+              actions={
                 <RowActions
                   label={`Actions for ${s.tracking_number}`}
                   items={[
@@ -641,53 +580,56 @@ export default function Shipments() {
                       icon: <Pencil className="h-4 w-4" />,
                       onClick: () => openEdit(s),
                     },
-                    {
-                      label: "Delete shipment",
-                      icon: <Trash2 className="h-4 w-4" />,
-                      onClick: () => setDeleting(s),
-                      danger: true,
-                    },
+                    ...(isAdmin
+                      ? [
+                          {
+                            label: "Delete shipment",
+                            icon: <Trash2 className="h-4 w-4" />,
+                            onClick: () => setDeleting(s),
+                            danger: true,
+                          },
+                        ]
+                      : []),
                   ]}
                 />
-              </div>
-              <div className="mt-3 space-y-2">
-                <DetailRow label="Customer" value={s.customer_name} />
-                <DetailRow
-                  label="Route"
-                  value={`${s.origin} → ${s.destination}`}
+              }
+            >
+              <DetailRow label="Customer" value={s.customer_name} />
+              <DetailRow
+                label="Route"
+                value={`${s.origin} → ${s.destination}`}
+              />
+              <DetailRow
+                label="Value"
+                value={formatCurrency(s.total_price, 2)}
+                mono
+              />
+              <DetailRow label="Status">
+                <StatusBadge
+                  status={s.status as ShipmentStatus}
+                  delayed={isShipmentDelayed(s.status, s.estimated_delivery)}
                 />
-                <DetailRow
-                  label="Value"
-                  value={formatCurrency(s.total_price, 2)}
-                  mono
-                />
-                <DetailRow label="Status">
-                  <StatusBadge
-                    status={s.status as ShipmentStatus}
-                    delayed={isShipmentDelayed(s.status, s.estimated_delivery)}
-                  />
-                </DetailRow>
-                <DetailRow label="Payment">
-                  <PaymentBadge status={s.payment_status} />
-                </DetailRow>
-                <DetailRow
-                  label="Est. delivery"
-                  value={
-                    isShipmentDelayed(s.status, s.estimated_delivery) ? (
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-status-delayed">
-                        <AlertTriangle
-                          className="h-3.5 w-3.5"
-                          aria-hidden="true"
-                        />
-                        {formatDate(s.estimated_delivery, "—")}
-                      </span>
-                    ) : (
-                      formatDate(s.estimated_delivery, "—")
-                    )
-                  }
-                />
-              </div>
-            </div>
+              </DetailRow>
+              <DetailRow label="Payment">
+                <PaymentBadge status={s.payment_status} />
+              </DetailRow>
+              <DetailRow
+                label="Est. delivery"
+                value={
+                  isShipmentDelayed(s.status, s.estimated_delivery) ? (
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-status-delayed">
+                      <AlertTriangle
+                        className="h-3.5 w-3.5"
+                        aria-hidden="true"
+                      />
+                      {formatDate(s.estimated_delivery, "—")}
+                    </span>
+                  ) : (
+                    formatDate(s.estimated_delivery, "—")
+                  )
+                }
+              />
+            </MobileRowCard>
           ))
         )}
       </div>

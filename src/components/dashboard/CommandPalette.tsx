@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Zap, X, CornerDownLeft, Search } from 'lucide-react'
-import { Button } from '@/components/ui'
+import { Button, Input } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
 import {
   findShipmentByTracking,
@@ -158,18 +158,16 @@ export function CommandPalette() {
 
         <div className="space-y-4 px-5 py-4">
           {/* Tracking number */}
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-steel-400" />
-            <input
-              ref={trackingRef}
-              value={form.tracking}
-              onChange={(e) => setForm((f) => ({ ...f, tracking: e.target.value.toUpperCase() }))}
-              placeholder="FNS-2026-000123"
-              className="h-11 w-full rounded-control border border-gray-300 bg-white pl-10 pr-3 font-mono text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
-              aria-label="Tracking number"
-              autoComplete="off"
-            />
-          </div>
+          <Input
+            ref={trackingRef}
+            value={form.tracking}
+            onChange={(e) => setForm((f) => ({ ...f, tracking: e.target.value.toUpperCase() }))}
+            placeholder="FNS-2026-000123"
+            className="font-mono"
+            icon={<Search className="h-4 w-4" />}
+            aria-label="Tracking number"
+            autoComplete="off"
+          />
 
           {/* Status segmented control */}
           <div>
@@ -203,42 +201,29 @@ export function CommandPalette() {
 
           {/* Country + city */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-steel-400">
-                Country
-              </label>
-              <input
-                value={form.country}
-                onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-                placeholder="China"
-                className="h-11 w-full rounded-control border border-gray-300 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-steel-400">
-                City
-              </label>
-              <input
-                value={form.city}
-                onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
-                placeholder="Guangzhou"
-                className="h-11 w-full rounded-control border border-gray-300 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
-              />
-            </div>
+            <Input
+              label="Country"
+              value={form.country}
+              onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+              placeholder="China"
+            />
+            <Input
+              label="City"
+              value={form.city}
+              onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
+              placeholder="Guangzhou"
+            />
           </div>
 
           {/* Location + time */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-steel-400">
-                Location
-              </label>
-              <input
+              <Input
+                label="Location"
                 value={form.location}
                 onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
                 list={listId}
                 placeholder="Guangzhou Port, China"
-                className="h-11 w-full rounded-control border border-gray-300 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
               />
               <datalist id={listId}>
                 {locations.map((loc) => (
@@ -246,24 +231,19 @@ export function CommandPalette() {
                 ))}
               </datalist>
             </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-steel-400">
-                Event time
-              </label>
-              <input
-                type="datetime-local"
-                value={form.eventTime}
-                onChange={(e) => setForm((f) => ({ ...f, eventTime: e.target.value }))}
-                className="h-11 w-full rounded-control border border-gray-300 bg-white px-3 text-sm text-navy-900 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
-              />
-            </div>
+            <Input
+              label="Event time"
+              type="datetime-local"
+              value={form.eventTime}
+              onChange={(e) => setForm((f) => ({ ...f, eventTime: e.target.value }))}
+            />
           </div>
 
-          <input
+          <Input
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             placeholder="Description (optional): visible to the customer"
-            className="h-11 w-full rounded-control border border-gray-300 bg-white px-3 text-sm text-navy-900 placeholder:text-steel-400 focus-visible:border-navy-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+            aria-label="Description"
           />
 
           <label className="flex items-center gap-2.5 text-sm text-steel-600">

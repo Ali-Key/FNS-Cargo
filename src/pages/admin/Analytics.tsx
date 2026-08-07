@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Timer, Target, TrendingUp, Users } from 'lucide-react'
-import { PageHeader, PillGroup, StatTile, ExportMenu } from '@/components/dashboard'
+import { PageHeader, PillGroup, StatTile } from '@/components/dashboard'
 import {
   RevenueTrendChart,
   CustomerGrowthChart,
@@ -56,56 +56,13 @@ export default function Analytics() {
   const invoiced = report?.revenue_trend.reduce((sum, p) => sum + p.invoiced, 0) ?? 0
   const newCustomers = report?.customer_growth.reduce((sum, p) => sum + p.new_customers, 0) ?? 0
 
-  async function exportRevenueExcel() {
-    if (!report) return
-    const { downloadWorkbook } = await import('@/lib/excel/generateExcel')
-    await downloadWorkbook(
-      [
-        {
-          name: 'Revenue trend',
-          columns: [
-            { header: 'Month', key: 'month', width: 14 },
-            { header: 'Collected', key: 'collected', width: 14 },
-            { header: 'Invoiced', key: 'invoiced', width: 14 },
-          ],
-          rows: report.revenue_trend,
-        },
-        {
-          name: 'Top customers',
-          columns: [
-            { header: 'Customer', key: 'full_name', width: 24 },
-            { header: 'Email', key: 'email', width: 26 },
-            { header: 'Shipments', key: 'shipments', width: 12 },
-            { header: 'Value', key: 'value', width: 14 },
-          ],
-          rows: report.top_customers,
-        },
-        {
-          name: 'Top routes',
-          columns: [
-            { header: 'Origin', key: 'origin', width: 16 },
-            { header: 'Destination', key: 'destination', width: 16 },
-            { header: 'Shipments', key: 'shipments', width: 12 },
-            { header: 'Value', key: 'value', width: 14 },
-            { header: 'Avg weight (kg)', key: 'avg_weight', width: 16 },
-          ],
-          rows: report.top_routes,
-        },
-      ],
-      `revenue-report-${range}mo-${new Date().toISOString().slice(0, 10)}.xlsx`,
-    )
-  }
-
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Analytics & Reports"
+        title="Analytics"
         description="Revenue, lane performance, and customer growth across the operation."
         actions={
-          <div className="flex items-center gap-2">
-            <PillGroup label="Reporting period" options={RANGE_PILLS} value={range} onChange={setRange} />
-            <ExportMenu items={[{ label: 'Revenue report (Excel)', onClick: exportRevenueExcel }]} />
-          </div>
+          <PillGroup label="Reporting period" options={RANGE_PILLS} value={range} onChange={setRange} />
         }
       />
 

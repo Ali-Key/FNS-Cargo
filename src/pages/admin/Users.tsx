@@ -3,16 +3,18 @@ import { UserPlus, ShieldCheck, UserMinus } from 'lucide-react'
 import {
   Button,
   Badge,
-  Select,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeadCell,
   TableRow,
+  Pagination,
   EmptyState,
   SkeletonTableRows,
   Avatar,
+  RowActions,
+  Alert,
 } from '@/components/ui'
 import { PageHeader, ConfirmDialog } from '@/components/dashboard'
 import { CreateUserModal } from '@/components/dashboard/CreateUserModal'
@@ -24,6 +26,8 @@ import type { UserRole, DashboardUser } from '@/types'
 import { formatDate } from '@/utils/date'
 import { activeVariant } from '@/utils/status'
 
+const PAGE_SIZE = 10
+
 export default function Users() {
   useDocumentTitle('Users | FNS Cargo')
   const toast = useToast()
@@ -31,21 +35,23 @@ export default function Users() {
 
   const [rows, setRows] = useState<DashboardUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [page, setPage] = useState(1)
   const [createOpen, setCreateOpen] = useState(false)
   const [revoking, setRevoking] = useState<DashboardUser | null>(null)
   const [revokeLoading, setRevokeLoading] = useState(false)
-  const [savingRole, setSavingRole] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
       setRows(await listDashboardUsers())
+      setLoadError(false)
     } catch {
-      toast.error('Unable to load users', 'Please refresh the page to try again.')
+      setLoadError(true)
     } finally {
       setLoading(false)
     }
-  }, [toast])
+  }, [])
 
   useEffect(() => {
     load()
@@ -53,15 +59,12 @@ export default function Users() {
 
   async function changeRole(row: DashboardUser, role: UserRole) {
     if (role === row.role) return
-    setSavingRole(row.id)
     try {
       await updateUserRole(row.id, role)
       setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, role } : r)))
-      toast.success('Role updated', `${row.email} is now ${role === 'Admin' ? 'an admin' : 'a customer'}.`)
+      toast.success('Role updated', `${row.email} is now ${role === 'Admin' ? 'an admin' : 'a dispatcher'}.`)
     } catch {
       toast.error('Unable to update role', 'Please try again in a moment.')
-    } finally {
-      setSavingRole(null)
     }
   }
 
@@ -80,6 +83,9 @@ export default function Users() {
     }
   }
 
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
+  const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -91,6 +97,15 @@ export default function Users() {
           </Button>
         }
       />
+
+      {loadError && rows.length === 0 && (
+        <Alert variant="error" title="Could not load users">
+          <p>Please try again.</p>
+          <Button variant="secondary" size="sm" className="mt-3" onClick={load}>
+            Retry
+          </Button>
+        </Alert>
+      )}
 
       <div className="overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1">
         <Table className="border-0">
@@ -113,7 +128,7 @@ export default function Users() {
                 </td>
               </tr>
             ) : (
-              rows.map((u) => {
+              pageRows.map((u) => {
                 const isSelf = u.auth_user_id === user?.id
                 return (
                   <TableRow key={u.id}>
@@ -128,21 +143,7 @@ export default function Users() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {isSelf ? (
-                        <Badge variant={u.role === 'Admin' ? 'info' : 'neutral'}>{u.role}</Badge>
-                      ) : (
-                        <Select
-                          aria-label={`Role for ${u.email}`}
-                          className="h-9 w-32"
-                          value={u.role}
-                          disabled={savingRole === u.id}
-                          onChange={(e) => changeRole(u, e.target.value as UserRole)}
-                          options={[
-                            { value: 'Staff', label: 'Staff' },
-                            { value: 'Admin', label: 'Admin' },
-                          ]}
-                        />
-                      )}
+                      <Badge variant={u.role === 'Admin' ? 'info' : 'neutral'}>{u.role}</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge variant={activeVariant(u.status)}>{u.status}</Badge>
@@ -151,12 +152,23 @@ export default function Users() {
                     <TableCell>
                       <div className="flex justify-end">
                         {!isSelf && (
-                          <button
-                            onClick={() => setRevoking(u)}
-                            className="inline-flex items-center gap-1.5 rounded-control px-2.5 py-1.5 text-sm font-medium text-text-secondary hover:bg-status-delayed/10 hover:text-status-delayed"
-                          >
-                            <UserMinus className="h-4 w-4" /> Revoke
-                          </button>
+                          <RowActions
+                            label={`Actions for ${u.email}`}
+                            items={[
+                              ...(['Dispatcher', 'Admin'] as UserRole[])
+                                .filter((role) => role !== u.role)
+                                .map((role) => ({
+                                  label: `Set as ${role}`,
+                                  onClick: () => changeRole(u, role),
+                                })),
+                              {
+                                label: 'Revoke access',
+                                icon: <UserMinus className="h-4 w-4" />,
+                                onClick: () => setRevoking(u),
+                                danger: true,
+                              },
+                            ]}
+                          />
                         )}
                       </div>
                     </TableCell>
@@ -166,6 +178,15 @@ export default function Users() {
             )}
           </TableBody>
         </Table>
+        {!loading && rows.length > 0 && (
+          <Pagination
+            page={page}
+            pageCount={pageCount}
+            onPageChange={setPage}
+            totalItems={rows.length}
+            pageSize={PAGE_SIZE}
+          />
+        )}
       </div>
 
       <CreateUserModal open={createOpen} onClose={() => setCreateOpen(false)} onSaved={load} />

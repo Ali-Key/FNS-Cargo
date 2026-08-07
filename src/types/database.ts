@@ -127,14 +127,17 @@ export type Database = {
           created_at: string
           currency: string
           customer_id: string | null
+          discount: number
           due_date: string | null
           id: string
           invoice_number: string
           issued_at: string
+          issued_by: string | null
           notes: string | null
           shipment_id: string
           status: Database["public"]["Enums"]["invoice_status"]
           updated_at: string
+          vat_amount: number
         }
         Insert: {
           amount: number
@@ -143,14 +146,17 @@ export type Database = {
           created_at?: string
           currency?: string
           customer_id?: string | null
+          discount?: number
           due_date?: string | null
           id?: string
           invoice_number?: string
           issued_at?: string
+          issued_by?: string | null
           notes?: string | null
           shipment_id: string
           status?: Database["public"]["Enums"]["invoice_status"]
           updated_at?: string
+          vat_amount?: number
         }
         Update: {
           amount?: number
@@ -159,14 +165,17 @@ export type Database = {
           created_at?: string
           currency?: string
           customer_id?: string | null
+          discount?: number
           due_date?: string | null
           id?: string
           invoice_number?: string
           issued_at?: string
+          issued_by?: string | null
           notes?: string | null
           shipment_id?: string
           status?: Database["public"]["Enums"]["invoice_status"]
           updated_at?: string
+          vat_amount?: number
         }
         Relationships: [
           {
@@ -174,6 +183,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -331,7 +347,10 @@ export type Database = {
       shipments: {
         Row: {
           assigned_to: string | null
+          booking_contact: string | null
+          branch_code: string | null
           cargo_type: Database["public"]["Enums"]["cargo_type"]
+          cn_number: string | null
           created_at: string
           current_location: string | null
           customer_id: string | null
@@ -343,6 +362,7 @@ export type Database = {
           id: string
           origin: string
           payment_status: Database["public"]["Enums"]["payment_status"]
+          pieces: number
           price_per_kg: number | null
           shipping_method: Database["public"]["Enums"]["shipping_method"]
           status: Database["public"]["Enums"]["shipment_status"]
@@ -354,7 +374,10 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          booking_contact?: string | null
+          branch_code?: string | null
           cargo_type?: Database["public"]["Enums"]["cargo_type"]
+          cn_number?: string | null
           created_at?: string
           current_location?: string | null
           customer_id?: string | null
@@ -366,6 +389,7 @@ export type Database = {
           id?: string
           origin: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          pieces?: number
           price_per_kg?: number | null
           shipping_method?: Database["public"]["Enums"]["shipping_method"]
           status?: Database["public"]["Enums"]["shipment_status"]
@@ -377,7 +401,10 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          booking_contact?: string | null
+          branch_code?: string | null
           cargo_type?: Database["public"]["Enums"]["cargo_type"]
+          cn_number?: string | null
           created_at?: string
           current_location?: string | null
           customer_id?: string | null
@@ -389,6 +416,7 @@ export type Database = {
           id?: string
           origin?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
+          pieces?: number
           price_per_kg?: number | null
           shipping_method?: Database["public"]["Enums"]["shipping_method"]
           status?: Database["public"]["Enums"]["shipment_status"]
@@ -428,6 +456,7 @@ export type Database = {
           logo_url: string | null
           singleton: boolean
           updated_at: string
+          vat_rate: number
         }
         Insert: {
           company_address?: string
@@ -441,6 +470,7 @@ export type Database = {
           logo_url?: string | null
           singleton?: boolean
           updated_at?: string
+          vat_rate?: number
         }
         Update: {
           company_address?: string
@@ -454,6 +484,25 @@ export type Database = {
           logo_url?: string | null
           singleton?: boolean
           updated_at?: string
+          vat_rate?: number
+        }
+        Relationships: []
+      }
+      tracking_lookup_attempts: {
+        Row: {
+          id: number
+          ip: string
+          requested_at: string
+        }
+        Insert: {
+          id?: never
+          ip: string
+          requested_at?: string
+        }
+        Update: {
+          id?: never
+          ip?: string
+          requested_at?: string
         }
         Relationships: []
       }
@@ -535,6 +584,10 @@ export type Database = {
         Args: { p_country_code?: string }
         Returns: string
       }
+      sync_shipment_payment_status: {
+        Args: { p_shipment_id: string }
+        Returns: undefined
+      }
       track_shipment: { Args: { p_tracking_number: string }; Returns: Json }
     }
     Enums: {
@@ -556,6 +609,8 @@ export type Database = {
         | "Mobile Money"
         | "Card"
         | "Cheque"
+        | "EVC Plus"
+        | "Edahab"
       payment_status: "Unpaid" | "Partially Paid" | "Paid" | "Refunded"
       quote_status: "Pending" | "Reviewed" | "Quoted" | "Closed"
       shipment_status:
@@ -574,7 +629,7 @@ export type Database = {
         | "Sea Freight"
         | "Road Freight"
         | "Door to Door"
-      user_role: "Admin" | "Dispatcher"
+      user_role: "Admin" | "Dispatcher" | "Staff"
       user_status: "Active" | "Disabled"
     }
     CompositeTypes: {
@@ -585,7 +640,7 @@ export type Database = {
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals["public"]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
@@ -722,6 +777,8 @@ export const Constants = {
         "Mobile Money",
         "Card",
         "Cheque",
+        "EVC Plus",
+        "Edahab",
       ],
       payment_status: ["Unpaid", "Partially Paid", "Paid", "Refunded"],
       quote_status: ["Pending", "Reviewed", "Quoted", "Closed"],
@@ -743,7 +800,7 @@ export const Constants = {
         "Road Freight",
         "Door to Door",
       ],
-      user_role: ["Admin", "Dispatcher"],
+      user_role: ["Admin", "Dispatcher", "Staff"],
       user_status: ["Active", "Disabled"],
     },
   },

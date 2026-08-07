@@ -142,11 +142,11 @@ export default {
            SHIPMENT STATUS
         ========================================= */
         status: {
-          delivered: "#16A34A",
-          transit: "#3865F2",
-          pending: "#3865F2",
-          delayed: "#DC2626",
-          cancelled: "#64748B",
+          delivered: "#16A34A", // emerald — done / paid
+          transit: "#3865F2", // blue — in motion
+          pending: "#F59E0B", // amber — at a depot / needs attention
+          delayed: "#DC2626", // red — owing / destructive
+          cancelled: "#64748B", // slate — waiting / inactive
         },
       },
 

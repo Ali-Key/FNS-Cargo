@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Search, MapPin, Plus, PackageSearch } from 'lucide-react'
-import { Button, Input, StatusBadge, EmptyState, Spinner } from '@/components/ui'
+import { Button, Input, StatusBadge, EmptyState, Skeleton, SectionCard } from '@/components/ui'
 import { PageHeader } from '@/components/dashboard'
 import { TrackingEventFormModal } from '@/components/dashboard/TrackingEventFormModal'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -74,10 +74,11 @@ export default function TrackingUpdates() {
       />
 
       {/* Quick add by tracking number */}
-      <div className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1">
-        <h2 className="font-bold text-navy-900">Post an update</h2>
-        <p className="mt-1 text-sm text-text-secondary">Find a shipment by its tracking number to add a new event.</p>
-        <form onSubmit={handleSearch} className="mt-4 flex flex-col gap-2 sm:flex-row">
+      <SectionCard
+        title="Post an update"
+        description="Find a shipment by its tracking number to add a new event."
+      >
+        <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row">
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value.toUpperCase())}
@@ -119,17 +120,26 @@ export default function TrackingUpdates() {
             </div>
           </div>
         )}
-      </div>
+      </SectionCard>
 
       {/* Recent events feed */}
-      <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h2 className="font-bold text-navy-900">Latest updates</h2>
-        </div>
+      <SectionCard title="Latest updates" flush>
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Spinner className="h-6 w-6 text-navy-700" />
-          </div>
+          <ul className="divide-y divide-steel-100">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <li key={i} className="flex items-center gap-4 px-6 py-3.5">
+                <Skeleton className="h-4 w-4 shrink-0 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-4 w-20 rounded-badge" />
+                  </div>
+                  <Skeleton className="h-3.5 w-2/3" />
+                </div>
+                <Skeleton className="h-3 w-16 shrink-0" />
+              </li>
+            ))}
+          </ul>
         ) : events.length === 0 ? (
           <EmptyState
             icon={<PackageSearch className="h-6 w-6" />}
@@ -165,7 +175,7 @@ export default function TrackingUpdates() {
             ))}
           </ul>
         )}
-      </div>
+      </SectionCard>
 
       {found && (
         <TrackingEventFormModal

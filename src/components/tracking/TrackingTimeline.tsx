@@ -21,7 +21,7 @@ export function TrackingTimeline({ events }: { events: PublicTrackingEvent[] }) 
         const timestamp = `${event.date}T${event.time}`
         return (
           <li
-            key={event.id}
+            key={index}
             className="relative animate-fade-up pb-8 pl-9 last:pb-0"
             style={{ animationDelay: `${index * 40}ms` }}
           >

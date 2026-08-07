@@ -41,6 +41,13 @@ const schema = z.object({
   warehouse: z.string().optional(),
   current_location: z.string().optional(),
   assigned_to: z.string().optional(),
+  pieces: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z.number({ invalid_type_error: 'Enter the number of pieces' }).int().positive('Must be at least 1'),
+  ),
+  booking_contact: z.string().optional(),
+  cn_number: z.string().optional(),
+  branch_code: z.string().optional(),
 })
 
 /** Total = weight x price per kg, rounded to cents. Mirrors the generated column in Postgres. */
@@ -76,6 +83,10 @@ const EMPTY: FormValues = {
   warehouse: '',
   current_location: '',
   assigned_to: '',
+  pieces: 1,
+  booking_contact: '',
+  cn_number: '',
+  branch_code: '',
 }
 
 export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOptions }: ShipmentFormModalProps) {
@@ -113,6 +124,10 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
         warehouse: shipment.warehouse ?? '',
         current_location: shipment.current_location ?? '',
         assigned_to: shipment.assigned_to ?? '',
+        pieces: shipment.pieces,
+        booking_contact: shipment.booking_contact ?? '',
+        cn_number: shipment.cn_number ?? '',
+        branch_code: shipment.branch_code ?? '',
       })
     } else {
       reset(EMPTY)
@@ -146,13 +161,20 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
       destination: parsed.destination,
       shipping_method: parsed.shipping_method as ShippingMethod,
       cargo_type: parsed.cargo_type as CargoType,
-      status: parsed.status as ShipmentStatus,
+      // Status is set on creation only; once tracking events exist, they are
+      // the sole source of truth (sync_shipment_status() trigger) and manual
+      // edits here would just get silently overwritten by the next event.
+      ...(isEdit ? {} : { status: parsed.status as ShipmentStatus }),
       weight: parsed.weight ?? null,
       price_per_kg: parsed.price_per_kg ?? null,
       estimated_delivery: parsed.estimated_delivery ? parsed.estimated_delivery : null,
       warehouse: parsed.warehouse?.trim() || null,
       current_location: parsed.current_location?.trim() || null,
       assigned_to: parsed.assigned_to || null,
+      pieces: parsed.pieces,
+      booking_contact: parsed.booking_contact?.trim() || null,
+      cn_number: parsed.cn_number?.trim() || null,
+      branch_code: parsed.branch_code?.trim() || null,
     }
 
     try {
@@ -246,11 +268,17 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
             options={SHIPPING_METHODS.map((m) => ({ value: m, label: SHIPPING_METHOD_LABEL[m] }))}
             {...register('shipping_method')}
           />
-          <Select
-            label="Status"
-            options={SHIPMENT_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }))}
-            {...register('status')}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Select
+              label="Status"
+              disabled={isEdit}
+              options={SHIPMENT_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }))}
+              {...register('status')}
+            />
+            {isEdit && (
+              <p className="text-xs text-text-secondary">Set automatically by tracking events.</p>
+            )}
+          </div>
           <Input label="Est. delivery" type="date" {...register('estimated_delivery')} />
         </div>
 
@@ -272,8 +300,30 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
           />
         </div>
 
+        {/* Waybill label fields: printed on the label alongside the tracking number/barcode. */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Input
+            label="Booking contact"
+            type="tel"
+            placeholder="+252 6xx xxx xxx"
+            {...register('booking_contact')}
+          />
+          <Input label="CN number" placeholder="1352503" {...register('cn_number')} />
+          <Input label="Branch code" placeholder="GZ2025" {...register('branch_code')} />
+        </div>
+
         <div className="rounded-lg border border-gray-300 bg-surface p-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:items-start">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 sm:items-start">
+            <Input
+              label="Pieces"
+              type="number"
+              step="1"
+              min="1"
+              inputMode="numeric"
+              placeholder="1"
+              error={errors.pieces?.message}
+              {...register('pieces')}
+            />
             <Input
               label="Weight (kg)"
               type="number"

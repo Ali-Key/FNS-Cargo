@@ -9,7 +9,6 @@ import {
   Wallet,
   Receipt,
   BarChart3,
-  ClipboardList,
   UserCog,
   Settings,
   LogOut,
@@ -56,7 +55,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { to: '/dashboard/payments', label: 'Payments', icon: Wallet, roles: ['Admin'] },
       { to: '/dashboard/invoices', label: 'Invoices', icon: Receipt, roles: ['Admin'] },
-      { to: '/dashboard/reports', label: 'Reports', icon: ClipboardList, roles: ['Admin'] },
     ],
   },
   {

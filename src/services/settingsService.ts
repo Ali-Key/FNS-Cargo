@@ -25,7 +25,7 @@ export async function updateSystemSettings(
       | 'company_address'
       | 'company_website'
       | 'logo_url'
-      | 'default_shipping_method'
+      | 'vat_rate'
     >
   >,
 ) {

@@ -83,7 +83,7 @@ export async function listShipments(params: ShipmentListParams): Promise<Shipmen
   return { rows: (data as ShipmentWithCustomer[]) ?? [], count: count ?? 0 }
 }
 
-/** Every shipment matching the given filters, unpaginated — for exports (Excel list, PDF report). */
+/** Every shipment matching the given filters, unpaginated — for the PDF shipment report. */
 export async function listShipmentsForExport(filters: ShipmentFilters): Promise<ShipmentWithCustomer[]> {
   return fetchAllRows(async (from, to) => {
     const { data, error, count } = await applyShipmentFilters(baseShipmentQuery(), filters).range(from, to)

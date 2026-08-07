@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { Customer, UserStatus } from '@/types'
 import { logActivity } from './activityService'
-import { fetchAllRows } from '@/lib/exportBatch'
 
 // Customers live in their own table; `profiles` is dashboard accounts only.
 const CUSTOMER_COLUMNS =
@@ -35,15 +34,6 @@ export async function listCustomers(params: CustomerListParams): Promise<Custome
   const { data, error, count } = await baseCustomerQuery(search).range(from, to)
   if (error) throw error
   return { rows: (data as Customer[]) ?? [], count: count ?? 0 }
-}
-
-/** Every customer matching the search term, unpaginated — for the customer list Excel export. */
-export async function listCustomersForExport(search?: string): Promise<Customer[]> {
-  return fetchAllRows(async (from, to) => {
-    const { data, error, count } = await baseCustomerQuery(search).range(from, to)
-    if (error) throw error
-    return { rows: (data as Customer[]) ?? [], count: count ?? 0 }
-  })
 }
 
 /** Lightweight list for the shipment customer <select> (active customers only). */

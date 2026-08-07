@@ -18,7 +18,7 @@ export type Payment = Tables<'payments'>
 export type Customer = Tables<'customers'>
 
 // ---- Enum unions -----------------------------------------------------------
-export type UserRole = Profile['role'] // 'Admin' | 'Dispatcher'
+export type UserRole = Profile['role'] // 'Admin' | 'Dispatcher' | 'Staff'
 export type UserStatus = Profile['status'] // 'Active' | 'Disabled'
 export type ShipmentStatus = Shipment['status']
 export type ShippingMethod = Shipment['shipping_method']
@@ -38,8 +38,13 @@ export const PAYMENT_STATUSES = Constants.public.Enums.payment_status
 export const INVOICE_STATUSES = Constants.public.Enums.invoice_status
 export const PAYMENT_METHODS = Constants.public.Enums.payment_method
 
-/** Roles allowed into the dashboard at all. Mirrors the DB's is_ops() gate. */
-export const OPS_ROLES: UserRole[] = ['Admin', 'Dispatcher']
+/**
+ * Roles allowed into the dashboard at all. Must mirror the DB's is_ops() gate
+ * exactly (public.is_ops(): role in ('Admin', 'Dispatcher', 'Staff')) — if this
+ * list is narrower than is_ops(), a role the database authorizes gets blocked
+ * by the client instead ("No dashboard access" for a legitimately active user).
+ */
+export const OPS_ROLES: UserRole[] = ['Admin', 'Dispatcher', 'Staff']
 
 /** Statuses that count as "in progress" (everything before Delivered). */
 export const ACTIVE_STATUSES: ShipmentStatus[] = SHIPMENT_STATUSES.filter(
@@ -79,10 +84,21 @@ export type InvoiceDocumentData = Invoice & {
         | 'weight'
         | 'price_per_kg'
         | 'total_price'
+        | 'pieces'
+        | 'booking_contact'
+        | 'created_at'
       >)
     | null
   customer: Pick<Customer, 'id' | 'full_name' | 'email' | 'phone' | 'company' | 'address'> | null
+  /** Profile that raised the invoice, printed as the cashier name. */
+  issuer: Pick<Profile, 'full_name'> | null
 }
+
+/** Every shipment field the waybill label needs. */
+export type LabelDocumentData = Pick<
+  Shipment,
+  'tracking_number' | 'origin' | 'destination' | 'cn_number' | 'pieces' | 'branch_code'
+>
 
 /** A payment joined with the invoice, customer, and shipment it receipts against. */
 export type PaymentReceiptData = Payment & {
@@ -199,7 +215,6 @@ export interface AnalyticsReport {
 
 // ---- track_shipment() shape (public, no PII) -------------------------------
 export interface PublicTrackingEvent {
-  id: string
   date: string
   time: string // "HH:MM"
   country: string
@@ -210,9 +225,7 @@ export interface PublicTrackingEvent {
 }
 
 export interface PublicTrackingResult {
-  id: string
   tracking_number: string
-  customer_name: string
   origin: string
   destination: string
   shipping_method: ShippingMethod

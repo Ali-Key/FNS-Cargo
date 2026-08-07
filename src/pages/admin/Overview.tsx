@@ -1,22 +1,22 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Package,
   Truck,
   CheckCircle2,
   Users,
-  ArrowRight,
-  AlertTriangle,
-  TrendingUp,
   Wallet,
+  TrendingUp,
   Receipt,
+  FileText,
   Plus,
   Zap,
 } from "lucide-react";
 import { StatTile, PageHeader } from "@/components/dashboard";
-import { StatusMixChart, VolumeChart } from "@/components/dashboard/charts";
+import { RecordPaymentModal } from "@/components/dashboard/RecordPaymentModal";
 import {
   StatusBadge,
+  PaymentBadge,
   EmptyState,
   Alert,
   Button,
@@ -32,20 +32,18 @@ import {
   type DashboardData,
 } from "@/services/dashboardService";
 import { listShipments } from "@/services/shipmentsService";
-import { listRecentActivity } from "@/services/activityService";
+import { listInvoices } from "@/services/financeService";
 import type {
-  ActivityLog,
+  InvoiceWithRelations,
   ShipmentStatus,
   ShipmentWithCustomer,
 } from "@/types";
-import { describeActivity } from "@/utils/activity";
-import { formatRelativeToNow } from "@/utils/date";
 import { formatCurrency } from "@/utils/format";
 
 interface OverviewData {
   dash: DashboardData;
   recent: ShipmentWithCustomer[];
-  activity: ActivityLog[];
+  outstanding: InvoiceWithRelations[];
 }
 
 export default function Overview() {
@@ -53,14 +51,22 @@ export default function Overview() {
   const { role, profile } = useAuth();
   const navigate = useNavigate();
   const isAdmin = role === "Admin";
+  const [paying, setPaying] = useState<InvoiceWithRelations | null>(null);
 
   const fetchOverview = useCallback(async (): Promise<OverviewData> => {
-    const [dash, shipments, acts] = await Promise.all([
+    const [dash, shipments, invoices] = await Promise.all([
       getDashboardData(),
       listShipments({ page: 1, pageSize: 6 }),
-      isAdmin ? listRecentActivity(8) : Promise.resolve([]),
+      isAdmin
+        ? listInvoices({
+            page: 1,
+            pageSize: 5,
+            view: "outstanding",
+            orderBy: "balance",
+          })
+        : Promise.resolve({ rows: [], count: 0 }),
     ]);
-    return { dash, recent: shipments.rows, activity: acts };
+    return { dash, recent: shipments.rows, outstanding: invoices.rows };
   }, [isAdmin]);
 
   // Keyed by role: an admin and a dispatcher see different metric sets, so a role
@@ -75,9 +81,8 @@ export default function Overview() {
     fetchOverview,
   );
   const recent = overview?.recent ?? [];
-  const activity = overview?.activity ?? [];
+  const outstanding = overview?.outstanding ?? [];
   const stats = overview?.dash.stats ?? null;
-  const monthlyVolume = overview?.dash.monthlyVolume ?? [];
   // Only the very first load (no cache yet, nothing to paint) blocks the data
   // regions. A background revalidation keeps showing the last good data.
   const showSkeleton = loading && !overview;
@@ -90,7 +95,7 @@ export default function Overview() {
         description="Current operational summary across shipments, customers, and tracking activity."
       />
 
-      {/* Quick actions — the four things an operator starts a shift by doing. Not
+      {/* Quick actions — the things an operator starts a shift by doing. Not
           gated on data, so they're clickable the instant the page opens. */}
       <div className="flex flex-wrap gap-2">
         <Button
@@ -123,7 +128,7 @@ export default function Overview() {
             variant="secondary"
             size="sm"
             icon={<Receipt className="h-4 w-4" />}
-            onClick={() => navigate("/dashboard/finance")}
+            onClick={() => navigate("/dashboard/invoices")}
           >
             Raise invoice
           </Button>
@@ -145,15 +150,15 @@ export default function Overview() {
       )}
 
       {showSkeleton || !stats ? (
-        <OverviewSkeleton isAdmin={isAdmin} />
+        <OverviewSkeleton />
       ) : (
         <>
-          {/* Metric tiles — each deep-linking to its filtered view */}
+          {/* Five figures, maximum — the questions this screen exists to answer. */}
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.1em] text-steel-400">
-              Shipment volume
+              {isAdmin ? "Operations & revenue" : "Operations"}
             </p>
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
               <StatTile
                 label="Total Shipments"
                 value={stats.total_shipments}
@@ -175,57 +180,23 @@ export default function Overview() {
                 tone="delivered"
                 to="/dashboard/shipments?status=Delivered"
               />
-              <StatTile
-                label="Delayed"
-                value={stats.delayed_shipments}
-                icon={AlertTriangle}
-                tone="delayed"
-                to="/dashboard/shipments?delayed=1"
-                hint="Past estimated delivery"
-                attention
-              />
-            </div>
-          </div>
-
-          {/* Second row: money for admins, customer/quote load for dispatchers. */}
-          <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.1em] text-steel-400">
-              {isAdmin ? "Revenue & billing" : "Accounts & workload"}
-            </p>
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <StatTile
-                label="Customers"
-                value={stats.customers}
-                icon={Users}
-                tone="navy"
-                to="/dashboard/customers"
-                hint={`${stats.active_customers} active`}
-              />
               {isAdmin ? (
                 <>
                   <StatTile
-                    label="Revenue"
+                    label="Pending Payments"
+                    value={formatCurrency(stats.outstanding_amount ?? 0)}
+                    icon={Wallet}
+                    tone="navy"
+                    to="/dashboard/invoices"
+                    hint={`${stats.unpaid_shipments} unpaid shipments`}
+                  />
+                  <StatTile
+                    label="Total Revenue"
                     value={formatCurrency(stats.revenue_total ?? 0)}
                     icon={TrendingUp}
                     tone="delivered"
                     to="/dashboard/analytics"
                     hint={`${formatCurrency(stats.revenue_month ?? 0)} this month`}
-                  />
-                  <StatTile
-                    label="Outstanding"
-                    value={formatCurrency(stats.outstanding_amount ?? 0)}
-                    icon={Wallet}
-                    tone="navy"
-                    to="/dashboard/finance"
-                    hint={`${stats.unpaid_shipments} unpaid shipments`}
-                  />
-                  <StatTile
-                    label="Overdue invoices"
-                    value={stats.overdue_invoices ?? 0}
-                    icon={Receipt}
-                    tone="delayed"
-                    to="/dashboard/finance"
-                    attention
                   />
                 </>
               ) : (
@@ -240,39 +211,18 @@ export default function Overview() {
                   <StatTile
                     label="Quote requests"
                     value={stats.pending_quotes}
-                    icon={Receipt}
+                    icon={FileText}
                     tone="navy"
                     to="/dashboard/quotes"
                     hint={`${stats.total_quotes} all time`}
                     attention
-                  />
-                  <StatTile
-                    label="Countries served"
-                    value={stats.countries_served}
-                    icon={Truck}
-                    tone="navy"
-                    to="/dashboard/shipments"
                   />
                 </>
               )}
             </div>
           </div>
 
-          {/* Bento row: large volume chart + status donut */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <SectionCard
-              title="Shipment volume"
-              note="Last 6 months"
-              className="lg:col-span-2"
-            >
-              <VolumeChart data={monthlyVolume} />
-            </SectionCard>
-            <SectionCard title="Status mix">
-              <StatusMixChart byStatus={stats.status_breakdown} />
-            </SectionCard>
-          </div>
-
-          {/* Bento row: recent shipments + activity / customers */}
+          {/* Recent shipments + who to chase for payment */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <SectionCard
               title="Recent shipments"
@@ -283,7 +233,7 @@ export default function Overview() {
                   to="/dashboard/shipments"
                   className="inline-flex items-center gap-1 rounded-md text-sm font-semibold text-navy-700 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
                 >
-                  View all <ArrowRight className="h-4 w-4" />
+                  View all
                 </Link>
               }
             >
@@ -309,7 +259,10 @@ export default function Overview() {
                             {s.origin} → {s.destination}
                           </p>
                         </div>
-                        <StatusBadge status={s.status as ShipmentStatus} />
+                        <div className="flex shrink-0 items-center gap-2">
+                          <StatusBadge status={s.status as ShipmentStatus} />
+                          <PaymentBadge status={s.payment_status} />
+                        </div>
                       </Link>
                     </li>
                   ))}
@@ -317,50 +270,59 @@ export default function Overview() {
               )}
             </SectionCard>
 
-            <SectionCard
-              title={isAdmin ? "Recent activity" : "Customers"}
-              flush
-            >
-              {isAdmin ? (
-                activity.length === 0 ? (
+            {isAdmin ? (
+              <SectionCard
+                title="Largest balances owed"
+                flush
+                action={
+                  <Link
+                    to="/dashboard/invoices"
+                    className="inline-flex items-center gap-1 rounded-md text-sm font-semibold text-navy-700 hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500"
+                  >
+                    View all
+                  </Link>
+                }
+              >
+                {outstanding.length === 0 ? (
                   <EmptyState
-                    title="No activity yet"
-                    description="Dashboard actions are recorded here as they happen."
+                    icon={<Wallet className="h-6 w-6" />}
+                    title="Nothing outstanding"
+                    description="Every issued invoice has been settled."
                   />
                 ) : (
                   <ul className="divide-y divide-steel-100">
-                    {activity.map((log) => {
-                      const {
-                        label,
-                        icon: Icon,
-                        tone,
-                        detail,
-                      } = describeActivity(log);
-                      return (
-                        <li
-                          key={log.id}
-                          className="flex items-start gap-3 px-6 py-3"
-                        >
-                          <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${tone}`} />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-navy-800">
-                              {label}
-                            </p>
-                            {detail && (
-                              <p className="truncate text-xs text-text-secondary">
-                                {detail}
-                              </p>
-                            )}
-                          </div>
-                          <span className="whitespace-nowrap text-xs text-steel-400">
-                            {formatRelativeToNow(log.created_at)}
+                    {outstanding.map((inv) => (
+                      <li
+                        key={inv.id}
+                        className="flex items-center justify-between gap-3 px-6 py-3.5"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-navy-900">
+                            {inv.customer?.full_name ?? "Unknown customer"}
+                          </p>
+                          <p className="truncate font-mono text-xs text-text-secondary">
+                            {inv.invoice_number}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-3">
+                          <span className="font-tabular text-sm font-bold text-status-delayed">
+                            {formatCurrency(inv.balance, 2)}
                           </span>
-                        </li>
-                      );
-                    })}
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setPaying(inv)}
+                          >
+                            Collect
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
                   </ul>
-                )
-              ) : (
+                )}
+              </SectionCard>
+            ) : (
+              <SectionCard title="Customers" flush>
                 <div className="flex flex-col items-center justify-center gap-1 px-6 py-10 text-center">
                   <Users className="mb-2 h-8 w-8 text-gray-300" />
                   <p className="font-tabular text-3xl font-bold text-navy-900">
@@ -370,53 +332,49 @@ export default function Overview() {
                     Active customers
                   </p>
                 </div>
-              )}
-            </SectionCard>
+              </SectionCard>
+            )}
           </div>
         </>
       )}
+
+      <RecordPaymentModal
+        open={!!paying}
+        onClose={() => setPaying(null)}
+        onSaved={reload}
+        invoice={paying}
+      />
     </div>
   );
 }
 
 /** Mirrors the real layout's grid shape so the swap from skeleton to data causes
  *  no layout shift. */
-function OverviewSkeleton({ isAdmin }: { isAdmin: boolean }) {
+function OverviewSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <SkeletonCard key={i} />
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => (
           <SkeletonCard key={i} />
         ))}
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1 lg:col-span-2">
-          <Skeleton className="mb-4 h-4 w-40" />
-          <Skeleton className="h-56 w-full" />
-        </div>
-        <div className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1">
-          <Skeleton className="mb-4 h-4 w-24" />
-          <Skeleton className="h-56 w-full" />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1 lg:col-span-2">
-          <Skeleton className="mb-4 h-4 w-36" />
-          <div className="space-y-3">
+        <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1 lg:col-span-2">
+          <div className="border-b border-gray-200 px-6 py-4">
+            <Skeleton className="h-4 w-36" />
+          </div>
+          <div className="space-y-4 p-6">
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-10 w-full" />
             ))}
           </div>
         </div>
-        <div className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1">
-          <Skeleton className="mb-4 h-4 w-28" />
-          <div className="space-y-3">
-            {Array.from({ length: isAdmin ? 5 : 2 }).map((_, i) => (
+        <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
+          <div className="border-b border-gray-200 px-6 py-4">
+            <Skeleton className="h-4 w-28" />
+          </div>
+          <div className="space-y-4 p-6">
+            {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-8 w-full" />
             ))}
           </div>

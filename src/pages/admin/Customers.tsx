@@ -22,12 +22,12 @@ import {
   SkeletonTableRows,
   Avatar,
   RowActions,
+  Alert,
 } from "@/components/ui";
 import {
   PageHeader,
   DataToolbar,
   ConfirmDialog,
-  ExportMenu,
 } from "@/components/dashboard";
 import { CustomerFormModal } from "@/components/dashboard/CustomerFormModal";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -37,7 +37,6 @@ import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import {
   listCustomers,
-  listCustomersForExport,
   deleteCustomer,
 } from "@/services/customersService";
 import { listShipmentsForCustomer } from "@/services/shipmentsService";
@@ -84,49 +83,10 @@ export default function Customers() {
   const count = data?.count ?? 0;
 
   useEffect(() => {
-    if (error)
-      toast.error(
-        "Unable to load customers",
-        "Please refresh the page to try again.",
-      );
-  }, [error, toast]);
-
-  useEffect(() => {
     setPage(1);
   }, [debouncedSearch]);
 
   const pageCount = Math.max(1, Math.ceil(count / PAGE_SIZE));
-
-  async function exportCustomersExcel() {
-    const rows = await listCustomersForExport(debouncedSearch);
-    const { downloadWorkbook } = await import("@/lib/excel/generateExcel");
-    await downloadWorkbook(
-      [
-        {
-          name: "Customers",
-          columns: [
-            { header: "Name", key: "full_name", width: 22 },
-            { header: "Email", key: "email", width: 26 },
-            { header: "Phone", key: "phone", width: 16 },
-            { header: "Company", key: "company", width: 20 },
-            { header: "Address", key: "address", width: 28 },
-            { header: "Status", key: "status", width: 12 },
-            { header: "Added", key: "created_at", width: 14 },
-          ],
-          rows: rows.map((c) => ({
-            full_name: c.full_name,
-            email: c.email ?? "",
-            phone: c.phone ?? "",
-            company: c.company ?? "",
-            address: c.address ?? "",
-            status: c.status,
-            created_at: formatDate(c.created_at),
-          })),
-        },
-      ],
-      `customers-${new Date().toISOString().slice(0, 10)}.xlsx`,
-    );
-  }
 
   async function downloadCustomerStatement(customer: Customer) {
     try {
@@ -213,17 +173,20 @@ export default function Customers() {
         }
       />
 
+      {error && !data && (
+        <Alert variant="error" title="Could not load customers">
+          <p>{error}</p>
+          <Button variant="secondary" size="sm" className="mt-3" onClick={load}>
+            Retry
+          </Button>
+        </Alert>
+      )}
+
       <DataToolbar
         search={search}
         onSearchChange={setSearch}
         placeholder="Search name, email, phone, city…"
-      >
-        <ExportMenu
-          items={[
-            { label: "Customer list (Excel)", onClick: exportCustomersExcel },
-          ]}
-        />
-      </DataToolbar>
+      />
 
       <div className="overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1">
         <Table className="border-0">

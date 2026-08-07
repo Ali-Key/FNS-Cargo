@@ -13,7 +13,7 @@ interface ExportMenuProps {
   label?: string
 }
 
-/** Dropdown of export actions (Excel/PDF). Each item runs independently and toasts on failure. */
+/** Dropdown of export actions. Each item runs independently and toasts on failure. */
 export function ExportMenu({ items, label = 'Export' }: ExportMenuProps) {
   const toast = useToast()
   const [busy, setBusy] = useState(false)

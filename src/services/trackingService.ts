@@ -5,7 +5,9 @@ export async function trackShipment(trackingNumber: string): Promise<PublicTrack
   const normalized = trackingNumber.trim()
   if (normalized.length < 6) return null
 
-  const { data, error } = await supabase.rpc('track_shipment', { p_tracking_number: normalized })
+  const { data, error } = await supabase.functions.invoke('track-shipment', {
+    body: { tracking_number: normalized },
+  })
   if (error) throw error
   if (!data) return null
 

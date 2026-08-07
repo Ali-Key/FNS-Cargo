@@ -12,6 +12,7 @@ const FALLBACK: SystemSettings = {
   company_website: 'https://fnscargo.com',
   logo_url: null,
   default_shipping_method: 'Air Freight',
+  vat_rate: 5,
   created_at: '',
   updated_at: '',
 }

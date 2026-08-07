@@ -17,4 +17,5 @@ export const PDF_COLORS = {
   white: '#ffffff',
   statusDelivered: '#16a34a',
   statusDelayed: '#dc2626',
+  statusInfo: '#3865f2',
 } as const

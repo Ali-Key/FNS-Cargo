@@ -19,13 +19,25 @@ const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL')
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+// Only these origins may read the response from a browser. Anything else
+// still gets a response (auth is the real boundary, not CORS), but the
+// browser will refuse to expose it to page script.
+const ALLOWED_ORIGINS = new Set([
+  'https://fnscargo.com',
+  'https://www.fnscargo.com',
+  'http://localhost:5173',
+  'http://localhost:4173',
+])
+function corsFor(req: Request) {
+  const origin = req.headers.get('Origin') ?? ''
+  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : 'https://fnscargo.com'
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    Vary: 'Origin',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  }
 }
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // Generous ceiling for a text-based invoice PDF — guards against a client bug
@@ -33,6 +45,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MAX_PDF_BYTES = 10 * 1024 * 1024
 
 Deno.serve(async (req) => {
+  const cors = corsFor(req)
+  const json = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
+
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 

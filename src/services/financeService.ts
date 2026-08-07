@@ -39,6 +39,8 @@ export interface InvoiceListParams {
   status?: InvoiceStatus | 'all'
   /** 'overdue' filters to unpaid invoices whose due date has passed. */
   view?: 'all' | 'outstanding' | 'overdue'
+  /** Defaults to newest first; 'balance' surfaces the largest amounts owed first. */
+  orderBy?: 'issued_at' | 'balance'
 }
 
 export interface InvoiceListResult {
@@ -46,24 +48,26 @@ export interface InvoiceListResult {
   count: number
 }
 
-export async function listInvoices(params: InvoiceListParams): Promise<InvoiceListResult> {
-  const { page, pageSize, search, status, view } = params
-  const from = (page - 1) * pageSize
-  const to = from + pageSize - 1
-
-  let query = supabase
+function baseInvoiceQuery(orderBy: InvoiceListParams['orderBy']) {
+  return supabase
     .from('invoices')
     .select(INVOICE_SELECT, { count: 'exact' })
-    .order('issued_at', { ascending: false })
+    .order(orderBy === 'balance' ? 'balance' : 'issued_at', { ascending: false })
     .order('created_at', { ascending: false })
-    .range(from, to)
+}
 
-  if (status && status !== 'all') query = query.eq('status', status)
+/** Shared filter application so the paginated list and the CSV export never drift apart. */
+function applyInvoiceFilters(
+  query: ReturnType<typeof baseInvoiceQuery>,
+  { search, status, view }: Pick<InvoiceListParams, 'search' | 'status' | 'view'>,
+) {
+  let q = query
+  if (status && status !== 'all') q = q.eq('status', status)
 
   if (view === 'outstanding') {
-    query = query.gt('balance', 0).not('status', 'in', '("Void","Draft")')
+    q = q.gt('balance', 0).not('status', 'in', '("Void","Draft")')
   } else if (view === 'overdue') {
-    query = query
+    q = q
       .gt('balance', 0)
       .not('status', 'in', '("Void","Draft")')
       .lt('due_date', new Date().toISOString().slice(0, 10))
@@ -71,33 +75,27 @@ export async function listInvoices(params: InvoiceListParams): Promise<InvoiceLi
 
   if (search && search.trim()) {
     const term = search.trim().replace(/[%,]/g, '')
-    query = query.or([`invoice_number.ilike.%${term}%`, `notes.ilike.%${term}%`].join(','))
+    q = q.or([`invoice_number.ilike.%${term}%`, `notes.ilike.%${term}%`].join(','))
   }
+  return q
+}
 
-  const { data, error, count } = await query
+export async function listInvoices(params: InvoiceListParams): Promise<InvoiceListResult> {
+  const { page, pageSize, orderBy, ...filters } = params
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
+  const { data, error, count } = await applyInvoiceFilters(baseInvoiceQuery(orderBy), filters).range(from, to)
   if (error) throw error
   return { rows: (data as InvoiceWithRelations[]) ?? [], count: count ?? 0 }
 }
 
-/** Every invoice matching the given view, unpaginated — for the Outstanding Balance report. */
-export async function listInvoicesForExport(view: NonNullable<InvoiceListParams['view']>): Promise<InvoiceWithRelations[]> {
+/** Every invoice matching the given filters, unpaginated — for the CSV export. */
+export async function listInvoicesForExport(
+  filters: Pick<InvoiceListParams, 'search' | 'status' | 'view'>,
+): Promise<InvoiceWithRelations[]> {
   return fetchAllRows(async (from, to) => {
-    let query = supabase
-      .from('invoices')
-      .select(INVOICE_SELECT, { count: 'exact' })
-      .order('due_date', { ascending: true })
-      .range(from, to)
-
-    if (view === 'outstanding') {
-      query = query.gt('balance', 0).not('status', 'in', '("Void","Draft")')
-    } else if (view === 'overdue') {
-      query = query
-        .gt('balance', 0)
-        .not('status', 'in', '("Void","Draft")')
-        .lt('due_date', new Date().toISOString().slice(0, 10))
-    }
-
-    const { data, error, count } = await query
+    const { data, error, count } = await applyInvoiceFilters(baseInvoiceQuery(undefined), filters).range(from, to)
     if (error) throw error
     return { rows: (data as InvoiceWithRelations[]) ?? [], count: count ?? 0 }
   })
@@ -112,7 +110,7 @@ export async function getInvoice(id: string): Promise<InvoiceWithRelations | nul
 // Fuller select than INVOICE_SELECT — the invoice PDF/preview needs cargo/pricing fields
 // and customer phone/company/address that the list view has no use for.
 const INVOICE_DOCUMENT_SELECT =
-  '*, shipment:shipments(id, tracking_number, origin, destination, status, shipping_method, cargo_type, weight, price_per_kg, total_price), customer:customers(id, full_name, email, phone, company, address)'
+  '*, shipment:shipments(id, tracking_number, origin, destination, status, shipping_method, cargo_type, weight, price_per_kg, total_price, pieces, booking_contact, created_at), customer:customers(id, full_name, email, phone, company, address), issuer:profiles!invoices_issued_by_fkey(full_name)'
 
 /** Every field the invoice document (PDF/preview/email) needs, in one query. */
 export async function getInvoiceForDocument(id: string): Promise<InvoiceDocumentData | null> {
@@ -218,12 +216,6 @@ export async function listCustomerInvoices(customerId: string): Promise<InvoiceW
   return (data as InvoiceWithRelations[]) ?? []
 }
 
-export interface PaymentExportFilters {
-  from?: string
-  to?: string
-  method?: PaymentMethod | 'all'
-}
-
 export interface PaymentListParams {
   page: number
   pageSize: number
@@ -236,43 +228,44 @@ export interface PaymentListResult {
   count: number
 }
 
-/** Paginated/searchable payments list — the Payments page's primary query. */
-export async function listPayments(params: PaymentListParams): Promise<PaymentListResult> {
-  const { page, pageSize, search, method } = params
-  const from = (page - 1) * pageSize
-  const to = from + pageSize - 1
-
-  let query = supabase
+function basePaymentQuery() {
+  return supabase
     .from('payments')
     .select('*, invoice:invoices(id, invoice_number, shipment_id)', { count: 'exact' })
     .order('paid_at', { ascending: false })
-    .range(from, to)
+}
 
-  if (method && method !== 'all') query = query.eq('method', method)
+/** Shared filter application so the paginated list and the CSV export never drift apart. */
+function applyPaymentFilters(
+  query: ReturnType<typeof basePaymentQuery>,
+  { search, method }: Pick<PaymentListParams, 'search' | 'method'>,
+) {
+  let q = query
+  if (method && method !== 'all') q = q.eq('method', method)
   if (search && search.trim()) {
     const term = search.trim().replace(/[%,]/g, '')
-    query = query.or([`reference.ilike.%${term}%`, `notes.ilike.%${term}%`].join(','))
+    q = q.or([`reference.ilike.%${term}%`, `notes.ilike.%${term}%`].join(','))
   }
+  return q
+}
 
-  const { data, error, count } = await query
+/** Paginated/searchable payments list — the Payments page's primary query. */
+export async function listPayments(params: PaymentListParams): Promise<PaymentListResult> {
+  const { page, pageSize, ...filters } = params
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
+  const { data, error, count } = await applyPaymentFilters(basePaymentQuery(), filters).range(from, to)
   if (error) throw error
   return { rows: (data as PaymentWithInvoice[]) ?? [], count: count ?? 0 }
 }
 
-/** Every payment matching the given date/method filters, unpaginated — for the Excel export. */
-export async function listPaymentsForExport(filters: PaymentExportFilters): Promise<PaymentWithInvoice[]> {
+/** Every payment matching the given filters, unpaginated — for the CSV export. */
+export async function listPaymentsForExport(
+  filters: Pick<PaymentListParams, 'search' | 'method'>,
+): Promise<PaymentWithInvoice[]> {
   return fetchAllRows(async (from, to) => {
-    let query = supabase
-      .from('payments')
-      .select('*, invoice:invoices(id, invoice_number, shipment_id)', { count: 'exact' })
-      .order('paid_at', { ascending: false })
-      .range(from, to)
-
-    if (filters.from) query = query.gte('paid_at', filters.from)
-    if (filters.to) query = query.lte('paid_at', filters.to)
-    if (filters.method && filters.method !== 'all') query = query.eq('method', filters.method)
-
-    const { data, error, count } = await query
+    const { data, error, count } = await applyPaymentFilters(basePaymentQuery(), filters).range(from, to)
     if (error) throw error
     return { rows: (data as PaymentWithInvoice[]) ?? [], count: count ?? 0 }
   })

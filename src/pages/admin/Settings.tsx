@@ -3,14 +3,12 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Save, Building2 } from 'lucide-react'
-import { Button, Input, Select, Textarea, SectionCard, Skeleton } from '@/components/ui'
+import { Button, Input, Textarea, SectionCard, Skeleton, FieldGroup } from '@/components/ui'
 import { PageHeader } from '@/components/dashboard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/context/ToastContext'
 import { getSystemSettings, updateSystemSettings } from '@/services/settingsService'
 import { logActivity } from '@/services/activityService'
-import { SHIPPING_METHODS } from '@/types'
-import { SHIPPING_METHOD_LABEL } from '@/utils/status'
 
 const schema = z.object({
   company_name: z.string().trim().min(2, 'Enter the company name'),
@@ -19,10 +17,13 @@ const schema = z.object({
   company_website: z.union([z.string().trim().url('Enter a valid URL'), z.literal('')]),
   company_address: z.string().trim().min(3, 'Enter an address'),
   logo_url: z.union([z.string().trim().url('Enter a valid URL'), z.literal('')]),
-  default_shipping_method: z.enum(['air', 'sea', 'road']),
+  vat_rate: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z.number({ invalid_type_error: 'Enter a VAT rate' }).nonnegative('VAT rate cannot be negative'),
+  ),
 })
 
-type FormValues = z.infer<typeof schema>
+type FormValues = z.input<typeof schema>
 
 export default function Settings() {
   useDocumentTitle('Settings | FNS Cargo')
@@ -42,7 +43,11 @@ export default function Settings() {
     let active = true
     getSystemSettings()
       .then((data) => {
-        if (!active || !data) return
+        if (!active) return
+        if (!data) {
+          toast.error('Unable to load settings', 'No settings record was found. Please contact an administrator.')
+          return
+        }
         setSettingsId(data.id)
         reset({
           company_name: data.company_name,
@@ -51,7 +56,7 @@ export default function Settings() {
           company_website: data.company_website ?? '',
           company_address: data.company_address,
           logo_url: data.logo_url ?? '',
-          default_shipping_method: data.default_shipping_method as FormValues['default_shipping_method'],
+          vat_rate: data.vat_rate as unknown as number,
         })
       })
       .catch(() => toast.error('Unable to load settings', 'Please refresh the page to try again.'))
@@ -64,11 +69,15 @@ export default function Settings() {
   }, [reset, toast])
 
   async function onSubmit(values: FormValues) {
-    if (!settingsId) return
+    if (!settingsId) {
+      toast.error('Unable to save settings', 'Settings could not be loaded. Please refresh the page and try again.')
+      return
+    }
     try {
+      const parsed = schema.parse(values)
       await updateSystemSettings(settingsId, {
-        ...values,
-        logo_url: values.logo_url || null,
+        ...parsed,
+        logo_url: parsed.logo_url || null,
       })
       await logActivity('settings.updated', 'system_settings', settingsId, {})
       toast.success('Settings saved', 'Your company details are now live across the website.')
@@ -82,21 +91,23 @@ export default function Settings() {
     return (
       <div className="space-y-6">
         <PageHeader title="Settings" description="Company details shown across the public website." />
-        <div className="max-w-3xl rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1 sm:p-8">
-          <Skeleton className="mb-6 h-5 w-48" />
-          <div className="space-y-5">
-            <Skeleton className="h-11 w-full" />
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="max-w-3xl">
+          <SectionCard icon={Building2} title="Company information" variant="form">
+            <div className="space-y-5">
               <Skeleton className="h-11 w-full" />
+              <FieldGroup>
+                <Skeleton className="h-11 w-full" />
+                <Skeleton className="h-11 w-full" />
+              </FieldGroup>
+              <FieldGroup>
+                <Skeleton className="h-11 w-full" />
+                <Skeleton className="h-11 w-full" />
+              </FieldGroup>
+              <Skeleton className="h-11 w-full" />
+              <Skeleton className="h-20 w-full" />
               <Skeleton className="h-11 w-full" />
             </div>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <Skeleton className="h-11 w-full" />
-              <Skeleton className="h-11 w-full" />
-            </div>
-            <Skeleton className="h-11 w-full" />
-            <Skeleton className="h-20 w-full" />
-          </div>
+          </SectionCard>
         </div>
       </div>
     )
@@ -110,23 +121,16 @@ export default function Settings() {
         <SectionCard icon={Building2} title="Company information" variant="form">
           <div className="space-y-5">
             <Input label="Company name" error={errors.company_name?.message} {...register('company_name')} />
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <FieldGroup>
               <Input label="Email" type="email" error={errors.company_email?.message} {...register('company_email')} />
               <Input label="Phone" error={errors.company_phone?.message} {...register('company_phone')} />
-            </div>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <Input
-                label="Website"
-                placeholder="https://…"
-                error={errors.company_website?.message}
-                {...register('company_website')}
-              />
-              <Select
-                label="Default shipping method"
-                options={SHIPPING_METHODS.map((m) => ({ value: m, label: SHIPPING_METHOD_LABEL[m] }))}
-                {...register('default_shipping_method')}
-              />
-            </div>
+            </FieldGroup>
+            <Input
+              label="Website"
+              placeholder="https://…"
+              error={errors.company_website?.message}
+              {...register('company_website')}
+            />
             <Input
               label="Logo URL (optional)"
               placeholder="https://…"
@@ -134,6 +138,16 @@ export default function Settings() {
               {...register('logo_url')}
             />
             <Textarea label="Address" rows={2} error={errors.company_address?.message} {...register('company_address')} />
+            <Input
+              label="VAT rate (%)"
+              type="number"
+              step="0.01"
+              min="0"
+              inputMode="decimal"
+              hint="Applied to new invoices at issue time. Already-issued invoices keep their stored VAT amount."
+              error={errors.vat_rate?.message}
+              {...register('vat_rate')}
+            />
           </div>
 
           <div className="mt-8 flex justify-end border-t border-gray-200 pt-6">
