@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Make the smallest possible change; preserve existing architecture and don't refactor unrelated code.
 - Reuse existing components (`src/components/ui`) rather than adding new primitives.
 - Keep responses under 150 words unless asked; don't explain code unless requested. If info is missing, ask one short question.
-- Fix spacing/grammar/consistency automatically. UI is mobile-first and token-driven: deep navy (`navy-900`) primary, gold (`primary-500`) primary — the same palette as the live site. Never hardcode hex colors in components; change the theme in `tailwind.config.js` so both the public site and dashboard follow. The main conversion CTA uses `variant="primary"` on light backgrounds; avoid em-dashes in visible copy.
+- Fix spacing/grammar/consistency automatically. UI is mobile-first and token-driven: deep navy (`navy-900`) primary, blue (`primary-500`) primary — the same palette as the live site. Never hardcode hex colors in components; change the theme in `tailwind.config.js` so both the public site and dashboard follow. The main conversion CTA uses `variant="primary"` on light backgrounds; avoid em-dashes in visible copy.
 - Public-site visual standard (enterprise, not "AI-generated"): no gradient backgrounds or ambient blur "blob" glows; separate sections with hairline borders (`border-gray-200`) and whitespace. Hover states shift border/shadow only, never a `-translate-y` bounce. Lean on the token system (elevation, type scale) and photography, not decoration. Keep the navy dark bands and the low-opacity grid on `PageHero`.
 - Database: fetch only required columns, never duplicate query logic (it lives in `src/services`).
 
