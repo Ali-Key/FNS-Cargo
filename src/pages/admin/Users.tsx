@@ -1,22 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { UserPlus, ShieldCheck, UserMinus } from 'lucide-react'
-import {
-  Button,
-  Badge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  Pagination,
-  EmptyState,
-  SkeletonTableRows,
-  Avatar,
-  RowActions,
-  Alert,
-} from '@/components/ui'
-import { PageHeader, ConfirmDialog } from '@/components/dashboard'
+import { Button, Badge, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, Avatar, RowActions, Alert, PageHeader, ConfirmDialog } from '@/components/dash'
 import { CreateUserModal } from '@/components/dashboard/CreateUserModal'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/context/ToastContext'

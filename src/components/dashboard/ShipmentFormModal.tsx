@@ -3,7 +3,7 @@ import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Wand2 } from 'lucide-react'
-import { Button, Input, Select, Modal } from '@/components/ui'
+import { Button, Input, Select, Modal } from '@/components/dash'
 import { useToast } from '@/context/ToastContext'
 import {
   createShipment,

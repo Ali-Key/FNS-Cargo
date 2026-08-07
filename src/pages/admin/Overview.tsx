@@ -12,18 +12,8 @@ import {
   Plus,
   Zap,
 } from "lucide-react";
-import { StatTile, PageHeader } from "@/components/dashboard";
 import { RecordPaymentModal } from "@/components/dashboard/RecordPaymentModal";
-import {
-  StatusBadge,
-  PaymentBadge,
-  EmptyState,
-  Alert,
-  Button,
-  SkeletonCard,
-  Skeleton,
-  SectionCard,
-} from "@/components/ui";
+import { StatusBadge, PaymentBadge, EmptyState, Alert, Button, SkeletonCard, Skeleton, SectionCard, StatTile, PageHeader } from '@/components/dash'
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCachedResource } from "@/hooks/useCachedResource";
 import { useAuth } from "@/context/AuthContext";

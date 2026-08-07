@@ -18,7 +18,7 @@ import {
   Search,
 } from 'lucide-react'
 import { Logo } from '@/components/common/Logo'
-import { Avatar, Input } from '@/components/ui'
+import { Avatar, Input } from '@/components/dash'
 import { CommandPalette } from '@/components/dashboard/CommandPalette'
 import { NotificationsMenu } from '@/components/dashboard/NotificationsMenu'
 import { useAuth } from '@/context/AuthContext'

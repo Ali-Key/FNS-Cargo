@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Camera, ExternalLink, Trash2, Upload } from 'lucide-react'
-import { Button, Spinner } from '@/components/ui'
-import { ConfirmDialog } from './ConfirmDialog'
+import { Button, Spinner } from '@/components/dash'
+import { ConfirmDialog } from '@/components/dash'
 import { useToast } from '@/context/ToastContext'
 import {
   uploadDeliveryProof,

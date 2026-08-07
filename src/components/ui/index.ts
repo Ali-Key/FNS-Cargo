@@ -1,20 +1,11 @@
+// The shared atoms. Both the public site and the dashboard render these, so a
+// change here is visible on both surfaces — that is the whole reason the list
+// is short. Everything the dashboard alone uses lives in components/dash.
 export * from './Button'
 export * from './Input'
 export * from './Textarea'
 export * from './Select'
 export * from './Badge'
-export * from './Table'
-export * from './Modal'
-export * from './Dropdown'
-export * from './Pagination'
 export * from './Alert'
 export * from './Skeleton'
 export * from './Spinner'
-export * from './EmptyState'
-export * from './SectionCard'
-export * from './DetailRow'
-export * from './MobileRowCard'
-export * from './FieldGroup'
-export * from './Avatar'
-export * from './RowActions'
-export * from './CopyButton'

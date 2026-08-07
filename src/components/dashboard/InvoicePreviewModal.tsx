@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Download, Printer } from 'lucide-react'
-import { Button, Modal, Spinner } from '@/components/ui'
+import { Button, Modal, Spinner } from '@/components/dash'
 import { useToast } from '@/context/ToastContext'
 import { getInvoiceForDocument, listPaymentsForInvoice } from '@/services/financeService'
 import { getSystemSettings } from '@/services/settingsService'
