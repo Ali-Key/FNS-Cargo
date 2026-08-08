@@ -1,5 +1,5 @@
 // admin-create-user
-// Creates a dashboard user (profiles.role = 'Admin' or 'Dispatcher'). Admin-only:
+// Creates a dashboard user (profiles.role = 'Admin', 'Dispatcher', or 'Staff'). Admin-only:
 // the caller's JWT is verified against is_admin() before the service-role client
 // provisions the auth account. The handle_new_auth_user trigger creates the
 // profile from user_metadata, so we pass role + full_name there.
@@ -60,11 +60,15 @@ Deno.serve(async (req) => {
   const email = (body.email ?? '').trim().toLowerCase()
   const password = body.password ?? ''
   const fullName = (body.full_name ?? '').trim()
-  const role = body.role === 'Dispatcher' ? 'Dispatcher' : 'Admin'
+  // Reject anything unrecognized rather than defaulting to a role — silently
+  // falling back to 'Admin' on an unexpected value would be a privilege escalation.
+  const VALID_ROLES = new Set(['Admin', 'Dispatcher', 'Staff'])
+  const role = body.role ?? ''
 
   if (!EMAIL_RE.test(email)) return json({ error: 'Enter a valid email address.' }, 400)
   if (password.length < 8) return json({ error: 'Password must be at least 8 characters.' }, 400)
   if (fullName.length < 2) return json({ error: 'Enter a name.' }, 400)
+  if (!VALID_ROLES.has(role)) return json({ error: 'Select a valid role.' }, 400)
 
   // 3) Provision with the service role. The DB trigger creates the profile from metadata.
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {

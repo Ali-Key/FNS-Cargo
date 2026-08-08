@@ -138,7 +138,7 @@ export default function Quotes() {
         />
       </DataToolbar>
 
-      <div className="overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1">
+      <div className="overflow-hidden border border-gray-200 bg-white">
         <Table className="border-0">
           <TableHead>
             <TableRow>

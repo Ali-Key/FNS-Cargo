@@ -14,7 +14,7 @@ export interface WorkflowStep {
  */
 export function WorkflowStepper({ steps }: { steps: WorkflowStep[] }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-1 gap-y-2 rounded-card border border-gray-200 bg-white px-4 py-3 shadow-elevation-1">
+    <div className="flex flex-wrap items-center gap-x-1 gap-y-2 border border-gray-200 bg-white px-4 py-3">
       {steps.map((step, i) => (
         <div key={step.label} className="flex items-center gap-1">
           {i > 0 && <span className="mx-1.5 h-px w-4 shrink-0 bg-steel-200 sm:w-6" aria-hidden="true" />}

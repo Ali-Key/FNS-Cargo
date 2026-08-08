@@ -4,12 +4,20 @@ import { cn } from '@/utils/cn'
 
 type Tone = 'navy' | 'delivered' | 'transit' | 'pending' | 'delayed'
 
+const TONE_BAR: Record<Tone, string> = {
+  navy: 'border-l-navy-400',
+  delivered: 'border-l-status-delivered',
+  transit: 'border-l-status-transit',
+  pending: 'border-l-status-pending',
+  delayed: 'border-l-status-delayed',
+}
+
 const TONE_ICON: Record<Tone, string> = {
-  navy: 'bg-navy-50 text-navy-700',
-  delivered: 'bg-status-delivered/10 text-status-delivered',
-  transit: 'bg-status-transit/10 text-status-transit',
-  pending: 'bg-status-pending/10 text-status-pending',
-  delayed: 'bg-status-delayed/10 text-status-delayed',
+  navy: 'text-navy-500',
+  delivered: 'text-status-delivered',
+  transit: 'text-status-transit',
+  pending: 'text-status-pending',
+  delayed: 'text-status-delayed',
 }
 
 interface StatTileProps {
@@ -24,29 +32,27 @@ interface StatTileProps {
   attention?: boolean
 }
 
-/** Dashboard stat tile — the single stat-tile component (Overview, Finance, Analytics). */
+/** Console-style stat tile: flat, left-bar coded by tone, no icon chip. Single component used by Overview, Finance, Analytics. */
 export function StatTile({ label, value, icon: Icon, tone = 'navy', hint, to, attention }: StatTileProps) {
   const numeric = typeof value === 'number' ? value : Number(value) || 0
   const alert = attention && numeric > 0
 
   const content = (
     <>
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-text-secondary">{label}</span>
-        <span className={cn('flex h-9 w-9 items-center justify-center rounded-xl', TONE_ICON[tone])}>
-          <Icon className="h-5 w-5" />
-        </span>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-steel-500">{label}</span>
+        <Icon className={cn('h-4 w-4 shrink-0', alert ? 'text-primary-600' : TONE_ICON[tone])} aria-hidden="true" />
       </div>
-      <p className="mt-3 font-tabular text-3xl font-bold leading-none text-navy-900">{value}</p>
-      {hint && <p className="mt-2 text-xs font-medium text-steel-400">{hint}</p>}
+      <p className="mt-2 font-tabular text-2xl font-bold leading-none text-navy-900">{value}</p>
+      {hint && <p className="mt-1.5 text-xs font-medium text-steel-400">{hint}</p>}
     </>
   )
 
   const className = cn(
-    'rounded-card border bg-white p-5 shadow-elevation-1',
-    alert ? 'border-primary-300 ring-1 ring-primary-400/40' : 'border-gray-200',
+    'flex flex-col border border-l-4 bg-white px-4 py-3.5',
+    alert ? 'border-primary-200 border-l-primary-500 bg-primary-50/30' : cn('border-gray-200', TONE_BAR[tone]),
     to &&
-      'group flex flex-col transition-all duration-180 ease-out-premium hover:shadow-elevation-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-2',
+      'transition-colors duration-180 hover:border-gray-300 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-2',
   )
 
   if (to) {

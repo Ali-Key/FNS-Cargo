@@ -10,7 +10,9 @@ export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>)
 }
 
 export function TableHead({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn('bg-surface/80', className)} {...props} />
+  // Opaque, not translucent: this head is `sticky` inside ResponsiveDataList, so
+  // a see-through background would let scrolled rows bleed under the labels.
+  return <thead className={cn('border-b border-gray-200 bg-surface', className)} {...props} />
 }
 
 export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {

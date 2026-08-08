@@ -33,9 +33,9 @@ export function SkeletonTableRows({ rows = 5, columns = 5 }: { rows?: number; co
 
 export function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn('rounded-card border border-gray-200 bg-white p-5 shadow-elevation-2', className)}>
-      <Skeleton className="mb-4 h-4 w-1/3" />
-      <Skeleton className="mb-2 h-7 w-1/2" />
+    <div className={cn('border border-l-4 border-gray-200 border-l-gray-200 bg-white px-4 py-3.5', className)}>
+      <Skeleton className="mb-3 h-3 w-1/3" />
+      <Skeleton className="mb-2 h-6 w-1/2" />
       <Skeleton className="h-3 w-1/4" />
     </div>
   )

@@ -30,7 +30,7 @@ export function DataToolbar({
   className,
 }: DataToolbarProps) {
   return (
-    <div className={cn('space-y-3 rounded-card border border-gray-200 bg-white p-3 shadow-elevation-1', className)}>
+    <div className={cn('space-y-3 border border-gray-200 bg-white p-3', className)}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="sm:max-w-xs sm:flex-1">
           <Input

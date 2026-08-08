@@ -66,7 +66,7 @@ export function ResponsiveDataList<T>({
 
   return (
     <>
-      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1 sm:block">
+      <div className="hidden overflow-hidden border border-gray-200 bg-white sm:block">
         <Table className={tableClassName ?? 'min-w-[640px] border-0'}>
           <TableHead className="sticky top-0">{tableHead}</TableHead>
           <TableBody>
@@ -89,7 +89,7 @@ export function ResponsiveDataList<T>({
         {loading ? (
           Array.from({ length: skeletonCards }).map((_, i) => <SkeletonCard key={i} />)
         ) : isEmpty ? (
-          <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
+          <div className="border border-gray-200 bg-white">
             <EmptyState icon={emptyIcon} title={emptyTitle} description={emptyDescription} action={emptyAction} />
           </div>
         ) : (

@@ -11,7 +11,7 @@ const schema = z.object({
   full_name: z.string().trim().min(2, 'Enter a name'),
   email: z.string().trim().min(1, 'Enter an email').email('Enter a valid email'),
   password: z.string().min(10, 'Use at least 10 characters'),
-  role: z.enum(['Admin', 'Dispatcher']),
+  role: z.enum(['Admin', 'Dispatcher', 'Staff']),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -81,7 +81,8 @@ export function CreateUserModal({ open, onClose, onSaved }: CreateUserModalProps
           {...register('role')}
         />
         <Alert variant="info">
-          Dispatchers get Overview, Shipments, Tracking, Customers, and Quotes. Admins get full dashboard access.
+          Dispatchers and Staff get Overview, Shipments, Tracking, Customers, and Quotes. Admins get full dashboard
+          access, including Finance, Analytics, Users, and Settings.
         </Alert>
       </form>
     </Modal>

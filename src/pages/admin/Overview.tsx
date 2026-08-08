@@ -89,7 +89,7 @@ export default function Overview() {
   const firstName = profile?.full_name?.split(" ")[0];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PageHeader
         title={firstName ? `Welcome back, ${firstName}` : "Overview"}
         description="Current operational summary across shipments, customers, and tracking activity."
@@ -155,10 +155,10 @@ export default function Overview() {
         <>
           {/* Five figures, maximum — the questions this screen exists to answer. */}
           <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.1em] text-steel-400">
+            <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-steel-400">
               {isAdmin ? "Operations & revenue" : "Operations"}
             </p>
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
               <StatTile
                 label="Total Shipments"
                 value={stats.total_shipments}
@@ -223,7 +223,7 @@ export default function Overview() {
           </div>
 
           {/* Recent shipments + who to chase for payment */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <SectionCard
               title="Recent shipments"
               flush
@@ -353,27 +353,27 @@ export default function Overview() {
 function OverviewSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {Array.from({ length: 5 }).map((_, i) => (
           <SkeletonCard key={i} />
         ))}
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1 lg:col-span-2">
-          <div className="border-b border-gray-200 px-6 py-4">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="border border-gray-200 bg-white lg:col-span-2">
+          <div className="border-b border-gray-200 px-5 py-3.5">
             <Skeleton className="h-4 w-36" />
           </div>
-          <div className="space-y-4 p-6">
+          <div className="space-y-4 p-5">
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-10 w-full" />
             ))}
           </div>
         </div>
-        <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
-          <div className="border-b border-gray-200 px-6 py-4">
+        <div className="border border-gray-200 bg-white">
+          <div className="border-b border-gray-200 px-5 py-3.5">
             <Skeleton className="h-4 w-28" />
           </div>
-          <div className="space-y-4 p-6">
+          <div className="space-y-4 p-5">
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-8 w-full" />
             ))}

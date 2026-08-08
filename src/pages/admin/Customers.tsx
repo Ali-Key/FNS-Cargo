@@ -35,12 +35,15 @@ import { useAuth } from "@/context/AuthContext";
 import {
   listCustomers,
   deleteCustomer,
+  getCustomerBalances,
+  type CustomerBalance,
 } from "@/services/customersService";
 import { listShipmentsForCustomer } from "@/services/shipmentsService";
 import { listCustomerInvoices } from "@/services/financeService";
 import { getSystemSettings } from "@/services/settingsService";
 import type { Customer } from "@/types";
 import { formatDate } from "@/utils/date";
+import { formatCurrency } from "@/utils/format";
 import { activeVariant } from "@/utils/status";
 
 const PAGE_SIZE = 10;
@@ -78,6 +81,31 @@ export default function Customers() {
   } = useCachedResource(customersKey, fetchCustomers);
   const rows = data?.rows ?? [];
   const count = data?.count ?? 0;
+  // Stable across renders that return the same page of customers — `rows` itself
+  // is a fresh [] on every render while `data` is still loading.
+  const rowIdsKey = rows.map((c) => c.id).join(",");
+
+  // Shipment/payment aggregates for just the customers on this page — scoped by
+  // id so this never scans every customer's shipments/invoices on every load.
+  const [balances, setBalances] = useState<Record<string, CustomerBalance>>({});
+  useEffect(() => {
+    if (!rowIdsKey) {
+      setBalances({});
+      return;
+    }
+    let active = true;
+    getCustomerBalances(rowIdsKey.split(","))
+      .then((result) => {
+        if (!active) return;
+        setBalances(Object.fromEntries(result.map((b) => [b.customer_id, b])));
+      })
+      .catch(() => {
+        /* balance columns just stay blank; the rest of the list still works */
+      });
+    return () => {
+      active = false;
+    };
+  }, [rowIdsKey]);
 
   useEffect(() => {
     setPage(1);
@@ -212,72 +240,107 @@ export default function Customers() {
       <ResponsiveDataList
         rows={rows}
         loading={loading}
-        columnCount={isAdmin ? 5 : 4}
-        tableClassName="border-0"
+        columnCount={isAdmin ? 7 : 4}
+        tableClassName="min-w-[640px] border-0 lg:min-w-[860px]"
         tableHead={
           <TableRow>
             <TableHeadCell>Customer</TableHeadCell>
-            <TableHeadCell>Contact</TableHeadCell>
+            <TableHeadCell className="hidden lg:table-cell">Contact</TableHeadCell>
+            <TableHeadCell className="text-right">Shipments</TableHeadCell>
+            {isAdmin && <TableHeadCell className="text-right">Total paid</TableHeadCell>}
+            {isAdmin && <TableHeadCell className="text-right">Balance owed</TableHeadCell>}
             <TableHeadCell>Status</TableHeadCell>
-            <TableHeadCell>Added</TableHeadCell>
             {isAdmin && <TableHeadCell className="text-right">Actions</TableHeadCell>}
           </TableRow>
         }
-        renderRow={(c) => (
-          <TableRow key={c.id}>
-            <TableCell>
-              <div className="flex items-center gap-3">
-                <Avatar name={c.full_name} />
-                <span className="font-medium text-navy-900">{c.full_name}</span>
-              </div>
-            </TableCell>
-            <TableCell className="text-sm">
-              <div className="space-y-0.5">
-                {c.email && (
-                  <span className="flex items-center gap-1.5 text-steel-600">
-                    <Mail className="h-3.5 w-3.5 text-steel-400" /> {c.email}
-                  </span>
-                )}
-                {c.phone && (
-                  <span className="flex items-center gap-1.5 text-steel-600">
-                    <Phone className="h-3.5 w-3.5 text-steel-400" /> {c.phone}
-                  </span>
-                )}
-                {!c.email && !c.phone && <span className="text-steel-400">—</span>}
-              </div>
-            </TableCell>
-            <TableCell>
-              <Badge variant={activeVariant(c.status)}>{c.status === "Active" ? "Active" : "Disabled"}</Badge>
-            </TableCell>
-            <TableCell className="font-tabular text-sm text-text-secondary">{formatDate(c.created_at)}</TableCell>
-            {isAdmin && (
+        renderRow={(c) => {
+          const balance = balances[c.id];
+          return (
+            <TableRow key={c.id}>
               <TableCell>
-                <div className="flex justify-end">
-                  <RowActions label={`Actions for ${c.full_name}`} items={customerActionItems(c)} />
+                <div className="flex items-center gap-3">
+                  <Avatar name={c.full_name} />
+                  <span className="font-medium text-navy-900">{c.full_name}</span>
                 </div>
               </TableCell>
-            )}
-          </TableRow>
-        )}
-        renderMobileCard={(c) => (
-          <MobileRowCard
-            key={c.id}
-            header={
-              <div className="flex items-center gap-2">
-                <Avatar name={c.full_name} size="sm" />
-                <span className="font-medium text-navy-900">{c.full_name}</span>
-              </div>
-            }
-            actions={isAdmin ? <RowActions label={`Actions for ${c.full_name}`} items={customerActionItems(c)} /> : undefined}
-          >
-            <DetailRow label="Email" value={c.email || "—"} />
-            <DetailRow label="Phone" value={c.phone || "—"} />
-            <DetailRow label="Status">
-              <Badge variant={activeVariant(c.status)}>{c.status === "Active" ? "Active" : "Disabled"}</Badge>
-            </DetailRow>
-            <DetailRow label="Added" value={formatDate(c.created_at)} />
-          </MobileRowCard>
-        )}
+              <TableCell className="hidden text-sm lg:table-cell">
+                <div className="space-y-0.5">
+                  {c.email && (
+                    <span className="flex items-center gap-1.5 text-steel-600">
+                      <Mail className="h-3.5 w-3.5 text-steel-400" /> {c.email}
+                    </span>
+                  )}
+                  {c.phone && (
+                    <span className="flex items-center gap-1.5 text-steel-600">
+                      <Phone className="h-3.5 w-3.5 text-steel-400" /> {c.phone}
+                    </span>
+                  )}
+                  {!c.email && !c.phone && <span className="text-steel-400">—</span>}
+                </div>
+              </TableCell>
+              <TableCell className="text-right font-tabular text-sm text-navy-900">
+                {balance ? balance.shipment_count : <span className="text-steel-300">…</span>}
+              </TableCell>
+              {isAdmin && (
+                <TableCell className="text-right font-tabular text-sm text-status-delivered">
+                  {balance?.total_paid != null ? formatCurrency(balance.total_paid, 2) : "—"}
+                </TableCell>
+              )}
+              {isAdmin && (
+                <TableCell className="text-right font-tabular text-sm font-semibold text-navy-900">
+                  {balance?.balance_owed != null ? formatCurrency(balance.balance_owed, 2) : "—"}
+                </TableCell>
+              )}
+              <TableCell>
+                <Badge variant={activeVariant(c.status)}>{c.status === "Active" ? "Active" : "Disabled"}</Badge>
+              </TableCell>
+              {isAdmin && (
+                <TableCell>
+                  <div className="flex justify-end">
+                    <RowActions label={`Actions for ${c.full_name}`} items={customerActionItems(c)} />
+                  </div>
+                </TableCell>
+              )}
+            </TableRow>
+          );
+        }}
+        renderMobileCard={(c) => {
+          const balance = balances[c.id];
+          return (
+            <MobileRowCard
+              key={c.id}
+              header={
+                <div className="flex items-center gap-2">
+                  <Avatar name={c.full_name} size="sm" />
+                  <span className="font-medium text-navy-900">{c.full_name}</span>
+                </div>
+              }
+              actions={isAdmin ? <RowActions label={`Actions for ${c.full_name}`} items={customerActionItems(c)} /> : undefined}
+            >
+              <DetailRow label="Email" value={c.email || "—"} />
+              <DetailRow label="Phone" value={c.phone || "—"} />
+              <DetailRow label="Shipments" value={balance ? String(balance.shipment_count) : "—"} mono />
+              {isAdmin && (
+                <DetailRow
+                  label="Total paid"
+                  value={balance?.total_paid != null ? formatCurrency(balance.total_paid, 2) : "—"}
+                  mono
+                />
+              )}
+              {isAdmin && (
+                <DetailRow
+                  label="Balance owed"
+                  value={balance?.balance_owed != null ? formatCurrency(balance.balance_owed, 2) : "—"}
+                  mono
+                />
+              )}
+              <DetailRow label="Status">
+                <Badge variant={activeVariant(c.status)}>{c.status === "Active" ? "Active" : "Disabled"}</Badge>
+              </DetailRow>
+              <DetailRow label="Added" value={formatDate(c.created_at)} />
+            </MobileRowCard>
+          );
+        }}
         emptyIcon={<Users className="h-6 w-6" />}
         emptyTitle="No customers found"
         emptyDescription={search ? "Try a different search." : "Add your first customer to get started."}

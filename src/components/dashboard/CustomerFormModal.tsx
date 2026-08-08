@@ -2,10 +2,15 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Button, Input, Textarea, Modal } from '@/components/ui'
+import { Button, Input, Select, Textarea, Modal } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
 import { createCustomer, updateCustomer } from '@/services/customersService'
 import type { Customer } from '@/types'
+
+const STATUS_OPTIONS = [
+  { value: 'Active', label: 'Active' },
+  { value: 'Disabled', label: 'Disabled' },
+]
 
 const schema = z.object({
   full_name: z.string().trim().min(2, 'Enter the customer name'),
@@ -14,7 +19,7 @@ const schema = z.object({
   company: z.string().trim().optional(),
   address: z.string().trim().optional(),
   notes: z.string().trim().optional(),
-  active: z.boolean().optional(),
+  status: z.enum(['Active', 'Disabled']),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -46,7 +51,7 @@ export function CustomerFormModal({ open, onClose, onSaved, customer }: Customer
       company: customer?.company ?? '',
       address: customer?.address ?? '',
       notes: customer?.notes ?? '',
-      active: customer ? customer.status === 'Active' : true,
+      status: customer?.status ?? 'Active',
     })
   }, [open, customer, reset])
 
@@ -58,7 +63,7 @@ export function CustomerFormModal({ open, onClose, onSaved, customer }: Customer
       company: values.company || null,
       address: values.address || null,
       notes: values.notes || null,
-      status: (values.active ?? true ? 'Active' : 'Disabled') as Customer['status'],
+      status: values.status,
     }
     try {
       if (isEdit && customer) {
@@ -93,29 +98,27 @@ export function CustomerFormModal({ open, onClose, onSaved, customer }: Customer
       }
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <Input label="Full name" error={errors.full_name?.message} {...register('full_name')} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
-          <Input label="Phone (optional)" {...register('phone')} />
+          <Input label="Full name" error={errors.full_name?.message} {...register('full_name')} />
+          <Input label="Phone number" {...register('phone')} />
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Input label="Company (optional)" {...register('company')} />
-          <Input label="Address (optional)" {...register('address')} />
+          <Input label="Email address" type="email" error={errors.email?.message} {...register('email')} />
+          <Input label="Company" hint="Leave empty for an individual." {...register('company')} />
         </div>
+        <Input label="Delivery address" {...register('address')} />
+        <Select
+          label="Status"
+          options={STATUS_OPTIONS}
+          error={errors.status?.message}
+          {...register('status')}
+        />
         <Textarea
-          label="Internal notes"
+          label="Notes"
           rows={3}
           hint="Staff-only. Never shown to the customer or on the public site."
           {...register('notes')}
         />
-        <label className="flex items-center gap-2.5 text-sm text-steel-600">
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-steel-300 text-navy-700 focus:ring-navy-500"
-            {...register('active')}
-          />
-          Active customer
-        </label>
       </form>
     </Modal>
   )

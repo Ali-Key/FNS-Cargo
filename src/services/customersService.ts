@@ -36,6 +36,26 @@ export async function listCustomers(params: CustomerListParams): Promise<Custome
   return { rows: (data as Customer[]) ?? [], count: count ?? 0 }
 }
 
+export interface CustomerBalance {
+  customer_id: string
+  shipment_count: number
+  /** Null for non-admin callers — the RPC withholds money figures from Staff/Dispatcher. */
+  total_paid: number | null
+  balance_owed: number | null
+}
+
+/**
+ * Shipment count + payment totals for the given customers, via the RLS-aware
+ * customer_balances_overview() RPC. Scoped to one page of ids at a time so the
+ * paginated Customers list never scans every customer's shipments/invoices.
+ */
+export async function getCustomerBalances(customerIds: string[]): Promise<CustomerBalance[]> {
+  if (customerIds.length === 0) return []
+  const { data, error } = await supabase.rpc('customer_balances_overview', { p_customer_ids: customerIds })
+  if (error) throw error
+  return (data as CustomerBalance[]) ?? []
+}
+
 /** Lightweight list for the shipment customer <select> (active customers only). */
 export async function listCustomerOptions(): Promise<Pick<Customer, 'id' | 'full_name'>[]> {
   const { data, error } = await supabase

@@ -588,6 +588,15 @@ export type Database = {
       analytics_report: { Args: { p_months?: number }; Returns: Json }
       current_customer_id: { Args: never; Returns: string }
       current_profile_id: { Args: never; Returns: string }
+      customer_balances_overview: {
+        Args: { p_customer_ids?: string[] }
+        Returns: {
+          balance_owed: number
+          customer_id: string
+          shipment_count: number
+          total_paid: number
+        }[]
+      }
       dashboard_stats: { Args: never; Returns: Json }
       is_admin: { Args: never; Returns: boolean }
       is_ops: { Args: never; Returns: boolean }

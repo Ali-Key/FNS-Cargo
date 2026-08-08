@@ -57,7 +57,7 @@ export default function Profile() {
             onSaved={refreshProfile}
           />
 
-          <div className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1">
+          <div className="border border-gray-200 bg-white p-6">
             <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-text-secondary">Account</h2>
             <dl className="mt-4 space-y-3">
               <DetailRow label="Role" divider>
@@ -121,7 +121,7 @@ function AvatarCard({
   }
 
   return (
-    <div className="rounded-card border border-gray-200 bg-white p-6 text-center shadow-elevation-1">
+    <div className="border border-gray-200 bg-white p-6 text-center">
       <Avatar name={profile?.full_name || email} src={profile?.avatar_url} size="xl" className="mx-auto" />
 
       <p className="mt-4 truncate font-bold text-navy-900">{profile?.full_name ?? ''}</p>
@@ -222,6 +222,10 @@ function DetailsForm({
 function EmailForm({ currentEmail }: { currentEmail: string }) {
   const toast = useToast()
   const [sent, setSent] = useState(false)
+  // The email a confirmation was already sent for. Resubmitting the same
+  // address just re-sends mail and burns Supabase's (low, default-mailer)
+  // send rate limit -- guard against that instead of hitting 429s.
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
@@ -237,12 +241,25 @@ function EmailForm({ currentEmail }: { currentEmail: string }) {
       toast.info('No change', 'That is already your sign-in email.')
       return
     }
+    if (next === pendingEmail) {
+      toast.info(
+        'Confirmation already sent',
+        `Check ${next} (and ${currentEmail}) for the confirmation links before requesting another.`,
+      )
+      return
+    }
     const { error } = await supabase.auth.updateUser({ email: next })
     if (error) {
-      toast.error('Could not change email', error.message)
+      toast.error(
+        'Could not change email',
+        /rate limit/i.test(error.message)
+          ? 'Too many confirmation emails sent recently. Wait a while and try again.'
+          : error.message,
+      )
       return
     }
     setSent(true)
+    setPendingEmail(next)
     toast.success('Confirmation sent', `Check ${next} to confirm the change.`)
   }
 
@@ -250,8 +267,8 @@ function EmailForm({ currentEmail }: { currentEmail: string }) {
     <SectionCard icon={Mail} title="Sign-in email" variant="form">
       {sent && (
         <Alert variant="info" className="mb-5" title="Confirmation required">
-          We sent a confirmation link to your new address. The change takes effect once you open that
-          link.
+          We sent confirmation links to both your current and new address. The change only takes
+          effect once you open both links.
         </Alert>
       )}
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-md space-y-5">

@@ -100,7 +100,7 @@ export function DeliveryProofCard({
   const isPdf = proofPath?.toLowerCase().endsWith('.pdf')
 
   return (
-    <div className="rounded-card border border-gray-200 bg-white p-5 shadow-elevation-1">
+    <div className="border border-gray-200 bg-white p-5">
       <div className="mb-3 flex items-center gap-2">
         <Camera className="h-4 w-4 text-primary-500" />
         <h3 className="text-sm font-bold text-navy-900">Delivery proof</h3>

@@ -487,13 +487,13 @@ function ShipmentDetailSkeleton() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-card border border-gray-200 bg-white p-5 shadow-elevation-1">
+            <div key={i} className="border border-gray-200 bg-white p-5">
               <Skeleton className="mb-3 h-4 w-24" />
               <SkeletonText lines={3} />
             </div>
           ))}
         </div>
-        <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1 lg:col-span-2">
+        <div className="border border-gray-200 bg-white lg:col-span-2">
           <div className="border-b border-gray-200 px-6 py-4">
             <Skeleton className="h-4 w-32" />
           </div>

@@ -97,24 +97,24 @@ export default function DashboardLayout() {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-30 bg-navy-950/50 lg:hidden"
+          className="fixed inset-0 z-30 bg-navy-950/40 lg:hidden"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — light operations rail: white surface, hairline divider, colour reserved for the active route */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white transition-transform duration-240 ease-out-premium lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-gray-200 bg-white transition-transform duration-240 ease-out-premium lg:translate-x-0',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-gray-200 px-5">
+        <div className="flex h-14 items-center justify-between border-b border-gray-200 px-4">
           <Logo variant="dark" />
           <button
             type="button"
-            className="rounded-control p-1.5 text-text-secondary hover:bg-steel-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 lg:hidden"
+            className="rounded-control p-1.5 text-steel-500 hover:bg-surface hover:text-navy-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 lg:hidden"
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           >
@@ -122,10 +122,12 @@ export default function DashboardLayout() {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-5 overflow-y-auto p-3">
+        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
           {groups.map((group) => (
-            <div key={group.label} className="space-y-1">
-              <p className="px-3 text-xs font-semibold uppercase tracking-[0.1em] text-steel-400">{group.label}</p>
+            <div key={group.label} className="space-y-0.5">
+              <p className="mb-1 px-2.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-steel-400">
+                {group.label}
+              </p>
               {group.items.map((item) => (
                 <NavLink
                   key={item.to}
@@ -134,19 +136,21 @@ export default function DashboardLayout() {
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
                     cn(
-                      'relative flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-semibold transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500',
+                      'group relative flex items-center gap-2.5 border-l-2 py-2 pl-3 pr-2.5 text-sm transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500',
                       isActive
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-steel-600 hover:bg-steel-100 hover:text-navy-800',
+                        ? 'border-l-primary-500 bg-primary-50 font-semibold text-primary-700'
+                        : 'border-l-transparent font-medium text-steel-600 hover:bg-surface hover:text-navy-900',
                     )
                   }
                 >
                   {({ isActive }) => (
                     <>
-                      {isActive && (
-                        <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary-500" />
-                      )}
-                      <item.icon className="h-5 w-5 shrink-0" />
+                      <item.icon
+                        className={cn(
+                          'h-4 w-4 shrink-0',
+                          isActive ? 'text-primary-600' : 'text-steel-400 group-hover:text-navy-700',
+                        )}
+                      />
                       {item.label}
                     </>
                   )}
@@ -162,33 +166,31 @@ export default function DashboardLayout() {
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) =>
               cn(
-                'flex items-center gap-3 rounded-control px-3 py-2 transition-colors duration-180',
-                isActive ? 'bg-navy-50' : 'hover:bg-steel-100',
+                'flex items-center gap-3 rounded-control px-2.5 py-2 transition-colors duration-180',
+                isActive ? 'bg-primary-50' : 'hover:bg-surface',
               )
             }
           >
             <Avatar name={profile?.full_name ?? user?.email} src={profile?.avatar_url} />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-navy-900">
-                {profile?.full_name ?? user?.email}
-              </p>
-              <p className="truncate text-xs font-medium text-text-secondary">{role ?? 'Member'}</p>
+              <p className="truncate text-sm font-semibold text-navy-900">{profile?.full_name ?? user?.email}</p>
+              <p className="truncate text-xs font-medium text-steel-500">{role ?? 'Member'}</p>
             </div>
           </NavLink>
           <button
             type="button"
             onClick={handleSignOut}
-            className="mt-1 flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-sm font-semibold text-steel-600 transition-colors duration-180 hover:bg-status-delayed/10 hover:text-status-delayed"
+            className="mt-1 flex w-full items-center gap-2.5 rounded-control px-2.5 py-2 text-sm font-medium text-steel-600 transition-colors duration-180 hover:bg-danger-50 hover:text-danger-600"
           >
-            <LogOut className="h-5 w-5 shrink-0" />
+            <LogOut className="h-4 w-4 shrink-0" />
             Sign out
           </button>
         </div>
       </aside>
 
       {/* Main column */}
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
+      <div className="lg:pl-60">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
           <button
             type="button"
             className="rounded-control p-1.5 text-steel-600 hover:bg-steel-100 lg:hidden"
@@ -231,7 +233,7 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <main className="p-4 sm:p-6 lg:p-8">
+        <main className="p-4 sm:p-5 lg:p-6">
           <Outlet />
         </main>
       </div>

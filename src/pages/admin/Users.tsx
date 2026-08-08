@@ -47,7 +47,8 @@ export default function Users() {
     try {
       await updateUserRole(row.id, role)
       setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, role } : r)))
-      toast.success('Role updated', `${row.email} is now ${role === 'Admin' ? 'an admin' : 'a dispatcher'}.`)
+      const roleLabel = role === 'Admin' ? 'an admin' : role === 'Dispatcher' ? 'a dispatcher' : 'staff'
+      toast.success('Role updated', `${row.email} is now ${roleLabel}.`)
     } catch {
       toast.error('Unable to update role', 'Please try again in a moment.')
     }
@@ -73,7 +74,7 @@ export default function Users() {
 
   function userActionItems(u: DashboardUser) {
     return [
-      ...(['Dispatcher', 'Admin'] as UserRole[])
+      ...(['Dispatcher', 'Staff', 'Admin'] as UserRole[])
         .filter((role) => role !== u.role)
         .map((role) => ({
           label: `Set as ${role}`,
