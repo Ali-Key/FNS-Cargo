@@ -100,7 +100,7 @@ export function RecordPaymentModal({ open, onClose, onSaved, invoice }: RecordPa
           <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleSubmit(onSubmit)} loading={isSubmitting}>
+          <Button variant="gold" onClick={handleSubmit(onSubmit)} loading={isSubmitting}>
             Record payment
           </Button>
         </>
