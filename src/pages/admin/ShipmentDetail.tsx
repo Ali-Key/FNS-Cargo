@@ -370,7 +370,7 @@ export default function ShipmentDetail() {
                       Preview
                     </Button>
                     {(inv.balance ?? 0) > 0 && inv.status !== 'Void' && (
-                      <Button size="sm" variant="secondary" onClick={() => setPaying(inv)}>
+                      <Button size="sm" variant="gold" onClick={() => setPaying(inv)}>
                         Record payment
                       </Button>
                     )}

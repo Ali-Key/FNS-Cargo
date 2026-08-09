@@ -60,7 +60,12 @@ export function useCachedResource<T>(key: string, fetcher: () => Promise<T>) {
         writeCache(key, result)
       } catch (err) {
         if (!mounted.current || id !== requestId.current) return
-        if (!background) setError(err instanceof Error ? err.message : 'Unable to load data.')
+        if (!background) {
+          // Never surface the raw Supabase/PostgREST message — it can leak schema
+          // or policy detail. Log it for diagnosis and show a human-readable one.
+          console.error(err)
+          setError('Unable to load data. Please try again.')
+        }
       } finally {
         if (mounted.current && id === requestId.current) setLoading(false)
       }

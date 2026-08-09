@@ -2,7 +2,7 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'gold'
 type Size = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -22,6 +22,8 @@ const VARIANT_STYLES: Record<Variant, string> = {
     'bg-transparent text-white border border-white/40 hover:bg-white/10',
   ghost: 'bg-transparent text-text-secondary hover:bg-steel-100 hover:text-ink',
   danger: 'bg-status-delayed text-white hover:bg-status-delayed/90 shadow-elevation-2',
+  // Money actions only — record/collect a payment. Never used for general CTAs.
+  gold: 'bg-gold-400 text-navy-950 hover:bg-gold-500 shadow-elevation-2 hover:shadow-elevation-3 focus-visible:ring-gold-500 disabled:hover:bg-gold-400',
 }
 
 const SIZE_STYLES: Record<Size, string> = {

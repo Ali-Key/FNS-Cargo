@@ -351,7 +351,7 @@ export default function Invoices() {
                         {(inv.balance ?? 0) > 0 && inv.status !== "Void" && (
                           <Button
                             size="sm"
-                            variant="secondary"
+                            variant="gold"
                             onClick={() => setPaying(inv)}
                           >
                             Record payment
@@ -470,7 +470,7 @@ export default function Invoices() {
                   (inv.balance ?? 0) > 0 && inv.status !== "Void" ? (
                     <Button
                       size="sm"
-                      variant="secondary"
+                      variant="gold"
                       className="mt-3 w-full"
                       onClick={() => setPaying(inv)}
                     >
