@@ -42,6 +42,24 @@ export default {
         },
 
         /* =========================================
+           FNS CARGO ACCENT
+           Brand: #F4B400
+
+           Public site only, and never as a surface — it marks an eyebrow rule
+           on a dark band and little else. The dashboard does not use it: its
+           amber is `status.pending`, which means "at a depot", not "brand".
+        ========================================= */
+        accent: {
+          50: "#FEF8E7",
+          100: "#FDEDC1",
+          200: "#FBDD8B",
+          300: "#F8CB52",
+          400: "#F4B400",
+          500: "#D99E00",
+          600: "#B07F00",
+        },
+
+        /* =========================================
            FNS CARGO SURFACES & TEXT
         ========================================= */
         surface: "#F8FAFC",

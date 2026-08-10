@@ -21,7 +21,14 @@ const VIEWPORTS = [
 const slug = (r) => (r === '/' ? 'home' : r.replace(/^\//, '').replace(/\//g, '-'))
 
 mkdirSync(OUT, { recursive: true })
-const browser = await chromium.launch()
+
+// A machine whose preinstalled Chromium does not match the revision this
+// Playwright pins would otherwise demand `npx playwright install`, which
+// downloads a second copy of a browser already on disk. Point at that one:
+//   CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run shots
+const browser = await chromium.launch(
+  process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
+)
 const results = []
 
 for (const vp of VIEWPORTS) {

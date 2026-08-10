@@ -49,7 +49,7 @@ export function Footer() {
   const whatsappNumber = settings.company_phone.replace(/[^\d]/g, '')
 
   return (
-    <footer className="border-t border-white/10 bg-navy-950 text-gray-300">
+    <footer className="border-t border-white/10 bg-navy-950 text-navy-200">
       <div className="container-page py-16 lg:py-20">
         <div className="grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-12">
           <div className="sm:col-span-2 lg:col-span-4">
@@ -65,7 +65,7 @@ export function Footer() {
                   <a
                     key={label}
                     href="#"
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-gray-300 transition-colors duration-180 ease-out-premium hover:border-primary-500/50 hover:bg-white/5 hover:text-primary-400 ${focusRing}`}
+                    className={`flex h-9 w-9 items-center justify-center rounded-control border border-white/10 text-navy-200 transition-colors duration-180 ease-out-premium hover:border-primary-500/50 hover:bg-white/5 hover:text-primary-400 ${focusRing}`}
                     aria-label={`${settings.company_name} on ${label}`}
                   >
                     <Icon className="h-4 w-4" />

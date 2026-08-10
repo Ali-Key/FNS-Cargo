@@ -1,3 +1,4 @@
+import { PageHero, Section } from '@/components/site'
 import { useSystemSettings } from '@/hooks/useSystemSettings'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
@@ -6,17 +7,17 @@ export default function Terms() {
   useDocumentTitle(`Terms of Service | ${settings.company_name}`, 'The simple terms for using FNS Cargo to ship goods and track shipments between China and Somalia.')
 
   return (
-    <div className="container-page py-16 sm:py-20">
-      <div className="mx-auto max-w-3xl">
-        <p className="text-sm font-bold uppercase tracking-wider text-primary-600">Legal</p>
-        <h1 className="mt-3 text-3xl font-extrabold text-navy-900 sm:text-4xl">Terms of Service</h1>
-        <p className="mt-3 text-sm text-text-secondary">Last updated: January 2026</p>
-        <p className="mt-6 leading-relaxed text-steel-600">
-          These are the terms for shipping with us and using our tracking. We've kept them short and plain. If
-          anything needs explaining, get in touch.
-        </p>
+    <div>
+      <PageHero
+        eyebrow="Legal"
+        title="Terms of Service"
+        description="These are the terms for shipping with us and using our tracking. We've kept them short and plain — if anything needs explaining, get in touch."
+      />
 
-        <div className="prose-legal mt-10 space-y-8 text-steel-600">
+      <Section tone="white" size="md" containerClassName="max-w-3xl">
+        <p className="text-sm text-text-secondary">Last updated: January 2026</p>
+
+        <div className="prose-legal mt-8 space-y-8 text-text-secondary">
           <section>
             <h2 className="text-lg font-bold text-navy-900">What we do</h2>
             <p className="mt-2 leading-relaxed">
@@ -83,7 +84,7 @@ export default function Terms() {
             </p>
           </section>
         </div>
-      </div>
+      </Section>
     </div>
   )
 }

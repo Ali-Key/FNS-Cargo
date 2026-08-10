@@ -7,7 +7,7 @@ import type { PublicTrackingEvent } from '@/types'
 export function TrackingTimeline({ events }: { events: PublicTrackingEvent[] }) {
   if (events.length === 0) {
     return (
-      <p className="rounded-card border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-text-secondary">
+      <p className="rounded-card border border-dashed border-border px-4 py-6 text-center text-sm text-text-secondary">
         No tracking events have been recorded for this shipment yet.
       </p>
     )
