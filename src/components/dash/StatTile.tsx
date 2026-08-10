@@ -25,7 +25,7 @@ interface StatTileProps {
   attention?: boolean
 }
 
-/** Dashboard stat tile — the single stat-tile component (Overview, Finance, Analytics). */
+/** Dashboard stat tile — the single stat-tile component (Overview, Finance, Reports). */
 export function StatTile({ label, value, icon: Icon, tone = 'navy', hint, to, attention }: StatTileProps) {
   const numeric = typeof value === 'number' ? value : Number(value) || 0
   const alert = attention && numeric > 0

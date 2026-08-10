@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Timer, Target, TrendingUp, Users } from 'lucide-react'
-import { PillGroup } from '@/components/dashboard'
+import { PillGroup, ExportMenu } from '@/components/dashboard'
 import {
   RevenueTrendChart,
   CustomerGrowthChart,
@@ -12,6 +12,7 @@ import {
 import { Alert, Button, Card, EmptyState, SectionCard, Skeleton, SkeletonCard, PageHeader, StatTile } from '@/components/dash'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { getAnalyticsReport } from '@/services/analyticsService'
+import { exportRevenueTrendCsv, exportTopRoutesCsv, exportMethodMixCsv } from '@/lib/exports/analyticsExports'
 import type { AnalyticsReport } from '@/types'
 import { formatCurrency, formatNumber } from '@/utils/format'
 
@@ -23,8 +24,16 @@ const RANGE_PILLS: { value: Range; label: string }[] = [
   { value: '12', label: '12 months' },
 ]
 
-export default function Analytics() {
-  useDocumentTitle('Analytics | FNS Cargo')
+/**
+ * Revenue, lane performance and customer growth — owner-only.
+ *
+ * This used to be two pages: Analytics (these charts) and Reports (a list of
+ * CSV/PDF export buttons). Reports had no other content, so it's now this
+ * page's export menu instead of a stop on its own — one place to see a
+ * figure and one place to export it.
+ */
+export default function Reports() {
+  useDocumentTitle('Reports | FNS Cargo')
 
   const [range, setRange] = useState<Range>('6')
   const [report, setReport] = useState<AnalyticsReport | null>(null)
@@ -59,15 +68,26 @@ export default function Analytics() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Analytics"
+        title="Reports"
         description="Revenue, lane performance, and customer growth across the operation."
         actions={
-          <PillGroup label="Reporting period" options={RANGE_PILLS} value={range} onChange={setRange} />
+          <div className="flex flex-wrap items-center gap-2">
+            <PillGroup label="Reporting period" options={RANGE_PILLS} value={range} onChange={setRange} />
+            {report && (
+              <ExportMenu
+                items={[
+                  { label: 'Revenue by month (CSV)', onClick: () => exportRevenueTrendCsv(report) },
+                  { label: 'Busiest routes (CSV)', onClick: () => exportTopRoutesCsv(report) },
+                  { label: 'Shipping methods (CSV)', onClick: () => exportMethodMixCsv(report) },
+                ]}
+              />
+            )}
+          </div>
         }
       />
 
       {loading ? (
-        <AnalyticsSkeleton />
+        <ReportsSkeleton />
       ) : error || !report ? (
         <Alert variant="error" title="Could not load the report">
           <p>{error ?? 'No data was returned.'}</p>
@@ -204,7 +224,7 @@ export default function Analytics() {
 }
 
 /** Mirrors the loaded layout's shape so the swap from skeleton to data causes no layout shift. */
-function AnalyticsSkeleton() {
+function ReportsSkeleton() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

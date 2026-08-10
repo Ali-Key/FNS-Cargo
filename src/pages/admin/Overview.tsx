@@ -185,7 +185,7 @@ export default function Overview() {
                     value={formatCurrency(stats.revenue_total ?? 0)}
                     icon={TrendingUp}
                     tone="delivered"
-                    to="/dashboard/analytics"
+                    to="/dashboard/reports"
                     hint={`${formatCurrency(stats.revenue_month ?? 0)} this month`}
                   />
                 </>

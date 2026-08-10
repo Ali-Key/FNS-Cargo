@@ -122,7 +122,7 @@ export default function Payments() {
           value={formatCurrency(stats?.revenue_total ?? 0)}
           icon={TrendingUp}
           tone="delivered"
-          to="/dashboard/analytics"
+          to="/dashboard/reports"
         />
         <StatTile
           label="Collected this month"

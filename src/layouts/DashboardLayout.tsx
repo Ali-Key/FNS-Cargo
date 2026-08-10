@@ -60,7 +60,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Insights & Admin',
     items: [
-      { to: '/dashboard/analytics', label: 'Analytics', icon: BarChart3, roles: ['Admin'] },
+      { to: '/dashboard/reports', label: 'Reports', icon: BarChart3, roles: ['Admin'] },
       { to: '/dashboard/users', label: 'Users', icon: UserCog, roles: ['Admin'] },
       { to: '/dashboard/settings', label: 'Settings', icon: Settings, roles: ['Admin'] },
     ],
