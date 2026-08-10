@@ -13,19 +13,8 @@ import {
   Receipt,
   Eye,
 } from 'lucide-react'
-import {
-  Button,
-  StatusBadge,
-  PaymentBadge,
-  InvoiceBadge,
-  EmptyState,
-  SectionCard,
-  DetailRow,
-  RowActions,
-  Skeleton,
-  SkeletonText,
-} from '@/components/ui'
-import { PageHeader, ConfirmDialog, ExportMenu } from '@/components/dashboard'
+import { Button, StatusBadge, PaymentBadge, InvoiceBadge, EmptyState, SectionCard, DetailRow, RowActions, Skeleton, SkeletonText, PageHeader, ConfirmDialog } from '@/components/dash'
+import { ExportMenu } from '@/components/dashboard'
 import { ShipmentFormModal } from '@/components/dashboard/ShipmentFormModal'
 import { TrackingEventFormModal } from '@/components/dashboard/TrackingEventFormModal'
 import { InvoiceFormModal } from '@/components/dashboard/InvoiceFormModal'

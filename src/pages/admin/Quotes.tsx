@@ -1,22 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { FileText, Trash2, Mail, Phone, ArrowRight } from 'lucide-react'
-import {
-  Badge,
-  Button,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  Pagination,
-  EmptyState,
-  SkeletonTableRows,
-  RowActions,
-  Alert,
-} from '@/components/ui'
-import { PageHeader, DataToolbar, ConfirmDialog } from '@/components/dashboard'
+import { Badge, Button, Select, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, RowActions, Alert, PageHeader, DataToolbar, ConfirmDialog } from '@/components/dash'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useToast } from '@/context/ToastContext'

@@ -39,7 +39,7 @@ export function Header() {
       className={cn(
         'sticky top-0 z-50 w-full transition-all duration-240 ease-out-premium',
         scrolled
-          ? 'border-b border-gray-200 bg-white/85 shadow-elevation-1 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75'
+          ? 'border-b border-border bg-white/85 shadow-elevation-1 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75'
           : 'border-b border-transparent bg-white',
       )}
     >
@@ -54,7 +54,7 @@ export function Header() {
               end={link.to === '/'}
               className={({ isActive }) =>
                 cn(
-                  'relative rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors',
+                  'relative rounded-control px-3.5 py-2 text-sm font-semibold transition-colors',
                   'after:absolute after:inset-x-3.5 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-primary-500 after:transition-transform after:duration-240 after:ease-out-premium',
                   isActive
                     ? 'text-navy-900 after:scale-x-100'
@@ -70,7 +70,7 @@ export function Header() {
         <div className="hidden items-center gap-2.5 lg:flex">
           <Link
             to="/login"
-            className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold text-text-secondary transition-colors hover:text-navy-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-1.5 rounded-control px-3.5 py-2 text-sm font-semibold text-text-secondary transition-colors hover:text-navy-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
           >
             <LogIn className="h-4 w-4" />
             Login
@@ -85,7 +85,7 @@ export function Header() {
         </div>
 
         <button
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-navy-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 lg:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-control text-navy-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 lg:hidden"
           onClick={() => setMobileOpen(true)}
           aria-label="Open navigation menu"
           aria-expanded={mobileOpen}
@@ -107,7 +107,7 @@ export function Header() {
               <button
                 onClick={() => setMobileOpen(false)}
                 aria-label="Close navigation menu"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary hover:bg-steel-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-control text-text-secondary hover:bg-steel-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -128,7 +128,7 @@ export function Header() {
                   }
                 >
                   {link.label}
-                  <ChevronRight className="h-4 w-4 text-gray-300" />
+                  <ChevronRight className="h-4 w-4 text-navy-200" />
                 </NavLink>
               ))}
             </nav>

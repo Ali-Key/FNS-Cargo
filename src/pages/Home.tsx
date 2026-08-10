@@ -1,496 +1,283 @@
-import { Link } from "react-router-dom";
+import { ArrowRight, CheckCircle2, Radar } from 'lucide-react'
 import {
-  ArrowRight,
-  Plane,
-  Ship,
-  Truck,
-  Warehouse,
-  FileCheck2,
-  FileText,
-  Car,
-  Boxes,
-  ShieldCheck,
-  Radar,
-  Timer,
-  Tag,
-  Headset,
-  Globe2,
-  CheckCircle2,
-} from "lucide-react";
-import { Button } from "@/components/ui";
-import { Reveal } from "@/components/common/Reveal";
-import { images } from "@/config/images";
-import { useSystemSettings } from "@/hooks/useSystemSettings";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-
-// Shared focus-visible treatment for bare links (keyboard accessibility).
-const FOCUS_RING =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2";
-
-const SERVICES = [
-  {
-    icon: Plane,
-    title: "Air Freight",
-    description:
-      "Fast, reliable air cargo solutions for urgent and high-value shipments.",
-    anchor: "air",
-  },
-  {
-    icon: Ship,
-    title: "Sea Freight",
-    description:
-      "Cost-effective sea shipping for larger loads, full or shared containers.",
-    anchor: "sea",
-  },
-  {
-    icon: Boxes,
-    title: "Commercial Cargo",
-    description:
-      "General cargo and business shipments handled from start to finish.",
-    anchor: "commercial",
-  },
-  {
-    icon: Truck,
-    title: "Door-to-Door Delivery",
-    description: "Safe, convenient delivery right to your doorstep.",
-    anchor: "door-to-door",
-  },
-  {
-    icon: FileCheck2,
-    title: "Customs Clearance",
-    description: "Fast, efficient customs clearance support on both ends.",
-    anchor: "customs",
-  },
-  {
-    icon: Warehouse,
-    title: "Airport Cargo Handling",
-    description: "Professional cargo handling at all major airports.",
-    anchor: "airport",
-  },
-  {
-    icon: Car,
-    title: "Vehicle Shipping",
-    description: "Cars, trucks, and heavy equipment shipped securely.",
-    anchor: "vehicle",
-  },
-  {
-    icon: FileText,
-    title: "Import & Export Support",
-    description: "Documentation and consulting made simple.",
-    anchor: "import-export",
-  },
-];
-
-const COUNTRIES = [
-  { name: "Somalia", flag: "https://flagcdn.com/w160/so.png" },
-  { name: "China", flag: "https://flagcdn.com/w160/cn.png" },
-  { name: "Turkey", flag: "https://flagcdn.com/w160/tr.png" },
-  { name: "Sweden", flag: "https://flagcdn.com/w160/se.png" },
-  { name: "Finland", flag: "https://flagcdn.com/w160/fi.png" },
-  { name: "Norway", flag: "https://flagcdn.com/w160/no.png" },
-  { name: "Denmark", flag: "https://flagcdn.com/w160/dk.png" },
-];
-
-const WHY_CHOOSE_US = [
-  {
-    icon: Timer,
-    title: "Fast & on-time delivery",
-    description:
-      "We plan the quickest sensible route so your cargo arrives when promised.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Secure & safe handling",
-    description:
-      "Careful packing, storage, and handling at every stop along the way.",
-  },
-  {
-    icon: Tag,
-    title: "Competitive rates",
-    description: "Fair, transparent pricing across air and sea freight.",
-  },
-  {
-    icon: Globe2,
-    title: "Reliable global partners",
-    description: "A trusted network connecting Somalia with the world.",
-  },
-  {
-    icon: Headset,
-    title: "Professional support",
-    description: "A responsive team ready to help you, around the clock.",
-  },
-  {
-    icon: Radar,
-    title: "Real-time tracking",
-    description: "Follow your shipment live, from pickup to delivery.",
-  },
-];
+  ButtonLink,
+  CTASection,
+  Feature,
+  Reveal,
+  RevealGroup,
+  RevealItem,
+  Section,
+  SectionHeading,
+  ServiceCard,
+} from '@/components/site'
+import { images } from '@/config/images'
+import {
+  COUNTRIES,
+  HERO_ASSURANCES,
+  SERVICES,
+  WHY_CHOOSE_US,
+  flagUrl,
+} from '@/content/site'
+import { useSystemSettings } from '@/hooks/useSystemSettings'
+import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export default function Home() {
-  const { settings } = useSystemSettings();
+  const { settings } = useSystemSettings()
   useDocumentTitle(
     `${settings.company_name} · Global Air & Sea Cargo and Logistics`,
-    "FNS Cargo connects Somalia with the world through reliable air and sea freight, customs clearance, and door-to-door delivery to and from China, Turkey, Sweden, Finland, Norway, Denmark and beyond, with live shipment tracking.",
-  );
+    'FNS Cargo connects Somalia with the world through reliable air and sea freight, customs clearance, and door-to-door delivery to and from China, Turkey, Sweden, Finland, Norway, Denmark and beyond, with live shipment tracking.',
+  )
 
   return (
     <div>
-      {/* HERO — clean blue & white split layout. Extra bottom padding
-          reserves room for the tracking widget rendered as a SIBLING below, so
-          the section's overflow-hidden never clips the widget. */}
-      <section className="relative overflow-hidden border-b border-gray-200 bg-white pb-24 pt-14 sm:pb-28 sm:pt-16">
-        {" "}
-        <div className="container-page relative">
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-10">
-            {/* Copy */}
+      {/* HERO
+          Two columns on desktop, copy first on mobile. The floating "live
+          tracking" and "7 countries" chips that used to hover over the image
+          are gone: they overlapped the photo at narrow widths and restated
+          facts the page makes twice more further down. */}
+      <section className="border-b border-border bg-white">
+        <div className="container-page py-14 sm:py-16 lg:py-20">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
             <div className="animate-fade-up">
-              <span className="inline-flex items-center gap-2 rounded-badge border border-primary-100 bg-primary-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider ">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary-500" />
+              <span className="inline-flex items-center gap-2 rounded-badge border border-primary-100 bg-primary-50 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary-700">
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-primary-500" />
                 Global air &amp; sea cargo solutions
               </span>
-              <h1 className="mt-6 max-w-xl text-balance text-3xl font-extrabold leading-[1.12] tracking-tight text-ink sm:text-4xl lg:text-5xl xl:text-[3.25rem]">
-                Connecting Somalia with the world,{" "}
-                <span className="text-primary-500">
-                  tracked every step of the way
-                </span> 
+
+              <h1 className="mt-5 max-w-xl text-balance text-3xl font-extrabold leading-[1.12] tracking-tight text-navy-900 sm:text-4xl lg:text-5xl">
+                Connecting Somalia with the world,{' '}
+                <span className="text-primary-500">tracked every step of the way</span>
               </h1>
-              <p className="mt-5 max-w-lg text-base leading-relaxed text-text-secondary sm:text-lg">
-                Reliable, fast, and secure cargo services between Somalia and
-                China, Turkey, Sweden, Finland, Norway, Denmark, and beyond. Air
-                and sea freight, customs, and door-to-door delivery, with your
-                shipment trackable any time.
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-3.5">
-                <Link to="/contact" className={`rounded-control ${FOCUS_RING}`}>
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    icon={<ArrowRight className="h-4 w-4" />}
-                    iconPosition="right"
-                                className="text-white"
 
-                  >
-                    Get a free quote
-                  </Button>
-                </Link>
-                <Link
+              <p className="mt-5 max-w-lg text-pretty leading-relaxed text-text-secondary sm:text-lg">
+                Reliable, fast, and secure cargo services between Somalia and China, Turkey,
+                Sweden, Finland, Norway, Denmark, and beyond. Air and sea freight, customs, and
+                door-to-door delivery, with your shipment trackable any time.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <ButtonLink
                   to="/tracking"
-                  className={`rounded-control ${FOCUS_RING}`}
+                  size="lg"
+                  icon={<ArrowRight className="h-4 w-4" />}
+                  iconPosition="right"
                 >
-                  <Button variant="secondary" size="lg">
-                    Track my shipment
-                  </Button>
-                </Link>
+                  Track shipment
+                </ButtonLink>
+                <ButtonLink to="/services" variant="secondary" size="lg">
+                  Explore services
+                </ButtonLink>
               </div>
-              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium text-text-secondary">
-                {[
-                  "Air & sea freight",
-                  "Customs handled",
-                  "Door-to-door",
-                  "Live tracking",
-                ].map((item) => (
-                  <span key={item} className="inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="h-4 w-4 text-primary-500" />
+
+              <ul className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium text-text-secondary">
+                {HERO_ASSURANCES.map((item) => (
+                  <li key={item} className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-primary-500" aria-hidden />
                     {item}
-                  </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
 
-            {/* Visual */}
-            <div className="relative animate-fade-up lg:pl-6">
-              <div className="absolute -left-5 top-8 flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-elevation-2">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-50 text-primary-500">
-                  <Radar className="h-5 w-5" />
-                </span>
-
-                <div>
-                  <p className="text-sm font-bold leading-tight text-ink">
-                    Live tracking
-                  </p>
-                  <p className="mt-0.5 text-xs font-medium text-text-secondary">
-                    Pickup to delivery
-                  </p>
-                </div>
-              </div>
-
-              <div className="overflow-hidden rounded-3xl border border-gray-200 shadow-elevation-3">
-                <img
-                  src={images.hero.main.src}
-                  alt={images.hero.main.alt}
-                  className="h-[24rem] w-full object-cover sm:h-[28rem] lg:h-[30rem]"
-                  loading="eager"
-                />
-              </div>
-              {/* Static credential card */}
-              <div className="absolute -bottom-5 right-4 flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-elevation-2 sm:right-8">
-                <span className=" font-tabular font-extrabold text-primary-500 flex h-9 w-9 items-center justify-center  text-xl  ">
-                  7 +
-                </span>
-                <div>
-                  <p className=" font-bold leading-tight text-ink text-base">
-                    Countries
-                  </p>
-                  <p className="mt-0.5 text-xs font-medium text-text-secondary">
-                    Growing global network
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* SERVICES */}
-      <section className="container-page py-16 sm:py-24">
-        <Reveal className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-bold uppercase tracking-wider text-primary-500">
-            What we do
-          </p>
-          <h2 className="mt-3 text-balance text-3xl font-extrabold sm:text-4xl">
-            Our cargo &amp; logistics services
-          </h2>
-          <p className="mt-4 text-pretty text-text-secondary">
-            One team for the whole journey. We handle air and sea freight,
-            customs, handling, and delivery, moving your goods between Somalia
-            and the world.
-          </p>
-        </Reveal>
-
-        <div className="mt-14 grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {SERVICES.map((service, i) => (
-            <Reveal
-              as="div"
-              key={service.title}
-              delay={(i % 4) * 80}
-              className="h-full"
-            >
-              <Link
-                to={`/services#${service.anchor}`}
-                className={`group flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-elevation-1 transition-all duration-240 ease-out-premium hover:border-primary-200 hover:shadow-elevation-2 ${FOCUS_RING}`}
-              >
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-50 text-primary-500 transition-colors duration-240 group-hover:bg-primary-500 group-hover:text-white">
-                  <service.icon className="h-6 w-6" />
-                </span>
-                <h3 className="mt-5 text-base font-bold text-ink">
-                  {service.title}
-                </h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-text-secondary">
-                  {service.description}
-                </p>
-                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary-500 transition-colors group-hover:text-primary-600">
-                  Learn more <ArrowRight className="h-3.5 w-3.5" />
-                </span>
-              </Link>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {/* COUNTRIES WE SERVE */}
-      <section className="border-y border-gray-200 bg-surface py-16 sm:py-24">
-        <div className="container-page">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-bold uppercase tracking-wider text-primary-500">
-              Where we ship
-            </p>
-            <h2 className="mt-3 text-balance text-3xl font-extrabold text-ink sm:text-4xl">
-              Countries we serve
-            </h2>
-            <p className="mt-4 text-pretty text-text-secondary">
-              We move cargo to and from Somalia across a growing global network,
-              and we keep expanding it to serve you better.
-            </p>
-          </Reveal>
-
-          <div className="mx-auto mt-12 grid max-w-5xl grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
-            {COUNTRIES.map((country, i) => (
-              <Reveal
-                as="div"
-                key={country.name}
-                delay={i * 70}
-                className="group flex flex-col items-center gap-3 rounded-card border border-gray-200 bg-white p-5 text-center shadow-elevation-1 transition-all duration-240 ease-out-premium hover:border-primary-200 hover:shadow-elevation-2"
-              >
-                <img
-                  src={country.flag}
-                  alt={`${country.name} flag`}
-                  loading="lazy"
-                  className="h-12 w-12 rounded-full border border-gray-300 object-cover shadow-elevation-1"
-                />
-                <span className="text-sm font-bold text-ink">
-                  {country.name}
-                </span>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* WHY CHOOSE US */}
-      <section className="relative overflow-hidden bg-navy-900 py-16 text-white sm:py-24">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-route-dots bg-[size:22px_22px] opacity-[0.07]"
-        />
-        <div className="container-page relative">
-          <div className="grid grid-cols-1 gap-14 lg:grid-cols-2 lg:items-center">
-            <Reveal>
-              <p className="text-sm font-bold uppercase tracking-wider text-primary-500">
-                Why FNS Cargo
-              </p>
-              <h2 className="mt-3 text-balance text-3xl font-extrabold text-white sm:text-4xl">
-                Shipping you don't have to worry about
-              </h2>
-              <p className="mt-4 max-w-lg text-pretty text-gray-300">
-                Clear updates and careful handling aren't extras we charge for.
-                They're simply part of how we work, and here's what that looks
-                like for you.
-              </p>
-              <div className="mt-10 grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2">
-                {WHY_CHOOSE_US.map((item, i) => (
-                  <Reveal
-                    as="div"
-                    key={item.title}
-                    delay={i * 70}
-                    className="group flex h-full gap-4"
-                  >
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card bg-white/10 text-primary-500 transition-colors duration-240 group-hover:bg-primary-500 group-hover:text-white">
-                      <item.icon className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-white">{item.title}</h3>
-                      <p className="mt-1 text-sm leading-relaxed text-gray-300">
-                        {item.description}
-                      </p>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-            </Reveal>
-
-            <Reveal className="grid grid-cols-2 gap-4">
-              <div className="group col-span-2 overflow-hidden rounded-2xl shadow-elevation-3">
-                <img
-                  src={images.whyChooseUs.realTimeTracking.src}
-                  alt={images.whyChooseUs.realTimeTracking.alt}
-                  className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-              <div className="group overflow-hidden rounded-2xl shadow-elevation-2">
-                <img
-                  src={images.whyChooseUs.safeShipping.src}
-                  alt={images.whyChooseUs.safeShipping.alt}
-                  className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-              <div className="group overflow-hidden rounded-2xl shadow-elevation-2">
-                <img
-                  src={images.whyChooseUs.doorToDoor.src}
-                  alt={images.whyChooseUs.doorToDoor.alt}
-                  className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ABOUT TEASER */}
-      <section className="container-page py-16 sm:py-24">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
-          <Reveal className="group relative">
-            <div className="overflow-hidden rounded-2xl shadow-elevation-3">
+            <div className="overflow-hidden rounded-card border border-border shadow-elevation-2">
               <img
-                src={images.about.main.src}
-                alt={images.about.main.alt}
-                className="h-[420px] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                loading="lazy"
+                src={images.hero.main.src}
+                alt={images.hero.main.alt}
+                width={1600}
+                height={1067}
+                className="h-72 w-full object-cover sm:h-96 lg:h-[26rem]"
+                loading="eager"
+                decoding="async"
               />
             </div>
-            <div className="absolute -bottom-6 -right-6 hidden w-56 rounded-2xl border border-gray-200 bg-white p-5 shadow-elevation-3 sm:block">
-              <p className="font-tabular text-3xl font-extrabold text-primary-500">
-                7+
-              </p>
-              <p className="mt-1 text-sm font-semibold leading-snug text-text-secondary">
-                Countries connected across our growing network
-              </p>
-            </div>
-          </Reveal>
-          <Reveal>
-            <p className="text-sm font-bold uppercase tracking-wider text-primary-500">
-              Who we are
-            </p>
-            <h2 className="mt-3 text-balance text-3xl font-extrabold text-ink sm:text-4xl">
-              Your trusted partner for global cargo
-            </h2>
-            <p className="mt-4 text-pretty leading-relaxed text-text-secondary">
-              FNS Cargo is a professional logistics and cargo company based in
-              Somalia. We provide reliable air and sea freight, customs
-              clearance, and door-to-door delivery, connecting businesses and
-              individuals with global markets through trusted partnerships,
-              modern systems, and excellent customer service.
-            </p>
-            <ul className="mt-6 space-y-3">
-              {[
-                "Trusted global partnerships and modern systems",
-                "Air, sea, customs, and delivery under one roof",
-                "Honest updates and live tracking, pickup to delivery",
-              ].map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2.5 text-sm text-navy-700"
-                >
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success-500" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <Link
-              to="/about"
-              className={`mt-7 inline-flex items-center gap-1.5 rounded-control text-sm font-bold text-gray-800 hover:text-primary-500 ${FOCUS_RING}`}
-            >
-              More about us <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </Reveal>
+          </div>
         </div>
       </section>
 
-      {/* CONTACT CTA */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-navy-950 via-navy-900 to-primary-700 py-16 text-white sm:py-24">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-grid-pattern bg-[size:40px_40px] opacity-15"
+      {/* SERVICES */}
+      <Section tone="white" size="md">
+        <SectionHeading
+          eyebrow="What we do"
+          title="Our cargo and logistics services"
+          description="One team for the whole journey. We handle air and sea freight, customs, handling, and delivery, moving your goods between Somalia and the world."
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-0 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-primary-500/10 blur-3xl"
+        <RevealGroup className="mt-12 grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {SERVICES.map((service, i) => (
+            <RevealItem key={service.id} index={i % 4} className="h-full">
+              <ServiceCard
+                icon={service.icon}
+                title={service.title}
+                description={service.summary}
+                to={`/services#${service.id}`}
+              />
+            </RevealItem>
+          ))}
+        </RevealGroup>
+      </Section>
+
+      {/* COUNTRIES */}
+      <Section tone="surface" size="md">
+        <SectionHeading
+          eyebrow="Where we ship"
+          title="Countries we serve"
+          description="We move cargo to and from Somalia across a growing global network, and we keep expanding it to serve you better."
         />
-        <Reveal className="container-page relative flex flex-col items-center gap-6 text-center">
-          <h2 className="max-w-xl text-balance text-3xl font-extrabold text-white sm:text-4xl">
-            Need help or want to ship cargo?
-          </h2>
-          <p className="max-w-lg text-pretty text-white/85">
-            Our team is ready to support you 24/7. Get a free quote, ask a
-            question, or track a shipment that's already on its way.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3.5">
-            <Link to="/contact" className={`rounded-control ${FOCUS_RING}`}>
-              <Button variant="secondary" size="lg">
-                Contact us today
-              </Button>
-            </Link>
-            <Link to="/services" className={`rounded-control ${FOCUS_RING}`}>
-              <Button variant="outline" size="lg">
-                See our services
-              </Button>
-            </Link>
+        <RevealGroup
+          as="ul"
+          className="mx-auto mt-10 grid max-w-4xl grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7"
+        >
+          {COUNTRIES.map((country, i) => (
+            <RevealItem
+              key={country.code}
+              as="li"
+              index={i}
+              className="flex flex-col items-center gap-2.5 rounded-card border border-border bg-white p-4 text-center shadow-elevation-1"
+            >
+              <img
+                src={flagUrl(country.code)}
+                alt=""
+                width={48}
+                height={48}
+                loading="lazy"
+                decoding="async"
+                className="h-10 w-10 rounded-full border border-border object-cover"
+              />
+              <span className="text-sm font-semibold text-navy-900">{country.name}</span>
+            </RevealItem>
+          ))}
+        </RevealGroup>
+      </Section>
+
+      {/* WHY FNS CARGO */}
+      <Section tone="navy" size="md" patterned>
+        <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
+          <div>
+            <SectionHeading
+              eyebrow="Why FNS Cargo"
+              title="Shipping you don't have to worry about"
+              description="Clear updates and careful handling aren't extras we charge for. They're simply part of how we work, and here's what that looks like for you."
+              align="left"
+              tone="dark"
+            />
+            <RevealGroup className="mt-9 grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2">
+              {WHY_CHOOSE_US.map((item, i) => (
+                <RevealItem key={item.title} index={i}>
+                  <Feature
+                    icon={item.icon}
+                    title={item.title}
+                    description={item.description}
+                    tone="dark"
+                  />
+                </RevealItem>
+              ))}
+            </RevealGroup>
           </div>
-        </Reveal>
-      </section>
+
+          <Reveal className="grid grid-cols-2 gap-3">
+            <div className="col-span-2 overflow-hidden rounded-card">
+              <img
+                src={images.whyChooseUs.realTimeTracking.src}
+                alt={images.whyChooseUs.realTimeTracking.alt}
+                width={1200}
+                height={800}
+                className="h-52 w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div className="overflow-hidden rounded-card">
+              <img
+                src={images.whyChooseUs.safeShipping.src}
+                alt={images.whyChooseUs.safeShipping.alt}
+                width={800}
+                height={600}
+                className="h-32 w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div className="overflow-hidden rounded-card">
+              <img
+                src={images.whyChooseUs.doorToDoor.src}
+                alt={images.whyChooseUs.doorToDoor.alt}
+                width={800}
+                height={600}
+                className="h-32 w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </Reveal>
+        </div>
+      </Section>
+
+      {/* ABOUT TEASER */}
+      <Section tone="white" size="md">
+        <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
+          <Reveal className="overflow-hidden rounded-card border border-border">
+            <img
+              src={images.about.main.src}
+              alt={images.about.main.alt}
+              width={1600}
+              height={1067}
+              className="h-72 w-full object-cover sm:h-[22rem]"
+              loading="lazy"
+              decoding="async"
+            />
+          </Reveal>
+
+          <div>
+            <SectionHeading
+              eyebrow="Who we are"
+              title="Your trusted partner for global cargo"
+              description="FNS Cargo is a professional logistics and cargo company based in Somalia. We provide reliable air and sea freight, customs clearance, and door-to-door delivery, connecting businesses and individuals with global markets through trusted partnerships, modern systems, and excellent customer service."
+              align="left"
+            />
+            <Reveal delay={160}>
+              <ul className="mt-6 space-y-3">
+                {[
+                  'Trusted global partnerships and modern systems',
+                  'Air, sea, customs, and delivery under one roof',
+                  'Honest updates and live tracking, pickup to delivery',
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-navy-800">
+                    <CheckCircle2
+                      className="mt-0.5 h-4 w-4 shrink-0 text-success-500"
+                      aria-hidden
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <ButtonLink
+                  to="/about"
+                  variant="secondary"
+                  icon={<ArrowRight className="h-3.5 w-3.5" />}
+                  iconPosition="right"
+                >
+                  More about us
+                </ButtonLink>
+                <ButtonLink to="/tracking" variant="ghost" icon={<Radar className="h-4 w-4" />}>
+                  Track a shipment
+                </ButtonLink>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </Section>
+
+      <CTASection
+        title="Need help or want to ship cargo?"
+        description="Our team is ready to support you 24/7. Get a free quote, ask a question, or track a shipment that's already on its way."
+      >
+        <ButtonLink to="/contact" size="lg">
+          Contact us today
+        </ButtonLink>
+        <ButtonLink to="/services" variant="outline" size="lg">
+          See our services
+        </ButtonLink>
+      </CTASection>
     </div>
-  );
+  )
 }

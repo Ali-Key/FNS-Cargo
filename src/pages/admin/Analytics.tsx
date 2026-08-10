@@ -2,14 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Timer, Target, TrendingUp, Users } from 'lucide-react'
-import { PageHeader, PillGroup, StatTile } from '@/components/dashboard'
+import { PillGroup } from '@/components/dashboard'
 import {
   RevenueTrendChart,
   CustomerGrowthChart,
   RouteVolumeChart,
   MixDonutChart,
 } from '@/components/dashboard/charts'
-import { Alert, Button, EmptyState, SectionCard, Skeleton, SkeletonCard } from '@/components/ui'
+import { Alert, Button, EmptyState, SectionCard, Skeleton, SkeletonCard, PageHeader, StatTile } from '@/components/dash'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { getAnalyticsReport } from '@/services/analyticsService'
 import type { AnalyticsReport } from '@/types'

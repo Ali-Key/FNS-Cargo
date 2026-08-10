@@ -1,6 +1,6 @@
 import { Check, ChevronDown } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { Dropdown } from '@/components/ui'
+import { Dropdown } from '@/components/dash'
 
 export interface FilterOption<T extends string> {
   value: T

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Zap, X, CornerDownLeft, Search } from 'lucide-react'
-import { Button, Input } from '@/components/ui'
+import { Button, Input } from '@/components/dash'
 import { useToast } from '@/context/ToastContext'
 import {
   findShipmentByTracking,

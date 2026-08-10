@@ -85,7 +85,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
   return (
     <div
       className={cn(
-        'w-full rounded-card border border-gray-200 bg-white/95 p-5 backdrop-blur-xl sm:p-6',
+        'w-full rounded-card border border-border bg-white/95 p-5 backdrop-blur-xl sm:p-6',
         elevated && 'shadow-elevation-3',
         className,
       )}
@@ -94,7 +94,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
         <Input
           containerClassName="flex-1"
           inputSize="lg"
-          placeholder="FNS-CN-XXXXXXXX"
+          placeholder="FNS-CN-000000"
           value={value}
           onChange={handleChange}
           icon={<Search className="h-5 w-5" />}
@@ -109,7 +109,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
       </form>
 
       {state === 'loading' && (
-        <div className="mt-6 space-y-4 border-t border-gray-200 pt-6">
+        <div className="mt-6 space-y-4 border-t border-border pt-6">
           <div className="flex items-center justify-between">
             <Skeleton className="h-6 w-28 rounded-full" />
             <Skeleton className="h-4 w-32" />
@@ -127,7 +127,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
       )}
 
       {state === 'notfound' && (
-        <div className="mt-6 flex flex-col items-center gap-3 border-t border-gray-200 pt-8 text-center">
+        <div className="mt-6 flex flex-col items-center gap-3 border-t border-border pt-8 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-card bg-primary-50 text-primary-600">
             <PackageX className="h-7 w-7" />
           </div>
@@ -145,7 +145,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
       )}
 
       {state === 'error' && (
-        <div className="mt-6 flex flex-col items-center gap-3 border-t border-gray-200 pt-8 text-center">
+        <div className="mt-6 flex flex-col items-center gap-3 border-t border-border pt-8 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-card bg-status-delayed/10 text-status-delayed">
             <AlertCircle className="h-7 w-7" />
           </div>
@@ -163,7 +163,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
       )}
 
       {state === 'found' && result && (
-        <div className="mt-6 animate-fade-up border-t border-gray-200 pt-6" aria-live="polite">
+        <div className="mt-6 animate-fade-up border-t border-border pt-6" aria-live="polite">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <span className="font-mono font-tabular text-sm font-bold text-navy-900">{result.tracking_number}</span>

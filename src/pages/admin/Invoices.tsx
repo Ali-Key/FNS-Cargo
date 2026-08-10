@@ -10,34 +10,8 @@ import {
   CircleDollarSign,
   Eye,
 } from "lucide-react";
-import {
-  Button,
-  InvoiceBadge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  Pagination,
-  EmptyState,
-  SkeletonTableRows,
-  SkeletonCard,
-  RowActions,
-  DetailRow,
-  CopyButton,
-  MobileRowCard,
-  Alert,
-} from "@/components/ui";
-import {
-  StatTile,
-  PageHeader,
-  ConfirmDialog,
-  FilterDropdown,
-  DataToolbar,
-  InvoicePreviewModal,
-  ExportMenu,
-} from "@/components/dashboard";
+import { Button, InvoiceBadge, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, SkeletonCard, RowActions, DetailRow, CopyButton, MobileRowCard, Alert, StatTile, PageHeader, ConfirmDialog, DataToolbar } from '@/components/dash'
+import { FilterDropdown, InvoicePreviewModal, ExportMenu } from '@/components/dashboard'
 import { InvoiceFormModal } from "@/components/dashboard/InvoiceFormModal";
 import { RecordPaymentModal } from "@/components/dashboard/RecordPaymentModal";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";

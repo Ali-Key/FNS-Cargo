@@ -1,3 +1,4 @@
+import { PageHero, Section } from '@/components/site'
 import { useSystemSettings } from '@/hooks/useSystemSettings'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
@@ -6,17 +7,17 @@ export default function Privacy() {
   useDocumentTitle(`Privacy Policy | ${settings.company_name}`, 'What information FNS Cargo collects, how we use it, and how we keep it safe.')
 
   return (
-    <div className="container-page py-16 sm:py-20">
-      <div className="mx-auto max-w-3xl">
-        <p className="text-sm font-bold uppercase tracking-wider text-primary-600">Legal</p>
-        <h1 className="mt-3 text-3xl font-extrabold text-navy-900 sm:text-4xl">Privacy Policy</h1>
-        <p className="mt-3 text-sm text-text-secondary">Last updated: January 2026</p>
-        <p className="mt-6 leading-relaxed text-steel-600">
-          Here's the plain version of how we handle your information. If anything's unclear, just ask us. The
-          contact details are at the bottom.
-        </p>
+    <div>
+      <PageHero
+        eyebrow="Legal"
+        title="Privacy Policy"
+        description="Here's the plain version of how we handle your information. If anything's unclear, just ask us — the contact details are at the bottom."
+      />
 
-        <div className="prose-legal mt-10 space-y-8 text-steel-600">
+      <Section tone="white" size="md" containerClassName="max-w-3xl">
+        <p className="text-sm text-text-secondary">Last updated: January 2026</p>
+
+        <div className="prose-legal mt-8 space-y-8 text-text-secondary">
           <section>
             <h2 className="text-lg font-bold text-navy-900">What we collect</h2>
             <p className="mt-2 leading-relaxed">
@@ -73,7 +74,7 @@ export default function Privacy() {
             </p>
           </section>
         </div>
-      </div>
+      </Section>
     </div>
   )
 }

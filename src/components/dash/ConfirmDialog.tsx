@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { Button, Modal } from '@/components/ui'
+import { Button } from '@/components/ui'
+import { Modal } from './Modal'
 
 interface ConfirmDialogProps {
   open: boolean

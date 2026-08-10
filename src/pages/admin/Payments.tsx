@@ -1,24 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Wallet, TrendingUp, Download, Trash2, Receipt } from 'lucide-react'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  Pagination,
-  EmptyState,
-  SkeletonTableRows,
-  SkeletonCard,
-  RowActions,
-  DetailRow,
-  Button,
-  MobileRowCard,
-  Alert,
-} from '@/components/ui'
-import { StatTile, PageHeader, ConfirmDialog, FilterDropdown, DataToolbar, ExportMenu } from '@/components/dashboard'
+import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, SkeletonCard, RowActions, DetailRow, Button, MobileRowCard, Alert, StatTile, PageHeader, ConfirmDialog, DataToolbar } from '@/components/dash'
+import { FilterDropdown, ExportMenu } from '@/components/dashboard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useToast } from '@/context/ToastContext'

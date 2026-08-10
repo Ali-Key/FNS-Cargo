@@ -8,27 +8,7 @@ import {
   Phone,
   FileText,
 } from "lucide-react";
-import {
-  Button,
-  Badge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  Pagination,
-  EmptyState,
-  SkeletonTableRows,
-  Avatar,
-  RowActions,
-  Alert,
-} from "@/components/ui";
-import {
-  PageHeader,
-  DataToolbar,
-  ConfirmDialog,
-} from "@/components/dashboard";
+import { Button, Badge, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, Avatar, RowActions, Alert, PageHeader, DataToolbar, ConfirmDialog } from '@/components/dash'
 import { CustomerFormModal } from "@/components/dashboard/CustomerFormModal";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";

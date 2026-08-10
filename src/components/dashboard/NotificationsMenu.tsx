@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bell, AlertTriangle, Receipt, FileText } from 'lucide-react'
-import { Dropdown } from '@/components/ui'
+import { Dropdown } from '@/components/dash'
 import { listShipments } from '@/services/shipmentsService'
 import { listInvoices } from '@/services/financeService'
 import { listQuotes } from '@/services/quotesService'

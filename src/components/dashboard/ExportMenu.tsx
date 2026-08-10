@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Download } from 'lucide-react'
-import { Button, Dropdown } from '@/components/ui'
+import { Button, Dropdown } from '@/components/dash'
 import { useToast } from '@/context/ToastContext'
 
 export interface ExportMenuItem {

@@ -8,34 +8,8 @@ import {
   Trash2,
   AlertTriangle,
 } from "lucide-react";
-import {
-  Button,
-  StatusBadge,
-  PaymentBadge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-  Pagination,
-  EmptyState,
-  SkeletonTableRows,
-  SkeletonCard,
-  RowActions,
-  Avatar,
-  DetailRow,
-  CopyButton,
-  MobileRowCard,
-  Alert,
-} from "@/components/ui";
-import {
-  PageHeader,
-  ConfirmDialog,
-  FilterDropdown,
-  DataToolbar,
-  ExportMenu,
-} from "@/components/dashboard";
+import { Button, StatusBadge, PaymentBadge, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, SkeletonCard, RowActions, Avatar, DetailRow, CopyButton, MobileRowCard, Alert, PageHeader, ConfirmDialog, DataToolbar } from '@/components/dash'
+import { FilterDropdown, ExportMenu } from '@/components/dashboard'
 import { ShipmentFormModal } from "@/components/dashboard/ShipmentFormModal";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";

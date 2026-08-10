@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Mail, Phone, MapPin, Send, Clock, CheckCircle2 } from "lucide-react";
 
 import { Button, Input, Textarea, Select, Alert } from "@/components/ui";
+import { PageHero } from "@/components/site";
 
 import { useSystemSettings } from "@/hooks/useSystemSettings";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -142,39 +143,24 @@ export default function Contact() {
 
   return (
     <div className="bg-surface">
-      {/* =====================================================
-          HERO
-      ===================================================== */}
-
-      <section className="bg-navy-950 py-16 text-white sm:py-20">
-        <div className="container-page">
-          <p className="text-sm font-bold uppercase tracking-wider text-primary-400">
-            Contact Us
-          </p>
-
-          <h1 className="mt-3 max-w-2xl text-4xl font-extrabold text-white sm:text-5xl">
-            Let's talk about your shipment
-          </h1>
-
-          <p className="mt-4 max-w-xl text-secondary">
-            Need a quote, got a question about a shipment that's on its way, or
-            just want to plan ahead? Drop us a line. We're happy to help.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Contact us"
+        title="Let's talk about your shipment"
+        description="Need a quote, got a question about a shipment that's on its way, or just want to plan ahead? Drop us a line. We're happy to help."
+      />
 
       {/* =====================================================
           CONTACT + FORM
       ===================================================== */}
 
-      <section className="container-page py-16 sm:py-24">
+      <section className="container-page py-16 sm:py-20">
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
           {/* =================================================
               CONTACT CARD
           ================================================= */}
 
           <aside className="lg:col-span-4">
-            <div className="sticky top-8 rounded-3xl border border-border bg-white p-7 shadow-elevation-2">
+            <div className="sticky top-8 rounded-card border border-border bg-white p-7 shadow-elevation-2">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary-500">
                   Get in touch
@@ -184,7 +170,7 @@ export default function Contact() {
                   We're here to help
                 </h2>
 
-                <p className="mt-3 text-sm leading-relaxed text-secondary">
+                <p className="mt-3 text-sm leading-relaxed text-text-secondary">
                   Need shipping support, tracking assistance, or logistics
                   advice? Our team is ready.
                 </p>
@@ -193,12 +179,12 @@ export default function Contact() {
               <div className="mt-8 space-y-6">
                 {/* ADDRESS */}
                 <div className="flex gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-500">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-primary-50 text-primary-500">
                     <MapPin className="h-5 w-5" />
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-secondary">
+                    <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                       Office
                     </p>
 
@@ -209,12 +195,12 @@ export default function Contact() {
                 </div>
                 {/* PHONE */}
                 <div className="flex gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-500">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-primary-50 text-primary-500">
                     <Phone className="h-5 w-5" />
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-secondary">
+                    <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                       Phone
                     </p>
 
@@ -229,13 +215,13 @@ export default function Contact() {
                 {/* WhatsApp */}
                 <div className="flex gap-4">
                   {/* Icon */}
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-500">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-primary-50 text-primary-500">
                     <WhatsAppIcon className="h-5 w-5" />
                   </div>
 
                   {/* Content */}
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold uppercase tracking-wider text-secondary">
+                    <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                       WhatsApp
                     </p>
 
@@ -253,12 +239,12 @@ export default function Contact() {
               
                 {/* EMAIL */}
                 <div className="flex gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-500">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-primary-50 text-primary-500">
                     <Mail className="h-5 w-5" />
                   </div>
 
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-secondary">
+                    <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">
                       Email
                     </p>
 
@@ -271,7 +257,7 @@ export default function Contact() {
                   </div>
                 </div>
                 {/* RESPONSE */}
-                <div className="rounded-2xl bg-primary-50 p-4">
+                <div className="rounded-card bg-primary-50 p-4">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-primary-500" />
 
@@ -281,11 +267,9 @@ export default function Contact() {
                   </div>
 
                  
-                  <p className="mt-2 text-sm text-secondary">
-                    Response within 1 business day. 24/7 support for active
-                  </p>
-                  <p className="text-sm text-secondary ">
-                    shipments. Saturday–Thursday, 8:00 AM–6:00 PM (EAT)
+                  <p className="mt-2 text-sm leading-relaxed text-text-text-secondary">
+                    Response within 1 business day, and 24/7 support for active
+                    shipments. Saturday–Thursday, 8:00 AM–6:00 PM (EAT).
                   </p>
                 </div>
               </div>
@@ -297,7 +281,7 @@ export default function Contact() {
           ================================================= */}
 
           <div className="lg:col-span-8">
-            <div className="rounded-3xl border border-border bg-white p-6 shadow-elevation-2 sm:p-10">
+            <div className="rounded-card border border-border bg-white p-6 shadow-elevation-2 sm:p-10">
               <div className="mb-8">
                 <p className="text-xs font-bold uppercase tracking-wider text-primary-500">
                   Shipping information
@@ -307,7 +291,7 @@ export default function Contact() {
                   Tell us about your shipment
                 </h2>
 
-                <p className="mt-2 text-sm text-secondary">
+                <p className="mt-2 text-sm text-text-secondary">
                   Provide your cargo details and we will prepare the best
                   shipping solution.
                 </p>
