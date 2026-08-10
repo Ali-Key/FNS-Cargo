@@ -59,7 +59,7 @@ export function SectionCard({
 
   return (
     <div className={cn('rounded-card border border-gray-200 bg-white shadow-elevation-1', className)}>
-      <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-6 py-4">
+      <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-5 py-3.5">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             {Icon && <Icon className="h-4 w-4 text-primary-500" />}
@@ -74,7 +74,7 @@ export function SectionCard({
           </div>
         )}
       </div>
-      <div className={flush ? '' : 'p-6'}>{children}</div>
+      <div className={flush ? '' : 'p-5'}>{children}</div>
     </div>
   )
 }

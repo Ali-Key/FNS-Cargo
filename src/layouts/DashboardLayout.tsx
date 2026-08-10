@@ -106,15 +106,15 @@ export default function DashboardLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-gray-200 bg-white transition-transform duration-240 ease-out-premium lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-navy-900 transition-transform duration-240 ease-out-premium lg:translate-x-0',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-gray-200 px-5">
-          <Logo variant="dark" />
+        <div className="flex h-16 items-center justify-between border-b border-navy-800 px-5">
+          <Logo variant="light" />
           <button
             type="button"
-            className="rounded-control p-1.5 text-text-secondary hover:bg-steel-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 lg:hidden"
+            className="rounded-control p-1.5 text-navy-200 hover:bg-navy-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 lg:hidden"
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           >
@@ -125,7 +125,7 @@ export default function DashboardLayout() {
         <nav className="flex-1 space-y-5 overflow-y-auto p-3">
           {groups.map((group) => (
             <div key={group.label} className="space-y-1">
-              <p className="px-3 text-xs font-semibold uppercase tracking-[0.1em] text-steel-400">{group.label}</p>
+              <p className="px-3 text-xs font-semibold uppercase tracking-[0.1em] text-navy-400">{group.label}</p>
               {group.items.map((item) => (
                 <NavLink
                   key={item.to}
@@ -134,17 +134,17 @@ export default function DashboardLayout() {
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
                     cn(
-                      'relative flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-semibold transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500',
+                      'relative flex items-center gap-3 rounded-control px-3 py-2.5 text-sm font-semibold transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-400',
                       isActive
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-steel-600 hover:bg-steel-100 hover:text-navy-800',
+                        ? 'bg-white/10 text-white'
+                        : 'text-navy-100 hover:bg-navy-800 hover:text-white',
                     )
                   }
                 >
                   {({ isActive }) => (
                     <>
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary-500" />
+                        <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary-400" />
                       )}
                       <item.icon className="h-5 w-5 shrink-0" />
                       {item.label}
@@ -156,29 +156,29 @@ export default function DashboardLayout() {
           ))}
         </nav>
 
-        <div className="border-t border-gray-200 p-3">
+        <div className="border-t border-navy-800 p-3">
           <NavLink
             to="/dashboard/profile"
             onClick={() => setMobileOpen(false)}
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 rounded-control px-3 py-2 transition-colors duration-180',
-                isActive ? 'bg-navy-50' : 'hover:bg-steel-100',
+                isActive ? 'bg-navy-950/60' : 'hover:bg-navy-800',
               )
             }
           >
             <Avatar name={profile?.full_name ?? user?.email} src={profile?.avatar_url} />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-navy-900">
+              <p className="truncate text-sm font-semibold text-white">
                 {profile?.full_name ?? user?.email}
               </p>
-              <p className="truncate text-xs font-medium text-text-secondary">{role ?? 'Member'}</p>
+              <p className="truncate text-xs font-medium text-navy-300">{role ?? 'Member'}</p>
             </div>
           </NavLink>
           <button
             type="button"
             onClick={handleSignOut}
-            className="mt-1 flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-sm font-semibold text-steel-600 transition-colors duration-180 hover:bg-status-delayed/10 hover:text-status-delayed"
+            className="mt-1 flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-sm font-semibold text-navy-300 transition-colors duration-180 hover:bg-status-delayed/10 hover:text-status-delayed"
           >
             <LogOut className="h-5 w-5 shrink-0" />
             Sign out

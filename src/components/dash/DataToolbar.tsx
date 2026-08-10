@@ -30,29 +30,23 @@ export function DataToolbar({
   className,
 }: DataToolbarProps) {
   return (
-    <div className={cn('space-y-3 rounded-card border border-gray-200 bg-white p-3 shadow-elevation-1', className)}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="sm:max-w-xs sm:flex-1">
-          <Input
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={placeholder}
-            icon={<Search className="h-4 w-4" />}
-            aria-label={placeholder}
-          />
-        </div>
-        {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}
+    <div className={cn('flex flex-wrap items-center gap-2 rounded-card border border-gray-200 bg-white p-3 shadow-elevation-1', className)}>
+      <div className="min-w-[220px] flex-1">
+        <Input
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder={placeholder}
+          icon={<Search className="h-4 w-4" />}
+          aria-label={placeholder}
+        />
       </div>
-      {(filters || (filtersActive && onReset)) && (
-        <div className="flex flex-wrap items-center gap-2">
-          {filters}
-          {filtersActive && onReset && (
-            <Button variant="ghost" size="sm" onClick={onReset}>
-              Reset filters
-            </Button>
-          )}
-        </div>
+      {filters}
+      {filtersActive && onReset && (
+        <Button variant="ghost" size="sm" onClick={onReset}>
+          Reset filters
+        </Button>
       )}
+      {children && <div className="ml-auto flex flex-wrap items-center gap-2">{children}</div>}
     </div>
   )
 }

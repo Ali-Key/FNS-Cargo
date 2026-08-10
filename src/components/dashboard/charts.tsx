@@ -17,20 +17,44 @@ import type { RevenuePoint, CustomerGrowthPoint, MixPoint } from '@/types'
 import { BRAND_BLUE_HEX, BRAND_BLUE_LIGHT_HEX } from '@/utils/status'
 import { formatCurrency } from '@/utils/format'
 
+// Hex mirrors of tailwind.config.js tokens — Recharts needs literal colors,
+// so these stay in sync with the theme by name rather than by guesswork.
+const TEXT_SECONDARY_HEX = '#64748B' // text-secondary
+const BORDER_HEX = '#E2E8F0' // border
+const INK_HEX = '#1F2937' // ink
+const GREEN_HEX = '#16A34A' // success-500
+const STEEL_50_HEX = '#F7F8FA' // steel-50
+const STEEL_100_HEX = '#EEF1F4' // steel-100
+const STEEL_400_HEX = '#98A5B4' // steel-400
+const STEEL_500_HEX = '#5A6673' // steel-500
+const NAVY_500_HEX = '#456FC6' // navy-500
+const NAVY_700_HEX = '#23427F' // navy-700
+const DANGER_400_HEX = '#F87171' // danger-400
+const DANGER_600_HEX = '#B91C1C' // danger-600
+
 // Shared chart chrome so every surface reads as one system.
-const AXIS = { fontSize: 12, fill: '#64748b' } as const
+const AXIS = { fontSize: 12, fill: TEXT_SECONDARY_HEX } as const
 const TOOLTIP = {
-  contentStyle: { borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 13 },
-  labelStyle: { fontWeight: 600, color: '#0f172a' },
+  contentStyle: { borderRadius: 10, border: `1px solid ${BORDER_HEX}`, fontSize: 13 },
+  labelStyle: { fontWeight: 600, color: INK_HEX },
 } as const
 
 const NAVY = BRAND_BLUE_HEX
 const primary = BRAND_BLUE_LIGHT_HEX
-const GREEN = '#16a34a'
-const STEEL = '#94a3b8'
+const GREEN = GREEN_HEX
+const STEEL = STEEL_400_HEX
 
 /** Categorical ramp for mix charts, ordered so neighbours stay distinguishable. */
-const MIX_COLORS = [NAVY, primary, GREEN, '#5b7fa6', '#f59e0b', '#7c8b99', '#2d5f8a', '#b45309']
+const MIX_COLORS = [
+  NAVY,
+  primary,
+  GREEN,
+  NAVY_500_HEX,
+  DANGER_400_HEX,
+  STEEL_500_HEX,
+  NAVY_700_HEX,
+  DANGER_600_HEX,
+]
 
 // ---- Analytics & Reports ---------------------------------------------------
 
@@ -43,7 +67,7 @@ export function RevenueTrendChart({ data }: { data: RevenuePoint[] }) {
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#eef1f4" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={STEEL_100_HEX} vertical={false} />
           <XAxis dataKey="month" tick={AXIS} axisLine={false} tickLine={false} />
           <YAxis
             tick={AXIS}
@@ -87,10 +111,10 @@ export function CustomerGrowthChart({ data }: { data: CustomerGrowthPoint[] }) {
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#eef1f4" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={STEEL_100_HEX} vertical={false} />
           <XAxis dataKey="month" tick={AXIS} axisLine={false} tickLine={false} />
           <YAxis allowDecimals={false} tick={AXIS} axisLine={false} tickLine={false} width={36} />
-          <Tooltip {...TOOLTIP} cursor={{ fill: '#f5f7f9' }} />
+          <Tooltip {...TOOLTIP} cursor={{ fill: STEEL_50_HEX }} />
           <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
           <Bar dataKey="new_customers" name="New" fill={primary} radius={[4, 4, 0, 0]} maxBarSize={36} />
           <Bar dataKey="total" name="Total" fill={NAVY} radius={[4, 4, 0, 0]} maxBarSize={36} />
@@ -107,7 +131,7 @@ export function RouteVolumeChart({ data }: { data: { label: string; shipments: n
     <div className="w-full" style={{ height: Math.max(180, data.length * 40) }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#eef1f4" horizontal={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={STEEL_100_HEX} horizontal={false} />
           <XAxis type="number" allowDecimals={false} tick={AXIS} axisLine={false} tickLine={false} />
           <YAxis
             type="category"
@@ -117,7 +141,7 @@ export function RouteVolumeChart({ data }: { data: { label: string; shipments: n
             tickLine={false}
             width={150}
           />
-          <Tooltip {...TOOLTIP} cursor={{ fill: '#f5f7f9' }} />
+          <Tooltip {...TOOLTIP} cursor={{ fill: STEEL_50_HEX }} />
           <Bar dataKey="shipments" name="Shipments" fill={NAVY} radius={[0, 4, 4, 0]} maxBarSize={20} />
         </BarChart>
       </ResponsiveContainer>

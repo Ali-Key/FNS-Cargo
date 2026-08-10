@@ -300,7 +300,7 @@ export default function Overview() {
                           </span>
                           <Button
                             size="sm"
-                            variant="secondary"
+                            variant="gold"
                             onClick={() => setPaying(inv)}
                           >
                             Collect

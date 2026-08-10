@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'gold'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 const BASE =
@@ -14,6 +14,10 @@ const VARIANT_STYLES: Record<ButtonVariant, string> = {
   outline: 'bg-transparent text-white border border-white/40 hover:bg-white/10',
   ghost: 'bg-transparent text-text-secondary hover:bg-steel-100 hover:text-ink',
   danger: 'bg-status-delayed text-white hover:bg-status-delayed/90 shadow-elevation-2',
+  // Dashboard money actions only (record/collect a payment) — never a general CTA.
+  // Public pages use `accent` instead; the two tokens are deliberately separate
+  // so restyling one brand mark can never touch the other surface.
+  gold: 'bg-gold-400 text-navy-950 hover:bg-gold-500 shadow-elevation-2 hover:shadow-elevation-3 focus-visible:ring-gold-500 disabled:hover:bg-gold-400',
 }
 
 const SIZE_STYLES: Record<ButtonSize, string> = {

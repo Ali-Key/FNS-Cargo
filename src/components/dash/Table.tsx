@@ -25,7 +25,7 @@ export function TableHeadCell({ className, ...props }: ThHTMLAttributes<HTMLTabl
   return (
     <th
       className={cn(
-        'whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary',
+        'whitespace-nowrap px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary',
         className,
       )}
       {...props}
@@ -34,5 +34,5 @@ export function TableHeadCell({ className, ...props }: ThHTMLAttributes<HTMLTabl
 }
 
 export function TableCell({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn('whitespace-nowrap px-4 py-3.5 text-navy-800', className)} {...props} />
+  return <td className={cn('whitespace-nowrap px-4 py-3 text-navy-800', className)} {...props} />
 }

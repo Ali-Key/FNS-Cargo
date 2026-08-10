@@ -33,17 +33,17 @@ export function StatTile({ label, value, icon: Icon, tone = 'navy', hint, to, at
     <>
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-text-secondary">{label}</span>
-        <span className={cn('flex h-9 w-9 items-center justify-center rounded-xl', TONE_ICON[tone])}>
-          <Icon className="h-5 w-5" />
+        <span className={cn('flex h-8 w-8 items-center justify-center rounded-xl', TONE_ICON[tone])}>
+          <Icon className="h-4 w-4" />
         </span>
       </div>
-      <p className="mt-3 font-tabular text-3xl font-bold leading-none text-navy-900">{value}</p>
-      {hint && <p className="mt-2 text-xs font-medium text-steel-400">{hint}</p>}
+      <p className="mt-2.5 font-tabular text-2xl font-bold leading-none text-navy-900">{value}</p>
+      {hint && <p className="mt-1.5 text-xs font-medium text-steel-400">{hint}</p>}
     </>
   )
 
   const className = cn(
-    'rounded-card border bg-white p-5 shadow-elevation-1',
+    'rounded-card border bg-white p-4 shadow-elevation-1',
     alert ? 'border-primary-300 ring-1 ring-primary-400/40' : 'border-gray-200',
     to &&
       'group flex flex-col transition-all duration-180 ease-out-premium hover:shadow-elevation-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-2',
