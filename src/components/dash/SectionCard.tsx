@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { cn } from '@/utils/cn'
+import { Card } from './Card'
 
 interface SectionCardProps {
   icon?: LucideIcon
@@ -33,32 +33,30 @@ export function SectionCard({
 }: SectionCardProps) {
   if (variant === 'compact') {
     return (
-      <div className={cn('rounded-card border border-gray-200 bg-white p-5 shadow-elevation-1', className)}>
+      <Card padding="md" className={className}>
         <div className="mb-3 flex items-center gap-2">
           {Icon && <Icon className="h-4 w-4 text-primary-500" />}
           <h3 className="text-sm font-bold text-navy-900">{title}</h3>
         </div>
         <dl className="space-y-2">{children}</dl>
-      </div>
+      </Card>
     )
   }
 
   if (variant === 'form') {
     return (
-      <section
-        className={cn('rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1 sm:p-8', className)}
-      >
+      <Card as="section" padding="lg" className={className}>
         <div className="mb-6 flex items-center gap-2.5">
           {Icon && <Icon className="h-5 w-5 text-primary-500" />}
           <h2 className="font-bold text-navy-900">{title}</h2>
         </div>
         {children}
-      </section>
+      </Card>
     )
   }
 
   return (
-    <div className={cn('rounded-card border border-gray-200 bg-white shadow-elevation-1', className)}>
+    <Card padding="none" className={className}>
       <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-5 py-3.5">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -75,6 +73,6 @@ export function SectionCard({
         )}
       </div>
       <div className={flush ? '' : 'p-5'}>{children}</div>
-    </div>
+    </Card>
   )
 }

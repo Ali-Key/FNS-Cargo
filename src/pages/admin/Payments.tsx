@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Wallet, TrendingUp, Download, Trash2, Receipt } from 'lucide-react'
-import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, SkeletonCard, RowActions, DetailRow, Button, MobileRowCard, Alert, StatTile, PageHeader, ConfirmDialog, DataToolbar } from '@/components/dash'
+import { Card, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, SkeletonCard, RowActions, DetailRow, Button, MobileRowCard, Alert, StatTile, PageHeader, ConfirmDialog, DataToolbar } from '@/components/dash'
 import { FilterDropdown, ExportMenu } from '@/components/dashboard'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
@@ -151,7 +151,7 @@ export default function Payments() {
         />
       </DataToolbar>
 
-      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1 sm:block">
+      <Card padding="none" className="hidden overflow-hidden sm:block">
         <Table className="min-w-[640px] border-0 lg:min-w-[840px]">
           <TableHead className="sticky top-0">
             <TableRow>
@@ -233,14 +233,14 @@ export default function Payments() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       {/* Mobile card list — same data as the table, one card per payment */}
       <div className="space-y-3 sm:hidden">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
         ) : rows.length === 0 ? (
-          <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
+          <Card padding="none">
             <EmptyState
               icon={<Wallet className="h-6 w-6" />}
               title={filtersActive ? 'No matching payments' : 'No payments yet'}
@@ -257,7 +257,7 @@ export default function Payments() {
                 ) : undefined
               }
             />
-          </div>
+          </Card>
         ) : (
           rows.map((p) => (
             <MobileRowCard

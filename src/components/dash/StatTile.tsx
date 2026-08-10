@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { Card } from './Card'
 
 type Tone = 'navy' | 'delivered' | 'transit' | 'pending' | 'delayed'
 
@@ -29,8 +30,17 @@ export function StatTile({ label, value, icon: Icon, tone = 'navy', hint, to, at
   const numeric = typeof value === 'number' ? value : Number(value) || 0
   const alert = attention && numeric > 0
 
-  const content = (
-    <>
+  return (
+    <Card
+      as={to ? Link : 'div'}
+      to={to}
+      padding="sm"
+      border={alert ? 'border-primary-300 ring-1 ring-primary-400/40' : 'border-gray-200'}
+      className={cn(
+        to &&
+          'group flex flex-col transition-all duration-180 ease-out-premium hover:shadow-elevation-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-2',
+      )}
+    >
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-text-secondary">{label}</span>
         <span className={cn('flex h-8 w-8 items-center justify-center rounded-xl', TONE_ICON[tone])}>
@@ -39,23 +49,6 @@ export function StatTile({ label, value, icon: Icon, tone = 'navy', hint, to, at
       </div>
       <p className="mt-2.5 font-tabular text-2xl font-bold leading-none text-navy-900">{value}</p>
       {hint && <p className="mt-1.5 text-xs font-medium text-steel-400">{hint}</p>}
-    </>
+    </Card>
   )
-
-  const className = cn(
-    'rounded-card border bg-white p-4 shadow-elevation-1',
-    alert ? 'border-primary-300 ring-1 ring-primary-400/40' : 'border-gray-200',
-    to &&
-      'group flex flex-col transition-all duration-180 ease-out-premium hover:shadow-elevation-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-2',
-  )
-
-  if (to) {
-    return (
-      <Link to={to} className={className}>
-        {content}
-      </Link>
-    )
-  }
-
-  return <div className={className}>{content}</div>
 }

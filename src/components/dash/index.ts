@@ -7,6 +7,7 @@
 // no consumer changes, and the public site cannot be affected either way.
 
 // Dashboard-only primitives.
+export * from './Card'
 export * from './Table'
 export * from './Modal'
 export * from './Dropdown'

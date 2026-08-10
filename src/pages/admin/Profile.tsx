@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { KeyRound, Mail, ShieldCheck, Upload, User } from 'lucide-react'
-import { Button, Input, Badge, Alert, SectionCard, DetailRow, Avatar, PageHeader } from '@/components/dash'
+import { Button, Input, Badge, Card, Alert, SectionCard, DetailRow, Avatar, PageHeader } from '@/components/dash'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/context/ToastContext'
 import { useAuth, type AuthProfile } from '@/context/AuthContext'
@@ -56,7 +56,7 @@ export default function Profile() {
             onSaved={refreshProfile}
           />
 
-          <div className="rounded-card border border-gray-200 bg-white p-6 shadow-elevation-1">
+          <Card padding="none" className="p-6">
             <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-text-secondary">Account</h2>
             <dl className="mt-4 space-y-3">
               <DetailRow label="Role" divider>
@@ -69,7 +69,7 @@ export default function Profile() {
               <DetailRow label="Member since" value={formatDate(user?.created_at)} mono divider />
               <DetailRow label="Last sign in" value={formatDate(user?.last_sign_in_at)} mono divider />
             </dl>
-          </div>
+          </Card>
         </div>
 
         <div className="space-y-6 lg:col-span-2">
@@ -120,7 +120,7 @@ function AvatarCard({
   }
 
   return (
-    <div className="rounded-card border border-gray-200 bg-white p-6 text-center shadow-elevation-1">
+    <Card padding="none" className="p-6 text-center">
       <Avatar name={profile?.full_name || email} src={profile?.avatar_url} size="xl" className="mx-auto" />
 
       <p className="mt-4 truncate font-bold text-navy-900">{profile?.full_name ?? ''}</p>
@@ -147,7 +147,7 @@ function AvatarCard({
         Change photo
       </Button>
       <p className="mt-2 text-xs text-steel-400">PNG, JPG, WEBP or GIF, up to 2 MB.</p>
-    </div>
+    </Card>
   )
 }
 

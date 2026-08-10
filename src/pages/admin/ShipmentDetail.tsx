@@ -13,7 +13,7 @@ import {
   Receipt,
   Eye,
 } from 'lucide-react'
-import { Button, StatusBadge, PaymentBadge, InvoiceBadge, EmptyState, SectionCard, DetailRow, RowActions, Skeleton, SkeletonText, PageHeader, ConfirmDialog } from '@/components/dash'
+import { Button, Card, StatusBadge, PaymentBadge, InvoiceBadge, EmptyState, SectionCard, DetailRow, RowActions, Skeleton, SkeletonText, PageHeader, ConfirmDialog } from '@/components/dash'
 import { ExportMenu } from '@/components/dashboard'
 import { ShipmentFormModal } from '@/components/dashboard/ShipmentFormModal'
 import { TrackingEventFormModal } from '@/components/dashboard/TrackingEventFormModal'
@@ -432,13 +432,13 @@ function ShipmentDetailSkeleton() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-1">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-card border border-gray-200 bg-white p-5 shadow-elevation-1">
+            <Card key={i} padding="none" className="p-5">
               <Skeleton className="mb-3 h-4 w-24" />
               <SkeletonText lines={3} />
-            </div>
+            </Card>
           ))}
         </div>
-        <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1 lg:col-span-2">
+        <Card padding="none" className="lg:col-span-2">
           <div className="border-b border-gray-200 px-6 py-4">
             <Skeleton className="h-4 w-32" />
           </div>
@@ -447,7 +447,7 @@ function ShipmentDetailSkeleton() {
               <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )

@@ -13,7 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { RecordPaymentModal } from "@/components/dashboard/RecordPaymentModal";
-import { StatusBadge, PaymentBadge, EmptyState, Alert, Button, SkeletonCard, Skeleton, SectionCard, StatTile, PageHeader } from '@/components/dash'
+import { StatusBadge, PaymentBadge, Card, EmptyState, Alert, Button, SkeletonCard, Skeleton, SectionCard, StatTile, PageHeader } from '@/components/dash'
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useCachedResource } from "@/hooks/useCachedResource";
 import { useAuth } from "@/context/AuthContext";
@@ -349,7 +349,7 @@ function OverviewSkeleton() {
         ))}
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1 lg:col-span-2">
+        <Card padding="none" className="lg:col-span-2">
           <div className="border-b border-gray-200 px-6 py-4">
             <Skeleton className="h-4 w-36" />
           </div>
@@ -358,8 +358,8 @@ function OverviewSkeleton() {
               <Skeleton key={i} className="h-10 w-full" />
             ))}
           </div>
-        </div>
-        <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
+        </Card>
+        <Card padding="none">
           <div className="border-b border-gray-200 px-6 py-4">
             <Skeleton className="h-4 w-28" />
           </div>
@@ -368,7 +368,7 @@ function OverviewSkeleton() {
               <Skeleton key={i} className="h-8 w-full" />
             ))}
           </div>
-        </div>
+        </Card>
       </div>
     </>
   );

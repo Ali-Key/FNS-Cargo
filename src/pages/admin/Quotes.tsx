@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { FileText, Trash2, Mail, Phone, ArrowRight } from 'lucide-react'
-import { Badge, Button, Select, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, RowActions, Alert, PageHeader, DataToolbar, ConfirmDialog } from '@/components/dash'
+import { Badge, Button, Card, Select, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, RowActions, Alert, PageHeader, DataToolbar, ConfirmDialog } from '@/components/dash'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useToast } from '@/context/ToastContext'
@@ -122,7 +122,7 @@ export default function Quotes() {
         />
       </DataToolbar>
 
-      <div className="overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1">
+      <Card padding="none" className="overflow-hidden">
         <Table className="border-0">
           <TableHead>
             <TableRow>
@@ -231,7 +231,7 @@ export default function Quotes() {
             pageSize={PAGE_SIZE}
           />
         )}
-      </div>
+      </Card>
 
       <ConfirmDialog
         open={!!deleting}

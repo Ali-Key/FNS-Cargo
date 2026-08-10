@@ -8,7 +8,7 @@ import {
   Trash2,
   AlertTriangle,
 } from "lucide-react";
-import { Button, StatusBadge, PaymentBadge, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, SkeletonCard, RowActions, Avatar, DetailRow, CopyButton, MobileRowCard, Alert, PageHeader, ConfirmDialog, DataToolbar } from '@/components/dash'
+import { Button, Card, StatusBadge, PaymentBadge, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, SkeletonCard, RowActions, Avatar, DetailRow, CopyButton, MobileRowCard, Alert, PageHeader, ConfirmDialog, DataToolbar } from '@/components/dash'
 import { FilterDropdown, ExportMenu } from '@/components/dashboard'
 import { ShipmentFormModal } from "@/components/dashboard/ShipmentFormModal";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -323,7 +323,7 @@ export default function Shipments() {
         />
       </DataToolbar>
 
-      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1 sm:block">
+      <Card padding="none" className="hidden overflow-hidden sm:block">
         <Table className="min-w-[860px] border-0 lg:min-w-[1240px]">
           <TableHead className="sticky top-0">
             <TableRow>
@@ -490,14 +490,14 @@ export default function Shipments() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       {/* Mobile card list — same data as the table, one card per shipment */}
       <div className="space-y-3 sm:hidden">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
         ) : rows.length === 0 ? (
-          <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
+          <Card padding="none">
             <EmptyState
               icon={<Package className="h-6 w-6" />}
               title={
@@ -524,7 +524,7 @@ export default function Shipments() {
                 )
               }
             />
-          </div>
+          </Card>
         ) : (
           rows.map((s) => (
             <MobileRowCard

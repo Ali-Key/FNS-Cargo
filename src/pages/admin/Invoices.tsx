@@ -10,7 +10,7 @@ import {
   CircleDollarSign,
   Eye,
 } from "lucide-react";
-import { Button, InvoiceBadge, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, SkeletonCard, RowActions, DetailRow, CopyButton, MobileRowCard, Alert, StatTile, PageHeader, ConfirmDialog, DataToolbar } from '@/components/dash'
+import { Button, Card, InvoiceBadge, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, SkeletonCard, RowActions, DetailRow, CopyButton, MobileRowCard, Alert, StatTile, PageHeader, ConfirmDialog, DataToolbar } from '@/components/dash'
 import { FilterDropdown, InvoicePreviewModal, ExportMenu } from '@/components/dashboard'
 import { InvoiceFormModal } from "@/components/dashboard/InvoiceFormModal";
 import { RecordPaymentModal } from "@/components/dashboard/RecordPaymentModal";
@@ -206,7 +206,7 @@ export default function Invoices() {
         />
       </DataToolbar>
 
-      <div className="hidden overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1 sm:block">
+      <Card padding="none" className="hidden overflow-hidden sm:block">
         <Table className="min-w-[640px] border-0 lg:min-w-[900px]">
           <TableHead className="sticky top-0">
             <TableRow>
@@ -363,14 +363,14 @@ export default function Invoices() {
             )}
           </TableBody>
         </Table>
-      </div>
+      </Card>
 
       {/* Mobile card list — same data as the table, one card per invoice */}
       <div className="space-y-3 sm:hidden">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
         ) : rows.length === 0 ? (
-          <div className="rounded-card border border-gray-200 bg-white shadow-elevation-1">
+          <Card padding="none">
             <EmptyState
               icon={<Receipt className="h-6 w-6" />}
               title={filtersActive ? "No matching invoices" : "No invoices yet"}
@@ -395,7 +395,7 @@ export default function Invoices() {
                 )
               }
             />
-          </div>
+          </Card>
         ) : (
           rows.map((inv) => {
             const overdue = isInvoiceOverdue(

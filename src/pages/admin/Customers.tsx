@@ -8,7 +8,7 @@ import {
   Phone,
   FileText,
 } from "lucide-react";
-import { Button, Badge, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, Avatar, RowActions, Alert, PageHeader, DataToolbar, ConfirmDialog } from '@/components/dash'
+import { Button, Badge, Card, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, Avatar, RowActions, Alert, PageHeader, DataToolbar, ConfirmDialog } from '@/components/dash'
 import { CustomerFormModal } from "@/components/dashboard/CustomerFormModal";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -168,7 +168,7 @@ export default function Customers() {
         placeholder="Search name, email, phone, city…"
       />
 
-      <div className="overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1">
+      <Card padding="none" className="overflow-hidden">
         <Table className="border-0">
           <TableHead>
             <TableRow>
@@ -280,7 +280,7 @@ export default function Customers() {
             pageSize={PAGE_SIZE}
           />
         )}
-      </div>
+      </Card>
 
       <CustomerFormModal
         open={formOpen}

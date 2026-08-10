@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { UserPlus, ShieldCheck, UserMinus } from 'lucide-react'
-import { Button, Badge, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, Avatar, RowActions, Alert, PageHeader, ConfirmDialog } from '@/components/dash'
+import { Button, Badge, Card, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Pagination, EmptyState, SkeletonTableRows, Avatar, RowActions, Alert, PageHeader, ConfirmDialog } from '@/components/dash'
 import { CreateUserModal } from '@/components/dashboard/CreateUserModal'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/context/ToastContext'
@@ -91,7 +91,7 @@ export default function Users() {
         </Alert>
       )}
 
-      <div className="overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-1">
+      <Card padding="none" className="overflow-hidden">
         <Table className="border-0">
           <TableHead>
             <TableRow>
@@ -171,7 +171,7 @@ export default function Users() {
             pageSize={PAGE_SIZE}
           />
         )}
-      </div>
+      </Card>
 
       <CreateUserModal open={createOpen} onClose={() => setCreateOpen(false)} onSaved={load} />
 

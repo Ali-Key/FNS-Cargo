@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Camera, ExternalLink, Trash2, Upload } from 'lucide-react'
-import { Button, Spinner } from '@/components/dash'
+import { Button, Card, Spinner } from '@/components/dash'
 import { ConfirmDialog } from '@/components/dash'
 import { useToast } from '@/context/ToastContext'
 import {
@@ -100,7 +100,7 @@ export function DeliveryProofCard({
   const isPdf = proofPath?.toLowerCase().endsWith('.pdf')
 
   return (
-    <div className="rounded-card border border-gray-200 bg-white p-5 shadow-elevation-1">
+    <Card padding="md">
       <div className="mb-3 flex items-center gap-2">
         <Camera className="h-4 w-4 text-primary-500" />
         <h3 className="text-sm font-bold text-navy-900">Delivery proof</h3>
@@ -191,6 +191,6 @@ export function DeliveryProofCard({
         confirmLabel="Remove"
         description="The file is permanently deleted from storage. This cannot be undone."
       />
-    </div>
+    </Card>
   )
 }

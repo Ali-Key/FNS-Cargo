@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Search } from 'lucide-react'
 import { Button, Input } from '@/components/ui'
 import { cn } from '@/utils/cn'
+import { Card } from './Card'
 
 interface DataToolbarProps {
   search: string
@@ -30,7 +31,7 @@ export function DataToolbar({
   className,
 }: DataToolbarProps) {
   return (
-    <div className={cn('flex flex-wrap items-center gap-2 rounded-card border border-gray-200 bg-white p-3 shadow-elevation-1', className)}>
+    <Card padding="none" className={cn('flex flex-wrap items-center gap-2 p-3', className)}>
       <div className="min-w-[220px] flex-1">
         <Input
           value={search}
@@ -47,6 +48,6 @@ export function DataToolbar({
         </Button>
       )}
       {children && <div className="ml-auto flex flex-wrap items-center gap-2">{children}</div>}
-    </div>
+    </Card>
   )
 }
