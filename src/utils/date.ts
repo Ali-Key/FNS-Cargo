@@ -31,19 +31,3 @@ export function formatTime(value: string | Date | null | undefined, fallback = '
   if (!date) return fallback
   return new Intl.DateTimeFormat('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }).format(date)
 }
-
-export function formatRelativeToNow(value: string | Date | null | undefined): string {
-  const date = toValidDate(value)
-  if (!date) return 'Unknown'
-
-  const diffMs = date.getTime() - Date.now()
-  const diffMinutes = Math.round(diffMs / 60000)
-  const diffHours = Math.round(diffMinutes / 60)
-  const diffDays = Math.round(diffHours / 24)
-
-  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
-
-  if (Math.abs(diffMinutes) < 60) return rtf.format(diffMinutes, 'minute')
-  if (Math.abs(diffHours) < 24) return rtf.format(diffHours, 'hour')
-  return rtf.format(diffDays, 'day')
-}

@@ -36,6 +36,17 @@ export async function listCustomers(params: CustomerListParams): Promise<Custome
   return { rows: (data as Customer[]) ?? [], count: count ?? 0 }
 }
 
+/** One customer record, for the customer profile page. */
+export async function getCustomer(id: string): Promise<Customer | null> {
+  const { data, error } = await supabase
+    .from('customers')
+    .select(CUSTOMER_COLUMNS)
+    .eq('id', id)
+    .maybeSingle()
+  if (error) throw error
+  return (data as Customer) ?? null
+}
+
 export interface CustomerBalance {
   customer_id: string
   shipment_count: number
@@ -52,15 +63,23 @@ export interface CustomerBalance {
 export async function getCustomerBalances(customerIds: string[]): Promise<CustomerBalance[]> {
   if (customerIds.length === 0) return []
   const { data, error } = await supabase.rpc('customer_balances_overview', { p_customer_ids: customerIds })
-  if (error) throw error
+  // supabase-js hands back a plain PostgrestError object here, not an Error
+  // instance, so an `err instanceof Error` caller would lose the real message.
+  if (error) throw new Error(error.message)
   return (data as CustomerBalance[]) ?? []
 }
 
-/** Lightweight list for the shipment customer <select> (active customers only). */
-export async function listCustomerOptions(): Promise<Pick<Customer, 'id' | 'full_name'>[]> {
+/**
+ * Lightweight list for the shipment customer picker (active customers only).
+ * Carries email/phone/company so the shipment form can fill the customer name
+ * and booking contact from the selection instead of asking for them twice.
+ */
+export type CustomerOption = Pick<Customer, 'id' | 'full_name' | 'email' | 'phone' | 'company'>
+
+export async function listCustomerOptions(): Promise<CustomerOption[]> {
   const { data, error } = await supabase
     .from('customers')
-    .select('id, full_name')
+    .select('id, full_name, email, phone, company')
     .eq('status', 'Active')
     .order('full_name', { ascending: true })
   if (error) throw error
@@ -76,28 +95,6 @@ export interface CustomerInput {
   /** Internal staff notes. Never rendered on the public site. */
   notes?: string | null
   status?: UserStatus
-}
-
-/** Order count and lifetime value for one customer, for the CRM profile header. */
-export interface CustomerSummary {
-  shipments: number
-  delivered: number
-  lifetimeValue: number
-}
-
-export async function getCustomerSummary(customerId: string): Promise<CustomerSummary> {
-  const { data, error } = await supabase
-    .from('shipments')
-    .select('status, total_price')
-    .eq('customer_id', customerId)
-  if (error) throw error
-
-  const rows = data ?? []
-  return {
-    shipments: rows.length,
-    delivered: rows.filter((r) => r.status === 'Delivered').length,
-    lifetimeValue: rows.reduce((sum, r) => sum + (r.total_price ?? 0), 0),
-  }
 }
 
 export async function createCustomer(payload: CustomerInput): Promise<Customer> {

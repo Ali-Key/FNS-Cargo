@@ -1,63 +1,54 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from 'react'
 import { cn } from '@/utils/cn'
+import { FIELD_CONTROL, FIELD_ERROR, FieldShell } from './Field'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
   hint?: string
+  note?: string
   icon?: ReactNode
+  /** Trailing adornment, e.g. a unit or a clear button. */
+  suffix?: ReactNode
   containerClassName?: string
-  inputSize?: 'md' | 'lg'
+  inputSize?: 'sm' | 'md' | 'lg'
 }
 
 const SIZE_STYLES: Record<NonNullable<InputProps['inputSize']>, string> = {
-  md: 'h-11 px-3.5 text-sm',
-  lg: 'h-14 px-4 text-lg font-mono',
+  sm: 'h-9 px-3 text-[13px]',
+  md: 'h-10 px-3 text-sm',
+  lg: 'h-[52px] px-4 text-lg font-mono tracking-wide',
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, containerClassName, label, error, hint, icon, id, inputSize = 'md', ...props }, ref) => {
+  ({ className, containerClassName, label, error, hint, note, icon, suffix, id, inputSize = 'md', ...props }, ref) => {
     const inputId = id ?? props.name
     return (
-      <div className={cn('flex flex-col gap-1.5', containerClassName)}>
-        {label && (
-          <label htmlFor={inputId} className="text-sm font-semibold text-navy-800">
-            {label}
-          </label>
-        )}
+      <FieldShell id={inputId} label={label} error={error} hint={hint} note={note} className={containerClassName}>
         <div className="relative">
           {icon && (
-            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-steel-400">
-              {icon}
-            </span>
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-deck-400">{icon}</span>
           )}
           <input
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full rounded-control border border-gray-300 bg-white text-navy-900 placeholder:text-steel-400 transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:border-navy-500',
+              FIELD_CONTROL,
               SIZE_STYLES[inputSize],
-              icon && (inputSize === 'lg' ? 'pl-12' : 'pl-10'),
-              error && 'border-status-delayed focus-visible:ring-status-delayed focus-visible:border-status-delayed',
-              props.disabled && 'cursor-not-allowed bg-surface text-steel-400',
+              icon && (inputSize === 'lg' ? 'pl-11' : 'pl-9'),
+              suffix && 'pr-10',
+              error && FIELD_ERROR,
               className,
             )}
             aria-invalid={!!error}
             aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
             {...props}
           />
+          {suffix && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-medium text-deck-400">{suffix}</span>
+          )}
         </div>
-        {error && (
-          <p id={`${inputId}-error`} className="text-xs font-medium text-status-delayed">
-            {error}
-          </p>
-        )}
-        {!error && hint && (
-          <p id={`${inputId}-hint`} className="text-xs text-text-secondary">
-            {hint}
-          </p>
-        )}
-      </div>
+      </FieldShell>
     )
   },
 )

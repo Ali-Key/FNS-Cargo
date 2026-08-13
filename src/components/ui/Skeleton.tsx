@@ -2,7 +2,7 @@ import type { HTMLAttributes } from 'react'
 import { cn } from '@/utils/cn'
 
 export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('skeleton-shimmer rounded-md', className)} {...props} />
+  return <div className={cn('skeleton-shimmer rounded-chip', className)} {...props} />
 }
 
 export function SkeletonText({ lines = 3, className }: { lines?: number; className?: string }) {
@@ -15,14 +15,15 @@ export function SkeletonText({ lines = 3, className }: { lines?: number; classNa
   )
 }
 
-export function SkeletonTableRows({ rows = 5, columns = 5 }: { rows?: number; columns?: number }) {
+/** Rows shaped like the real table body, so the layout does not jump on load. */
+export function SkeletonTableRows({ rows = 6, columns = 5 }: { rows?: number; columns?: number }) {
   return (
     <>
       {Array.from({ length: rows }).map((_, r) => (
         <tr key={r}>
           {Array.from({ length: columns }).map((_, c) => (
             <td key={c} className="px-4 py-3.5">
-              <Skeleton className="h-4 w-full max-w-[140px]" />
+              <Skeleton className={cn('h-3.5', c === 0 ? 'w-32' : 'w-full max-w-[110px]')} />
             </td>
           ))}
         </tr>
@@ -31,12 +32,18 @@ export function SkeletonTableRows({ rows = 5, columns = 5 }: { rows?: number; co
   )
 }
 
+/** Placeholder for a panel-framed card, e.g. a mobile list row. */
 export function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn('border border-l-4 border-gray-200 border-l-gray-200 bg-white px-4 py-3.5', className)}>
-      <Skeleton className="mb-3 h-3 w-1/3" />
-      <Skeleton className="mb-2 h-6 w-1/2" />
-      <Skeleton className="h-3 w-1/4" />
+    <div className={cn('rounded-deck bg-panel p-4 shadow-deck', className)}>
+      <div className="flex items-center justify-between gap-3">
+        <Skeleton className="h-4 w-36" />
+        <Skeleton className="h-5 w-16 rounded-badge" />
+      </div>
+      <div className="mt-3 space-y-2 border-t border-deck-100 pt-3">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-3/4" />
+      </div>
     </div>
   )
 }

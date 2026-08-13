@@ -1,5 +1,5 @@
 // =============================================================================
-// FNS Cargo — track-shipment edge function
+// FSN Cargo — track-shipment edge function
 //
 // The ONLY path to public shipment tracking. track_shipment()'s direct
 // PostgREST RPC grant was revoked from anon/authenticated (see migration

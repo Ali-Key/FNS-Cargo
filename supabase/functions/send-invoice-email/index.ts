@@ -5,7 +5,7 @@
 // shipped here as base64 — this function only forwards it as an attachment.
 //
 // Requires two secrets that are NOT auto-provisioned, set once via:
-//   supabase secrets set RESEND_API_KEY=... RESEND_FROM_EMAIL="FNS Cargo <invoices@yourdomain.com>"
+//   supabase secrets set RESEND_API_KEY=... RESEND_FROM_EMAIL="FSN Cargo <invoices@yourdomain.com>"
 // RESEND_FROM_EMAIL must be a domain verified in Resend — company_email from
 // system_settings is admin-entered data and is very unlikely to be verified,
 // so it is only ever used as the reply-to address, never the sender.
@@ -23,14 +23,14 @@ const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL')
 // still gets a response (auth is the real boundary, not CORS), but the
 // browser will refuse to expose it to page script.
 const ALLOWED_ORIGINS = new Set([
-  'https://fnscargo.com',
-  'https://www.fnscargo.com',
+  'https://FSNcargo.com',
+  'https://www.FSNcargo.com',
   'http://localhost:5173',
   'http://localhost:4173',
 ])
 function corsFor(req: Request) {
   const origin = req.headers.get('Origin') ?? ''
-  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : 'https://fnscargo.com'
+  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : 'https://FSNcargo.com'
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     Vary: 'Origin',

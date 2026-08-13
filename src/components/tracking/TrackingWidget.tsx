@@ -97,7 +97,7 @@ export function TrackingWidget({ className, elevated = false }: TrackingWidgetPr
         <Input
           containerClassName="flex-1"
           inputSize="lg"
-          placeholder="FNS-CN-XXXXXXXX"
+          placeholder="FSN-YEAR-CN"
           value={value}
           onChange={handleChange}
           icon={<Search className="h-5 w-5" />}

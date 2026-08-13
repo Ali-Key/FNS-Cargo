@@ -4,8 +4,8 @@ import { initials } from '@/utils/format'
 type Size = 'sm' | 'md' | 'lg' | 'xl'
 
 const SIZE_STYLES: Record<Size, string> = {
-  sm: 'h-6 w-6 text-[10px]',
-  md: 'h-9 w-9 text-xs',
+  sm: 'h-7 w-7 text-[10px]',
+  md: 'h-9 w-9 text-[11px]',
   lg: 'h-12 w-12 text-sm',
   xl: 'h-24 w-24 text-2xl',
 }
@@ -22,7 +22,7 @@ export function Avatar({ name, src, size = 'md', className }: AvatarProps) {
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-300 bg-navy-100 font-bold uppercase text-navy-700',
+        'inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-deck-100 font-bold uppercase tracking-wide text-deck-600 ring-1 ring-inset ring-deck-900/[0.06]',
         SIZE_STYLES[size],
         className,
       )}

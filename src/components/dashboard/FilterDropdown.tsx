@@ -12,11 +12,13 @@ interface FilterDropdownProps<T extends string> {
   options: FilterOption<T>[]
   value: T
   onChange: (value: T) => void
-  /** Sentinel value treated as "no filter applied" for the active-state style. Defaults to 'all'. */
+  /** Sentinel treated as "no filter applied" for the active style. Defaults to 'all'. */
   allValue?: T
 }
 
-/** Compact "Label: Selection ▾" filter control — the standard filter-bar building block. */
+/** Compact "Label · Selection ▾" control — the standard filter-bar building block.
+ *  Control-shaped, not pill-shaped, and the same 36px height as the search box
+ *  beside it, so the whole filter row sits on one baseline. */
 export function FilterDropdown<T extends string>({
   label,
   options,
@@ -34,21 +36,26 @@ export function FilterDropdown<T extends string>({
         <button
           type="button"
           className={cn(
-            'inline-flex items-center gap-1.5 rounded-control border px-3 py-1.5 text-sm font-medium transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:ring-offset-1',
+            'deck-focus inline-flex h-9 items-center gap-1.5 rounded-deck-sm px-2.5 text-[12px] font-semibold transition-colors',
             active
-              ? 'border-navy-300 bg-navy-50 text-navy-800'
-              : 'border-gray-300 bg-white text-steel-600 hover:border-navy-300 hover:text-navy-800',
+              ? 'bg-deck-900 text-white hover:bg-deck-800'
+              : 'bg-deck-100 text-deck-600 hover:bg-deck-150 hover:text-deck-900',
           )}
         >
-          <span className="text-steel-400">{label}:</span>
+          <span className={active ? 'text-deck-300' : 'text-deck-400'}>{label}</span>
           {selected?.label ?? 'All'}
-          <ChevronDown className="h-3.5 w-3.5 text-steel-400" />
+          <ChevronDown className={cn('h-3.5 w-3.5', active ? 'text-deck-300' : 'text-deck-400')} aria-hidden="true" />
         </button>
       }
       items={options.map((opt) => ({
         label: opt.label,
         onClick: () => onChange(opt.value),
-        icon: opt.value === value ? <Check className="h-4 w-4" /> : <span className="w-4" />,
+        icon:
+          opt.value === value ? (
+            <Check className="h-4 w-4 text-signal-600" aria-hidden="true" />
+          ) : (
+            <span className="w-4" aria-hidden="true" />
+          ),
       }))}
     />
   )

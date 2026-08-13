@@ -1,0 +1,17 @@
+# FSN Cargo - SPA history fallback for Apache / LiteSpeed (Hostinger).
+# React Router owns /dashboard, /login and every public route. Without this
+# rewrite a direct load or a refresh of those URLs is looked up on disk, finds
+# no file, and the host serves its own 404 page instead of the app.
+# (public/_redirects does the same job on Netlify and is ignored here.)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Real files and directories (assets, images, logos) are served as-is.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Everything else is handed to the SPA entry point.
+  RewriteRule . /index.html [L]
+</IfModule>

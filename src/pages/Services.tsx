@@ -138,7 +138,7 @@ const SERVICES = [
 
 export default function Services() {
   useDocumentTitle(
-    "Freight Services | FNS Cargo",
+    "Freight Services | FSN Cargo",
     "Air freight, sea freight, customs clearance, warehousing, vehicle shipping, and door-to-door delivery connecting Somalia with international markets.",
   );
 

@@ -1,5 +1,5 @@
 // =============================================================================
-// FNS Cargo — admin-users edge function
+// FSN Cargo — admin-users edge function
 //
 // Creating an auth account, resetting somebody's password and deleting a user
 // all require the service role key, which can never be shipped to a browser.
@@ -23,14 +23,14 @@ const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 // still gets a response (auth is the real boundary, not CORS), but the
 // browser will refuse to expose it to page script.
 const ALLOWED_ORIGINS = new Set([
-  'https://fnscargo.com',
-  'https://www.fnscargo.com',
+  'https://FSNcargo.com',
+  'https://www.FSNcargo.com',
   'http://localhost:5173',
   'http://localhost:4173',
 ]);
 function corsFor(req: Request) {
   const origin = req.headers.get('Origin') ?? '';
-  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : 'https://fnscargo.com';
+  const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : 'https://FSNcargo.com';
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     Vary: 'Origin',

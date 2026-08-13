@@ -7,7 +7,7 @@ export const PDF_COLORS = {
   navy800: '#18305c',
   navy700: '#23427f',
   navy500: '#456fc6',
-  primary500: '#f4b400',
+  primary500: '#3865f2',
   steel700: '#334155',
   steel500: '#64748b',
   steel300: '#cbd5e1',

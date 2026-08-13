@@ -1,5 +1,5 @@
 {
-  "name": "fns-cargo",
+  "name": "FSN-cargo",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -15,7 +15,6 @@
     "@react-pdf/renderer": "^4.5.1",
     "@supabase/supabase-js": "^2.47.10",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.43.0",
     "jsbarcode": "^3.12.3",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",

@@ -30,7 +30,6 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: 8.5, fontWeight: 700, color: PDF_COLORS.steel500, textTransform: 'uppercase' },
   fieldValue: { fontSize: 10.5, fontWeight: 700, color: PDF_COLORS.navy900 },
   footer: { marginTop: 14, textAlign: 'center' },
-  footerBranch: { fontSize: 8, color: PDF_COLORS.steel500 },
   footerWebsite: { fontSize: 8, color: PDF_COLORS.steel500, marginTop: 1 },
 })
 
@@ -76,12 +75,15 @@ export function LabelDocument({ shipment, companyName, companyWebsite, size = '1
             <Text style={styles.fieldValue}>{shipment.cn_number ?? '—'}</Text>
           </View>
           <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Branch Code</Text>
+            <Text style={styles.fieldValue}>{shipment.branch_code ?? '—'}</Text>
+          </View>
+          <View style={styles.fieldRow}>
             <Text style={styles.fieldLabel}>No of Pcs</Text>
             <Text style={styles.fieldValue}>{i + 1} of {pieceCount}</Text>
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerBranch}>Branch: {shipment.branch_code ?? '—'}</Text>
             {companyWebsite && <Text style={styles.footerWebsite}>{companyWebsite}</Text>}
           </View>
         </Page>

@@ -108,3 +108,78 @@
     animation: shimmer 1.6s ease-in-out infinite;
   }
 }
+
+/* =============================================================
+   FSN CARGO — DASHBOARD DECK LAYER
+   Scoped utilities for the operations console. Nothing here is
+   used by the public marketing site.
+   ============================================================= */
+@layer utilities {
+  /* Thin, self-coloured scrollbars so the dark rail and long tables
+     don't punch a bright native gutter through the design. */
+  .deck-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(113, 134, 165, 0.45) transparent;
+  }
+
+  .deck-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .deck-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .deck-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(113, 134, 165, 0.4);
+    border-radius: 999px;
+  }
+
+  .deck-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(113, 134, 165, 0.65);
+  }
+
+  /* Keyboard-only jump past the nav into page content. Off-screen until it
+     takes focus, so it costs nothing visually but saves a tab-through of the
+     entire sidebar on every route. Declared here rather than as a component
+     because both shells use it and neither owns the other's chrome. */
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-deck-sm focus:bg-deck-900 focus:px-4 focus:py-2 focus:text-[13px] focus:font-semibold focus:text-white focus:outline-none focus:ring-2 focus:ring-signal-400 focus:ring-offset-2;
+  }
+
+  /* The single focus treatment for every interactive element inside the
+     console. Declared once here so primitives stay free of ring soup. */
+  .deck-focus {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas;
+  }
+
+  .deck-focus-dark {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-deck-900;
+  }
+
+  /* Faint plotting grid behind the dark rail's brand block — the only
+     decorative texture in the console. */
+  .deck-rail-texture {
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .deck-enter {
+    animation: deckIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes deckIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

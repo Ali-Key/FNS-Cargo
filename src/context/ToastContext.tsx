@@ -45,7 +45,7 @@ const VARIANT: Record<ToastType, { chip: string; bar: string; primary: string }>
   success: { chip: 'bg-success-50 text-success-600', bar: 'bg-success-500', primary: 'ring-success-500/20' },
   error: { chip: 'bg-danger-50 text-danger-600', bar: 'bg-danger-500', primary: 'ring-danger-500/20' },
   warning: { chip: 'bg-warning-50 text-warning-600', bar: 'bg-warning-500', primary: 'ring-warning-500/20' },
-  info: { chip: 'bg-navy-50 text-navy-600', bar: 'bg-navy-500', primary: 'ring-navy-500/20' },
+  info: { chip: 'bg-signal-50 text-signal-600', bar: 'bg-signal-500', primary: 'ring-signal-500/20' },
 }
 
 // Errors linger longer so they can be read; successes clear quickly.
@@ -173,30 +173,30 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
       onBlur={resume}
       onTransitionEnd={handleTransitionEnd}
       className={cn(
-        'pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-card border border-gray-200 bg-white shadow-elevation-3 ring-1',
+        'pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-deck border border-deck-100 bg-white shadow-deck-pop ring-1',
         styles.primary,
         'transition-all duration-240 ease-out-premium motion-reduce:transition-none',
         visible && !leaving ? 'translate-x-0 opacity-100' : 'translate-x-[120%] opacity-0',
       )}
     >
       <div className="flex items-start gap-3 px-4 py-3.5">
-        <span className={cn('mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', styles.chip)}>
+        <span className={cn('mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-deck-sm', styles.chip)}>
           <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
         </span>
         <div className="flex-1 pt-0.5">
-          <p className="text-sm font-semibold text-navy-900">{toast.title}</p>
-          {toast.description && <p className="mt-0.5 text-sm leading-snug text-text-secondary">{toast.description}</p>}
+          <p className="text-sm font-semibold text-deck-900">{toast.title}</p>
+          {toast.description && <p className="mt-0.5 text-sm leading-snug text-deck-500">{toast.description}</p>}
         </div>
         <button
           onClick={beginClose}
-          className="-mr-1 -mt-1 rounded-md p-1 text-steel-400 transition-colors hover:bg-steel-100 hover:text-navy-700"
+          className="-mr-1 -mt-1 rounded-md p-1 text-deck-400 transition-colors hover:bg-deck-100 hover:text-deck-700"
           aria-label="Dismiss notification"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
       {/* Auto-dismiss progress bar */}
-      <div className="absolute inset-x-0 bottom-0 h-1 bg-steel-100/60">
+      <div className="absolute inset-x-0 bottom-0 h-1 bg-deck-100">
         <div ref={barRef} className={cn('h-full origin-left', styles.bar)} style={{ transform: 'scaleX(1)' }} />
       </div>
     </div>

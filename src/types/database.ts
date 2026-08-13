@@ -601,10 +601,7 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_ops: { Args: never; Returns: boolean }
       public_settings: { Args: never; Returns: Json }
-      suggest_tracking_number: {
-        Args: { p_country_code?: string }
-        Returns: string
-      }
+      suggest_tracking_number: { Args: Record<PropertyKey, never>; Returns: string }
       sync_shipment_payment_status: {
         Args: { p_shipment_id: string }
         Returns: undefined

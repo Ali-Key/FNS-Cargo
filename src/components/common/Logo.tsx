@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { cn } from '@/utils/cn'
+import { FSN_MARK } from '@/utils/brand'
 
 interface LogoProps {
   companyName?: string
@@ -7,7 +8,7 @@ interface LogoProps {
   className?: string
 }
 
-export function Logo({ companyName = 'FNS Cargo', variant = 'dark', className }: LogoProps) {
+export function Logo({ companyName = 'FSN Cargo', variant = 'dark', className }: LogoProps) {
   const [first, ...rest] = companyName.split(' ')
   return (
     <Link
@@ -15,19 +16,8 @@ export function Logo({ companyName = 'FNS Cargo', variant = 'dark', className }:
       className={cn('group inline-flex items-center gap-2.5', className)}
       aria-label={`${companyName} home`}
     >
-      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 shadow-elevation-2">
-
-        {/* use our logo  */}
-        <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none">
-          <path
-            d="M3 16.5 9 12l4 3 8-6.5"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle cx="21" cy="8.5" r="1.6" fill="currentColor" />
-        </svg>
+      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center">
+        <img src={FSN_MARK} alt="" aria-hidden="true" className="h-9 w-9 object-contain" />
       </span>
       <span
         className={cn(

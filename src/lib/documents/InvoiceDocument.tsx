@@ -4,7 +4,7 @@ import { PDF_COLORS } from './theme'
 import type { InvoiceDocumentData, InvoiceStatus, PaymentMethod } from '@/types'
 import { formatCurrency } from '@/utils/format'
 import { formatDate, formatTime } from '@/utils/date'
-import { deriveVatRatePercent } from '@/utils/vat'
+import { deriveVatRatePercent, invoiceSubtotal } from '@/utils/vat'
 
 const STATUS_LABEL: Record<InvoiceStatus, string> = {
   Draft: 'Draft',
@@ -132,8 +132,9 @@ export function InvoiceDocument({ invoice, company, lastPaymentMethod, receiverS
   const contactLine = [company.company_phone, company.company_email, company.company_website]
     .filter(Boolean)
     .join('  ·  ')
-  const grandTotal = invoice.amount + invoice.vat_amount - invoice.discount
-  const vatRatePercent = deriveVatRatePercent(invoice.amount, invoice.vat_amount, invoice.vat_rate)
+  // `amount` is already the net payable total; the pre-VAT charge is derived back out of it.
+  const subtotal = invoiceSubtotal(invoice)
+  const vatRatePercent = deriveVatRatePercent(invoice)
 
   return (
     <Document title={`Invoice ${invoice.invoice_number}`}>
@@ -236,7 +237,7 @@ export function InvoiceDocument({ invoice, company, lastPaymentMethod, receiverS
           <View style={[styles.gridRow, styles.totalsHead]}>
             <View style={styles.gridCell}>
               <Text style={styles.totalsHeadLabel}>Total USD</Text>
-              <Text style={styles.totalsHeadValue}>{formatCurrency(invoice.amount, 2)}</Text>
+              <Text style={styles.totalsHeadValue}>{formatCurrency(subtotal, 2)}</Text>
             </View>
             <View style={styles.gridCell}>
               <Text style={styles.totalsHeadLabel}>VAT ({vatRatePercent}%)</Text>
@@ -250,7 +251,7 @@ export function InvoiceDocument({ invoice, company, lastPaymentMethod, receiverS
           <View style={[styles.gridRow, styles.gridRowLast]}>
             <View style={styles.gridCell}>
               <Text style={styles.gridLabel}>Total Amount USD</Text>
-              <Text style={styles.gridValue}>{formatCurrency(grandTotal, 2)}</Text>
+              <Text style={styles.gridValue}>{formatCurrency(invoice.amount, 2)}</Text>
             </View>
             <View style={styles.gridCell}>
               <Text style={styles.gridLabel}>Paid USD</Text>

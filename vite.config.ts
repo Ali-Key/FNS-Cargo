@@ -25,12 +25,6 @@ export default defineConfig({
           }
           if (id.includes('@supabase')) return 'vendor-supabase'
           if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts'
-          // framer-motion is used only by dashboard pages. Left in the generic
-          // `vendor` chunk it would be module-preloaded by the public entry,
-          // which imports that chunk for lucide-react.
-          if (id.includes('framer-motion') || id.includes('motion-dom') || id.includes('motion-utils')) {
-            return 'vendor-motion'
-          }
           if (id.includes('react-hook-form') || id.includes('/zod/') || id.includes('@hookform')) {
             return 'vendor-forms'
           }

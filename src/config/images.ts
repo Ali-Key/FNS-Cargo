@@ -1,5 +1,5 @@
 /**
- * Central image registry for the FNS Cargo public site.
+ * Central image registry for the FSN Cargo public site.
  * Every URL below was fetched and visually verified to show real,
  * on-topic freight/logistics photography before being added here.
  * Swap any entry by changing only this file.
@@ -21,7 +21,7 @@ export const images = {
     main: {
       src: unsplash(HERO_ID, 1600),
       srcSet: srcSet(HERO_ID, [640, 960, 1280, 1600, 2000]),
-      alt: 'Loaded container ship underway at sea, representing FNS Cargo sea freight between China and Somalia',
+      alt: 'Loaded container ship underway at sea, representing FSN Cargo sea freight between China and Somalia',
     },
   },
   services: {

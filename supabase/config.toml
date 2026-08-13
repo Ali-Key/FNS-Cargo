@@ -1,6 +1,6 @@
-# FNS Cargo — Supabase local/project config.
+# FSN Cargo — Supabase local/project config.
 # Only the fields the CLI needs are set; adjust project_id to your linked ref.
-project_id = "fns-cargo"
+project_id = "FSN-cargo"
 
 [api]
 enabled = true

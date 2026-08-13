@@ -10,7 +10,7 @@ create sequence if not exists public.invoice_number_seq start 1001;
 create table public.invoices (
   id             uuid primary key default gen_random_uuid(),
   invoice_number text not null unique
-                   default 'FNS-INV-' || lpad(nextval('public.invoice_number_seq')::text, 6, '0'),
+                   default 'FSN-INV-' || lpad(nextval('public.invoice_number_seq')::text, 6, '0'),
   shipment_id    uuid not null references public.shipments(id) on delete cascade,
   customer_id    uuid references public.customers(id) on delete set null,
   amount         numeric(12,2) not null check (amount >= 0),

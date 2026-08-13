@@ -79,7 +79,7 @@ begin
   if v_code !~ '^[A-Z]{2}$' then v_code := 'CN'; end if;
 
   loop
-    v_candidate := 'FNS-' || v_code || '-' || lpad(floor(random() * 900000 + 100000)::text, 6, '0');
+    v_candidate := 'FSN-' || v_code || '-' || lpad(floor(random() * 900000 + 100000)::text, 6, '0');
     exit when not exists (
       select 1 from public.shipments where upper(tracking_number) = v_candidate
     );

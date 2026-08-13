@@ -2,7 +2,7 @@
 create table if not exists public.system_settings (
   id                      uuid primary key default gen_random_uuid(),
   singleton               boolean not null default true unique,
-  company_name            text not null default 'FNS Cargo',
+  company_name            text not null default 'FSN Cargo',
   company_email           text not null default '',
   company_phone           text not null default '',
   company_address         text not null default '',
@@ -63,5 +63,5 @@ grant execute on function public.public_settings() to anon, authenticated;
 insert into public.system_settings
   (company_name, company_email, company_phone, company_address, company_website, default_shipping_method)
 values
-  ('FNS Cargo', 'info@fnscargo.com', '+252 61 1189286', 'Mogadishu, Somalia', 'https://fnscargo.com', 'Air Freight')
+  ('FSN Cargo', 'info@FSNcargo.com', '+252 61 1189286', 'Mogadishu, Somalia', 'https://FSNcargo.com', 'Air Freight')
 on conflict (singleton) do nothing;

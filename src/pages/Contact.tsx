@@ -93,8 +93,8 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
 
   useDocumentTitle(
-    "Contact Us | FNS Cargo",
-    "Request a freight quote or contact the FNS Cargo team about air freight, sea freight, customs clearance, and door-to-door delivery.",
+    "Contact Us | FSN Cargo",
+    "Request a freight quote or contact the FSN Cargo team about air freight, sea freight, customs clearance, and door-to-door delivery.",
   );
 
   const {
@@ -250,7 +250,7 @@ export default function Contact() {
                     </a>
                   </div>
                 </div>
-              
+
                 {/* EMAIL */}
                 <div className="flex gap-4">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-500">
@@ -280,12 +280,12 @@ export default function Contact() {
                     </p>
                   </div>
 
-                 
                   <p className="mt-2 text-sm text-secondary">
-                    Response within 1 business day. 24/7 support for active
+                    24/7 support for active shipments. 
                   </p>
-                  <p className="text-sm text-secondary ">
-                    shipments. Saturday–Thursday, 8:00 AM–6:00 PM (EAT)
+                   <p className="mt-0 text-sm text-secondary">
+                    
+                    Sat–Thu, 8 AM–6 PM (EAT).
                   </p>
                 </div>
               </div>

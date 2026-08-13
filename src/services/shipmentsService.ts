@@ -21,6 +21,12 @@ export interface ShipmentFilters {
   assignee?: string | 'all' | 'unassigned'
   /** Only shipments past their estimated delivery date and not yet delivered. */
   delayedOnly?: boolean
+  /** Customer record the shipment is linked to. */
+  customer?: string | 'all'
+  /** Warehouse the cargo is held at. */
+  warehouse?: string | 'all'
+  /** Booked no earlier than this date (YYYY-MM-DD). */
+  bookedFrom?: string
 }
 
 export interface ShipmentListParams extends ShipmentFilters {
@@ -43,12 +49,15 @@ function baseShipmentQuery() {
 /** Shared filter application so the paginated list and the export sweep never drift apart. */
 function applyShipmentFilters(
   query: ReturnType<typeof baseShipmentQuery>,
-  { search, status, method, payment, assignee, delayedOnly }: ShipmentFilters,
+  { search, status, method, payment, assignee, delayedOnly, customer, warehouse, bookedFrom }: ShipmentFilters,
 ) {
   let q = query
   if (status && status !== 'all') q = q.eq('status', status)
   if (method && method !== 'all') q = q.eq('shipping_method', method)
   if (payment && payment !== 'all') q = q.eq('payment_status', payment)
+  if (customer && customer !== 'all') q = q.eq('customer_id', customer)
+  if (warehouse && warehouse !== 'all') q = q.eq('warehouse', warehouse)
+  if (bookedFrom) q = q.gte('created_at', bookedFrom)
 
   if (assignee === 'unassigned') q = q.is('assigned_to', null)
   else if (assignee && assignee !== 'all') q = q.eq('assigned_to', assignee)
@@ -90,6 +99,63 @@ export async function listShipmentsForExport(filters: ShipmentFilters): Promise<
     if (error) throw error
     return { rows: (data as ShipmentWithCustomer[]) ?? [], count: count ?? 0 }
   })
+}
+
+/**
+ * Values already in use across shipments, so the form's free-text fields can
+ * offer the existing spellings instead of letting every operator invent one.
+ * Read from `shipments` itself (there is no warehouse/branch lookup table), so
+ * the suggestions can only ever be values that already match something.
+ */
+export interface ShipmentFieldSuggestions {
+  warehouses: string[]
+  branchCodes: string[]
+  origins: string[]
+  destinations: string[]
+  /** Branch code on the newest shipment — the default a new booking inherits. */
+  latestBranchCode: string | null
+  /** One past the highest cargo number in use, padded to the house 7-digit format. */
+  nextCnNumber: string | null
+}
+
+/** Cargo numbers are a plain 7-digit counter, printed on the waybill as "CN No". */
+export const CN_NUMBER_LENGTH = 7
+
+export async function listShipmentFieldSuggestions(): Promise<ShipmentFieldSuggestions> {
+  const { data, error } = await supabase
+    .from('shipments')
+    .select('warehouse, branch_code, origin, destination, cn_number')
+    .order('created_at', { ascending: false })
+    .limit(1000)
+  if (error) throw error
+
+  const collect = (key: 'warehouse' | 'branch_code' | 'origin' | 'destination') => {
+    const seen = new Set<string>()
+    for (const row of data ?? []) {
+      const value = row[key]?.trim()
+      if (value) seen.add(value)
+    }
+    return [...seen].sort((a, b) => a.localeCompare(b))
+  }
+
+  // Rows arrive newest-first, so the first branch code seen is the current one.
+  let latestBranchCode: string | null = null
+  let highestCn = 0
+  for (const row of data ?? []) {
+    const branch = row.branch_code?.trim()
+    if (branch && !latestBranchCode) latestBranchCode = branch.toUpperCase()
+    const digits = row.cn_number?.replace(/\D/g, '')
+    if (digits) highestCn = Math.max(highestCn, Number(digits))
+  }
+
+  return {
+    warehouses: collect('warehouse'),
+    branchCodes: collect('branch_code'),
+    origins: collect('origin'),
+    destinations: collect('destination'),
+    latestBranchCode,
+    nextCnNumber: highestCn ? String(highestCn + 1).padStart(CN_NUMBER_LENGTH, '0') : null,
+  }
 }
 
 export async function getShipment(id: string): Promise<ShipmentWithCustomer | null> {
@@ -139,20 +205,33 @@ export async function deleteShipment(id: string, trackingNumber: string): Promis
   await logActivity('shipment.deleted', 'shipment', id, { tracking_number: trackingNumber })
 }
 
-/** True if a tracking number is already taken (optionally excluding one shipment id). */
-export async function trackingNumberExists(trackingNumber: string, excludeId?: string): Promise<boolean> {
-  let query = supabase.from('shipments').select('id').ilike('tracking_number', trackingNumber).limit(1)
-  if (excludeId) query = query.neq('id', excludeId)
-  const { data, error } = await query
-  if (error) throw error
-  return (data?.length ?? 0) > 0
-}
-
-/** Server-side next tracking number in the FNS-... sequence for a country code. */
-export async function suggestTrackingNumber(countryCode = 'CN'): Promise<string> {
-  const { data, error } = await supabase.rpc('suggest_tracking_number', { p_country_code: countryCode })
+/** Server-side next number in the sequence: FSN-<year>-000001, 000002, ... */
+export async function suggestTrackingNumber(): Promise<string> {
+  const { data, error } = await supabase.rpc('suggest_tracking_number')
   if (error) throw error
   return (data as string) ?? ''
+}
+
+/**
+ * Client-side continuation of the same sequence, used only when the RPC is
+ * unreachable. It reads the highest number issued this year and adds one, so a
+ * fallback number still looks like every other one; the unique index on
+ * `tracking_number` remains the real guard against a collision.
+ */
+export async function nextTrackingNumberFallback(): Promise<string> {
+  const year = new Date().getFullYear()
+  const prefix = `FSN-${year}-`
+  const { data, error } = await supabase
+    .from('shipments')
+    .select('tracking_number')
+    .ilike('tracking_number', `${prefix}%`)
+    .order('tracking_number', { ascending: false })
+    .limit(1)
+  if (error) throw error
+
+  const latest = data?.[0]?.tracking_number ?? ''
+  const seq = Number(latest.slice(prefix.length)) || 0
+  return `${prefix}${String(seq + 1).padStart(6, '0')}`
 }
 
 // ---- Operations ------------------------------------------------------------
@@ -175,50 +254,6 @@ export async function assignShipment(id: string, profileId: string | null): Prom
   const { error } = await supabase.from('shipments').update({ assigned_to: profileId }).eq('id', id)
   if (error) throw error
   await logActivity('shipment.assigned', 'shipment', id, { assigned_to: profileId })
-}
-
-const PROOF_BUCKET = 'delivery-proofs'
-
-/**
- * Uploads a proof-of-delivery file and stores its object path on the shipment.
- * The bucket is private, so what is persisted is the path, not a URL — read it
- * back through `getDeliveryProofUrl`.
- */
-export async function uploadDeliveryProof(shipmentId: string, file: File): Promise<string> {
-  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-  const path = `${shipmentId}/${crypto.randomUUID()}.${ext}`
-
-  const { error: uploadError } = await supabase.storage
-    .from(PROOF_BUCKET)
-    .upload(path, file, { cacheControl: '3600', upsert: false })
-  if (uploadError) throw uploadError
-
-  const { error } = await supabase
-    .from('shipments')
-    .update({ delivery_proof_url: path })
-    .eq('id', shipmentId)
-  if (error) throw error
-
-  await logActivity('shipment.proof_uploaded', 'shipment', shipmentId, { path })
-  return path
-}
-
-/** Short-lived signed URL for a stored proof path. Null when there is no proof. */
-export async function getDeliveryProofUrl(path: string | null): Promise<string | null> {
-  if (!path) return null
-  const { data, error } = await supabase.storage.from(PROOF_BUCKET).createSignedUrl(path, 300)
-  if (error) throw error
-  return data?.signedUrl ?? null
-}
-
-export async function removeDeliveryProof(shipmentId: string, path: string): Promise<void> {
-  const { error: storageError } = await supabase.storage.from(PROOF_BUCKET).remove([path])
-  if (storageError) throw storageError
-  const { error } = await supabase
-    .from('shipments')
-    .update({ delivery_proof_url: null })
-    .eq('id', shipmentId)
-  if (error) throw error
 }
 
 /** Every shipment for one customer, newest first (CRM profile panel). */

@@ -3,7 +3,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export default function Privacy() {
   const { settings } = useSystemSettings()
-  useDocumentTitle(`Privacy Policy | ${settings.company_name}`, 'What information FNS Cargo collects, how we use it, and how we keep it safe.')
+  useDocumentTitle(`Privacy Policy | ${settings.company_name}`, 'What information FSN Cargo collects, how we use it, and how we keep it safe.')
 
   return (
     <div className="container-page py-16 sm:py-20">

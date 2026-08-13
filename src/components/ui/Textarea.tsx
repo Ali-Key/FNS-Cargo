@@ -1,37 +1,29 @@
 import { forwardRef, type TextareaHTMLAttributes } from 'react'
 import { cn } from '@/utils/cn'
+import { FIELD_CONTROL, FIELD_ERROR, FieldShell } from './Field'
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string
   error?: string
   hint?: string
+  note?: string
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, label, error, hint, id, rows = 4, ...props }, ref) => {
+  ({ className, label, error, hint, note, id, rows = 4, ...props }, ref) => {
     const inputId = id ?? props.name
     return (
-      <div className="flex flex-col gap-1.5">
-        {label && (
-          <label htmlFor={inputId} className="text-sm font-semibold text-navy-800">
-            {label}
-          </label>
-        )}
+      <FieldShell id={inputId} label={label} error={error} hint={hint} note={note}>
         <textarea
           ref={ref}
           id={inputId}
           rows={rows}
-          className={cn(
-            'w-full rounded-control border border-gray-300 bg-white px-3.5 py-3 text-sm text-navy-900 placeholder:text-steel-400 transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500 focus-visible:border-navy-500',
-            error && 'border-status-delayed focus-visible:ring-status-delayed focus-visible:border-status-delayed',
-            className,
-          )}
+          className={cn(FIELD_CONTROL, 'resize-y px-3 py-2.5 text-sm leading-relaxed', error && FIELD_ERROR, className)}
           aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
           {...props}
         />
-        {error && <p className="text-xs font-medium text-status-delayed">{error}</p>}
-        {!error && hint && <p className="text-xs text-text-secondary">{hint}</p>}
-      </div>
+      </FieldShell>
     )
   },
 )

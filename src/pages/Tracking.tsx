@@ -9,7 +9,7 @@ const HELP_POINTS = [
     icon: PackageSearch,
     title: "Finding your tracking number",
     description:
-      "Your tracking number appears on the booking confirmation we issued. It follows the format FNS-CN-XXXXXXXX.",
+      "Your tracking number is on the booking confirmation we issued. It follows the format FSN-YEAR-CN.",
   },
   {
     icon: Clock,
@@ -33,8 +33,8 @@ const HELP_POINTS = [
 
 export default function Tracking() {
   useDocumentTitle(
-    "Track Your Shipment | FNS Cargo",
-    "Enter your FNS Cargo tracking number to view the current status, route, estimated delivery date, and full event history for your shipment.",
+    "Track Your Shipment | FSN Cargo",
+    "Enter your FSN Cargo tracking number to view the current status, route, estimated delivery date, and full event history for your shipment.",
   );
 
   return (

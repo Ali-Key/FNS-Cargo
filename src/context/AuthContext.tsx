@@ -46,7 +46,16 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 const PROFILE_COLUMNS = 'id, full_name, email, phone, avatar_url, role, status'
-const PROFILE_CACHE_KEY = 'fns.auth.profile'
+const PROFILE_CACHE_KEY = 'FSN.auth.profile'
+/** Upper bound on the initial session lookup, including any token refresh. */
+const BOOTSTRAP_TIMEOUT_MS = 10_000
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('timeout')), ms)
+    promise.then(resolve, reject).finally(() => clearTimeout(timer))
+  })
+}
 
 type ProfileResult =
   | { ok: true; profile: AuthProfile | null }
@@ -101,6 +110,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const mounted = useRef(true)
   /** Guards against an older in-flight lookup overwriting a newer one. */
   const requestId = useRef(0)
+  /**
+   * supabase-js re-emits auth events on tab focus and token refresh, each with a
+   * fresh Session object. Storing an identical session would change the context
+   * value and re-render every dashboard consumer for no new information, so the
+   * token is compared before committing.
+   */
+  const applySession = useCallback((next: Session) => {
+    setSession((prev) =>
+      prev &&
+      prev.access_token === next.access_token &&
+      prev.refresh_token === next.refresh_token
+        ? prev
+        : next,
+    )
+  }, [])
   /** Auth user whose profile is already resolved, so repeat events can skip the lookup. */
   const loadedFor = useRef<string | null>(null)
   /** True while signIn() is resolving the profile itself, so the event skips it. */
@@ -118,8 +142,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       writeCachedProfile(authUserId, result.profile)
     } else if (!background) {
       loadedFor.current = null
-      setProfile(null)
       setProfileError(result.message)
+      // Deliberately not clearing `profile`. A failed re-check of a profile that
+      // already resolved is an infrastructure fault, not a revocation — wiping
+      // it here is what turned a dropped connection into "No dashboard access"
+      // for valid users. On a cold boot there is nothing to keep anyway, and
+      // every query the console then makes is still gated by RLS server-side.
     }
     // A failed *background* revalidation keeps the profile already on screen; the
     // next query the user makes is still checked by RLS, so nothing is unlocked.
@@ -137,37 +165,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false)
   }, [])
 
+  /**
+   * Resolves the stored session, then the profile behind it. Runs once on boot
+   * and again if the user retries after it failed.
+   */
+  const bootstrap = useCallback(async () => {
+    setLoading(true)
+    setProfileError(null)
+
+    let result: Awaited<ReturnType<typeof supabase.auth.getSession>>
+    try {
+      // getSession() refreshes an expired token before it resolves, so on a
+      // stalled network it can hang indefinitely. Bounding it means a bad
+      // connection ends in a retry screen rather than "Verifying access"
+      // forever. The wait is only ever a wait: nothing is granted on timeout.
+      result = await withTimeout(supabase.auth.getSession(), BOOTSTRAP_TIMEOUT_MS)
+    } catch {
+      if (!mounted.current) return
+      setProfileError('Timed out while verifying your session. Check your connection and try again.')
+      setLoading(false)
+      return
+    }
+
+    if (!mounted.current) return
+
+    const { data, error } = result
+    if (error || !data.session) {
+      clearAuth()
+      return
+    }
+
+    const authUserId = data.session.user.id
+    applySession(data.session)
+
+    // Paint from the cached profile and revalidate behind the UI, so a reload
+    // does not hold the whole dashboard behind a round trip.
+    const cached = readCachedProfile(authUserId)
+    if (cached) {
+      loadedFor.current = authUserId
+      setProfile(cached)
+      setProfileError(null)
+      setLoading(false)
+      void loadProfile(authUserId, true)
+      return
+    }
+
+    await loadProfile(authUserId)
+  }, [clearAuth, loadProfile, applySession])
+
   useEffect(() => {
     mounted.current = true
 
-    async function bootstrap() {
-      const { data, error } = await supabase.auth.getSession()
-      if (!mounted.current) return
-
-      if (error || !data.session) {
-        clearAuth()
-        return
-      }
-
-      const authUserId = data.session.user.id
-      setSession(data.session)
-
-      // Paint from the cached profile and revalidate behind the UI, so a reload
-      // does not hold the whole dashboard behind a round trip.
-      const cached = readCachedProfile(authUserId)
-      if (cached) {
-        loadedFor.current = authUserId
-        setProfile(cached)
-        setProfileError(null)
-        setLoading(false)
-        void loadProfile(authUserId, true)
-        return
-      }
-
-      await loadProfile(authUserId)
-    }
-
-    bootstrap()
+    void bootstrap()
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (!mounted.current) return
@@ -177,7 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      setSession(newSession)
+      applySession(newSession)
 
       // IMPORTANT: never await a Supabase query inside this callback. supabase-js
       // holds its auth lock for the duration of the handler, so any query made
@@ -205,13 +254,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mounted.current = false
       listener.subscription.unsubscribe()
     }
-  }, [clearAuth, loadProfile])
+  }, [clearAuth, bootstrap, loadProfile, applySession])
 
   const refreshProfile = useCallback(async () => {
     const authUserId = session?.user.id
-    if (!authUserId) return
+    // No session resolved means bootstrap itself is what failed, so retrying
+    // the profile alone would be a no-op — start again from the session.
+    if (!authUserId) {
+      await bootstrap()
+      return
+    }
     await loadProfile(authUserId)
-  }, [session, loadProfile])
+  }, [session, loadProfile, bootstrap])
 
   const signIn = useCallback(async (email: string, password: string) => {
     signingIn.current = true
@@ -223,14 +277,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // without the role. The SIGNED_IN listener stands down while this runs, so
       // there is exactly one round trip and no spinner after navigation.
       if (data.session) {
-        setSession(data.session)
+        applySession(data.session)
         await loadProfile(data.session.user.id)
       }
       return { error: null }
     } finally {
       signingIn.current = false
     }
-  }, [loadProfile])
+  }, [loadProfile, applySession])
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()

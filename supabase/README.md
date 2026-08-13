@@ -1,4 +1,4 @@
-# FNS Cargo — Supabase backend
+# FSN Cargo — Supabase backend
 
 Linked project ref: **`vvkztbxofacbzypxtslp`** (region eu-west-1).
 

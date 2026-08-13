@@ -33,13 +33,7 @@ export function ExportMenu({ items, label = 'Export' }: ExportMenuProps) {
     <Dropdown
       align="right"
       trigger={
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          icon={<Download className="h-4 w-4" />}
-          loading={busy}
-        >
+        <Button type="button" variant="secondary" size="sm" icon={<Download className="h-4 w-4" />} loading={busy}>
           {label}
         </Button>
       }

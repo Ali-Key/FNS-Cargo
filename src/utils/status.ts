@@ -41,9 +41,11 @@ type StatusStyle = { bg: string; text: string; dot: string; ring: string }
 
 // Three visual buckets mapped onto the existing status color tokens.
 // Color is never the only signal — badges pair this with an icon + label.
-const GREEN: StatusStyle = { bg: 'bg-status-delivered/10', text: 'text-status-delivered', dot: 'bg-status-delivered', ring: 'ring-status-delivered/25' }
-const BLUE: StatusStyle = { bg: 'bg-status-transit/10', text: 'text-status-transit', dot: 'bg-status-transit', ring: 'ring-status-transit/25' }
-const AMBER: StatusStyle = { bg: 'bg-status-pending/10', text: 'text-status-pending', dot: 'bg-status-pending', ring: 'ring-status-pending/25' }
+// `text` uses the `-ink` pair of each hue: the saturated token is the fill/dot
+// colour and fails WCAG AA as 12px text on its own tint.
+const GREEN: StatusStyle = { bg: 'bg-status-delivered/10', text: 'text-status-delivered-ink', dot: 'bg-status-delivered', ring: 'ring-status-delivered/25' }
+const BLUE: StatusStyle = { bg: 'bg-status-transit/10', text: 'text-status-transit-ink', dot: 'bg-status-transit', ring: 'ring-status-transit/25' }
+const AMBER: StatusStyle = { bg: 'bg-status-pending/10', text: 'text-status-pending-ink', dot: 'bg-status-pending', ring: 'ring-status-pending/25' }
 
 export const STATUS_STYLES: Record<ShipmentStatus, StatusStyle> = {
   Received: AMBER,
@@ -74,9 +76,21 @@ export const STATUS_HEX: Record<ShipmentStatus, string> = {
   Delivered: GREEN_HEX,
 }
 
-// Hex mirrors of the brand blue ramp for Recharts, which needs literal colors.
-export const BRAND_BLUE_HEX = '#3865f2'
-export const BRAND_BLUE_LIGHT_HEX = '#7397ff'
+/** Hex mirrors of the dashboard `deck`/`signal` tokens, for Recharts and any
+ *  other surface that cannot take a Tailwind class. Keep these in step with
+ *  `tailwind.config.js` — they are the same colours, written twice. */
+export const DECK_HEX = {
+  ink: '#0B1F3A',
+  ink600: '#475569',
+  muted: '#7B8AA3',
+  line: '#E2E8F0',
+  signal: '#3865F2',
+  signalLight: '#7397FF',
+  positive: '#16A34A',
+  caution: '#F59E0B',
+  critical: '#DC2626',
+  transit: '#3865F2',
+} as const
 
 // Approximate journey completion per status, for the public route bar.
 export const STATUS_PROGRESS: Record<ShipmentStatus, number> = {

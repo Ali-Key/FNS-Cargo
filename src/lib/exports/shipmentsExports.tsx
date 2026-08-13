@@ -13,7 +13,7 @@ export async function exportShipmentReportPdf(filters: ShipmentFilters = {}, fil
   await downloadPdf(
     <ShipmentReportDocument
       shipments={rows}
-      company={settings ?? { company_name: 'FNS Cargo' }}
+      company={settings ?? { company_name: 'FSN Cargo' }}
       filterSummary={filterSummary}
     />,
     `shipment-report-${new Date().toISOString().slice(0, 10)}.pdf`,

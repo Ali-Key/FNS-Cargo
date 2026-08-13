@@ -6,7 +6,51 @@ export default {
     extend: {
       colors: {
         /* =========================================
-           FNS CARGO PRIMARY BLUE
+           FSN CARGO — DASHBOARD "DECK" SYSTEM
+           The console has its own palette so the public
+           marketing site keeps `primary`/`navy` untouched.
+           ink   = the dark command rail + headings
+           canvas/panel = the two working surfaces
+           signal = FSN brand blue (#3865F2) — the SAME
+                    ramp as the public site's `primary`,
+                    so the console and the marketing site
+                    read as one brand. The single accent.
+        ========================================= */
+        deck: {
+          /* The dark end is the brand navy (#0B1F3A) from the public site, not
+             neutral slate — the command rail and headings then read as the same
+             brand as the marketing pages. 700 and lighter stay neutral so body
+             text and borders do not turn blue. */
+          950: "#071321",
+          900: "#0B1F3A", // rail + headings / primary table text
+          850: "#12294A",
+          800: "#18305C",
+          700: "#334155",
+          600: "#475569",
+          500: "#64748B", // secondary text, labels, metadata
+          400: "#7B8AA3",
+          300: "#B9C3D1",
+          200: "#D5DDE8",
+          150: "#E2E8F0", // borders, dividers, input outlines
+          100: "#EDF1F7",
+          50: "#F8FAFC", // page background
+        },
+        signal: {
+          50: "#EEF3FF", // tint fills: selected rows, icon chips, badges
+          100: "#DCE7FF",
+          200: "#C2D4FF",
+          300: "#9CB8FF",
+          400: "#7397FF",
+          500: "#3865F2", // primary actions, active nav, links
+          600: "#2F57D6", // hover / pressed
+          700: "#2646B3",
+          800: "#1D3690",
+          900: "#15296D",
+        },
+        canvas: "#F8FAFC",
+        panel: "#FFFFFF",
+        /* =========================================
+           FSN CARGO PRIMARY BLUE
            Brand: #3865F2
         ========================================= */
         primary: {
@@ -24,7 +68,7 @@ export default {
         },
 
         /* =========================================
-           FNS CARGO NAVY
+           FSN CARGO NAVY
            Brand: #0B1F3A
         ========================================= */
         navy: {
@@ -42,7 +86,27 @@ export default {
         },
 
         /* =========================================
-           FNS CARGO SURFACES & TEXT
+           FSN CARGO GOLD ACCENT
+           The reserved brand gold. Nothing consumes it
+           today — the console accent is `signal`. Kept
+           because it is part of the documented brand
+           palette; do not reach for it to decorate.
+        ========================================= */
+        accent: {
+          50: "#FFF8E7",
+          100: "#FDEDC4",
+          200: "#FBDC91",
+          300: "#F9C955",
+          400: "#F7B928",
+          500: "#EDA30C",
+          600: "#C97F08",
+          700: "#A0600B",
+          800: "#834D10",
+          900: "#6F4013",
+        },
+
+        /* =========================================
+           FSN CARGO SURFACES & TEXT
         ========================================= */
         surface: "#F8FAFC",
         background: "#FFFFFF",
@@ -72,19 +136,24 @@ export default {
 
         /* =========================================
            WARNING
-           Blue-based to avoid yellow/amber branding
+           Amber, anchored on the same #F59E0B as
+           `status.pending`. It was previously the blue
+           ramp, which made a warning toast and an info
+           toast pixel-identical — a semantic colour has
+           to be distinguishable from its neighbours.
+           `600` is the AA-safe text pair for `50`.
         ========================================= */
         warning: {
-          50: "#EEF3FF",
-          100: "#DCE7FF",
-          200: "#C2D4FF",
-          300: "#9CB8FF",
-          400: "#7397FF",
-          500: "#3865F2",
-          600: "#2F57D6",
-          700: "#2646B3",
-          800: "#1D3690",
-          900: "#15296D",
+          50: "#FFFBEB",
+          100: "#FEF3C7",
+          200: "#FDE68A",
+          300: "#FCD34D",
+          400: "#FBBF24",
+          500: "#F59E0B",
+          600: "#B45309",
+          700: "#92400E",
+          800: "#78350F",
+          900: "#5C2E0C",
         },
 
         /* =========================================
@@ -105,7 +174,7 @@ export default {
 
         /* =========================================
            INFO
-           FNS blue
+           FSN blue
         ========================================= */
         info: {
           50: "#EEF3FF",
@@ -143,10 +212,20 @@ export default {
         ========================================= */
         status: {
           delivered: "#16A34A", // emerald — done / paid
-          transit: "#3865F2", // blue — in motion
+          transit: "#3865F2", // brand blue — in motion
           pending: "#F59E0B", // amber — at a depot / needs attention
           delayed: "#DC2626", // red — owing / destructive
           cancelled: "#64748B", // slate — waiting / inactive
+
+          /* Text tones for the `/10` tint fills above. The saturated hues are
+             fill/dot colours only: at 12px badge text they sit between 2:1 and
+             3.3:1 on their own tint, which fails WCAG AA. These darkened pairs
+             all clear 4.5:1 while keeping the same hue identity. */
+          "delivered-ink": "#166534",
+          "transit-ink": "#2646B3",
+          "pending-ink": "#A0600B",
+          "delayed-ink": "#991B1B",
+          "cancelled-ink": "#475569",
         },
       },
 
@@ -208,6 +287,19 @@ export default {
         card: "12px",
         control: "10px",
         badge: "999px",
+
+        /* Dashboard console radii. The marketing site keeps the softer 12px
+           `card`; operational surfaces sit tighter so a dense screen of panels
+           and rows reads as one instrument, not a pile of pills. */
+        panel: "8px",
+        chip: "6px",
+
+        /* FSN deck radii. Tight on purpose: a 14px corner reads as a consumer
+           card, and a screen full of them looks like a landing page. Operational
+           surfaces sit at 10px so a manifest reads as one instrument. */
+        deck: "10px",
+        "deck-sm": "8px",
+        "deck-lg": "14px",
       },
 
       /* =========================================
@@ -217,6 +309,17 @@ export default {
         "elevation-1": "0 1px 2px rgba(15,23,32,0.06)",
         "elevation-2": "0 4px 16px rgba(15,23,32,0.08)",
         "elevation-3": "0 16px 40px rgba(15,23,32,0.12)",
+
+        /* FSN deck elevation: a hairline ring carried in the shadow itself, so
+           panels need no border class and never double-stroke when nested.
+           `deck` is deliberately FLAT — a static container in an operations
+           console is a frame, not an object hovering over the page. Depth is
+           reserved for things that genuinely float (menus, modals, hover); when
+           every surface casts a shadow, none of them reads as raised. */
+        deck: "0 0 0 1px rgba(15,23,42,0.10)",
+        "deck-raised": "0 0 0 1px rgba(15,23,42,0.14), 0 4px 12px -4px rgba(15,23,42,0.12)",
+        "deck-pop": "0 0 0 1px rgba(15,23,42,0.08), 0 20px 50px -12px rgba(15,23,42,0.30)",
+        "deck-rail": "inset -1px 0 0 rgba(255,255,255,0.06)",
       },
 
       /* =========================================

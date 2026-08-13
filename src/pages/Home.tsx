@@ -130,7 +130,7 @@ export default function Home() {
   const { settings } = useSystemSettings();
   useDocumentTitle(
     `${settings.company_name} · Global Air & Sea Cargo and Logistics`,
-    "FNS Cargo connects Somalia with the world through reliable air and sea freight, customs clearance, and door-to-door delivery to and from China, Turkey, Sweden, Finland, Norway, Denmark and beyond, with live shipment tracking.",
+    "FSN Cargo connects Somalia with the world through reliable air and sea freight, customs clearance, and door-to-door delivery to and from China, Turkey, Sweden, Finland, Norway, Denmark and beyond, with live shipment tracking.",
   );
 
   return (
@@ -337,7 +337,7 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-14 lg:grid-cols-2 lg:items-center">
             <Reveal>
               <p className="text-sm font-bold uppercase tracking-wider text-primary-500">
-                Why FNS Cargo
+                Why FSN Cargo
               </p>
               <h2 className="mt-3 text-balance text-3xl font-extrabold text-white sm:text-4xl">
                 Shipping you don't have to worry about
@@ -428,7 +428,7 @@ export default function Home() {
               Your trusted partner for global cargo
             </h2>
             <p className="mt-4 text-pretty leading-relaxed text-text-secondary">
-              FNS Cargo is a professional logistics and cargo company based in
+              FSN Cargo is a professional logistics and cargo company based in
               Somalia. We provide reliable air and sea freight, customs
               clearance, and door-to-door delivery, connecting businesses and
               individuals with global markets through trusted partnerships,
@@ -460,14 +460,10 @@ export default function Home() {
       </section>
 
       {/* CONTACT CTA */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-navy-950 via-navy-900 to-primary-700 py-16 text-white sm:py-24">
+      <section className="relative overflow-hidden bg-navy-900 py-16 text-white sm:py-24">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-grid-pattern bg-[size:40px_40px] opacity-15"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-0 h-64 w-[36rem] -translate-x-1/2 rounded-full bg-primary-500/10 blur-3xl"
         />
         <Reveal className="container-page relative flex flex-col items-center gap-6 text-center">
           <h2 className="max-w-xl text-balance text-3xl font-extrabold text-white sm:text-4xl">

@@ -33,16 +33,16 @@ const PRINCIPLES = [
 
 export default function About() {
   useDocumentTitle(
-    "About Us | FNS Cargo",
-    "FNS Cargo is a logistics and freight forwarding company based in Somalia, providing air and sea freight, customs clearance, and door-to-door delivery to markets worldwide.",
+    "About Us | FSN Cargo",
+    "FSN Cargo is a logistics and freight forwarding company based in Somalia, providing air and sea freight, customs clearance, and door-to-door delivery to markets worldwide.",
   );
 
   return (
     <div>
       <PageHero
-        eyebrow="About FNS Cargo"
+        eyebrow="About FSN Cargo"
         title="Connecting Somalia with global markets"
-        description="FNS Cargo is a logistics and freight forwarding company based in Somalia. We provide air freight, sea freight, customs clearance, and door-to-door delivery to and from China, Turkey, Sweden, Finland, Norway, Denmark, and other international markets."
+        description="FSN Cargo is a logistics and freight forwarding company based in Somalia. We provide air freight, sea freight, customs clearance, and door-to-door delivery to and from China, Turkey, Sweden, Finland, Norway, Denmark, and other international markets."
       />
 
       <section className="container-page py-16 sm:py-24">

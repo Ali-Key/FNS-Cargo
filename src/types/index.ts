@@ -39,6 +39,18 @@ export const INVOICE_STATUSES = Constants.public.Enums.invoice_status
 export const PAYMENT_METHODS = Constants.public.Enums.payment_method
 
 /**
+ * The methods a counter can actually take money by, and the only ones offered
+ * when recording a payment. `PAYMENT_METHODS` stays the full enum so historic
+ * rows recorded under a retired method still filter and display.
+ */
+export const RECORDABLE_PAYMENT_METHODS = [
+  'Bank Transfer',
+  'Cheque',
+  'EVC Plus',
+  'Edahab',
+] as const satisfies readonly PaymentMethod[]
+
+/**
  * Roles allowed into the dashboard at all. Must mirror the DB's is_ops() gate
  * exactly (public.is_ops(): role in ('Admin', 'Dispatcher', 'Staff')) — if this
  * list is narrower than is_ops(), a role the database authorizes gets blocked
@@ -67,6 +79,22 @@ export type InvoiceWithRelations = Invoice & {
 /** A payment joined with its invoice, for the finance ledger view. */
 export type PaymentWithInvoice = Payment & {
   invoice: Pick<Invoice, 'id' | 'invoice_number' | 'shipment_id'> | null
+}
+
+/**
+ * A payment as the ledger reads it: the money, the shipment it was taken for,
+ * and who took it. `payments` carries no `shipment_id`, so the shipment is
+ * reached through the invoice row — a join, not a billing concept: the ledger
+ * shows no invoice number, amount, or balance.
+ */
+export type PaymentLedgerRow = Payment & {
+  invoice:
+    | (Pick<Invoice, 'id' | 'shipment_id'> & {
+        shipment: Pick<Shipment, 'id' | 'tracking_number' | 'customer_name'> | null
+      })
+    | null
+  /** Profile that took the money at the counter. */
+  recorder: Pick<Profile, 'full_name'> | null
 }
 
 /** Invoice joined with every field the invoice PDF/preview needs (fuller than `InvoiceWithRelations`). */
@@ -181,6 +209,8 @@ export interface DeliveryPerformance {
   in_progress: number
   overdue: number
   avg_transit_days: number | null
+  /** Days the still-moving shipments have been open. Null when none are. */
+  avg_open_days: number | null
 }
 
 export interface CustomerGrowthPoint {

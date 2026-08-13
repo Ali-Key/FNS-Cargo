@@ -18,7 +18,7 @@ export function CopyButton({ value, label, className }: { value: string; label: 
         })
       }}
       className={cn(
-        'shrink-0 rounded p-0.5 text-steel-400 transition-colors hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500',
+        'deck-focus shrink-0 rounded-chip p-1 text-deck-400 transition-colors hover:bg-deck-100 hover:text-signal-600',
         className,
       )}
       aria-label={`Copy ${label}`}

@@ -1,5 +1,6 @@
-import { View, Text, Svg, Path, Circle, StyleSheet } from '@react-pdf/renderer'
+import { View, Text, Image, StyleSheet } from '@react-pdf/renderer'
 import { PDF_COLORS } from './theme'
+import { FSN_MARK } from '@/utils/brand'
 
 const styles = StyleSheet.create({
   row: {
@@ -15,10 +16,7 @@ const styles = StyleSheet.create({
   mark: {
     width: 28,
     height: 28,
-    borderRadius: 6,
-    backgroundColor: PDF_COLORS.primary500,
-    alignItems: 'center',
-    justifyContent: 'center',
+    objectFit: 'contain',
     marginRight: 8,
   },
   brandText: {
@@ -61,19 +59,7 @@ export function DocumentHeader({ company }: { company: DocumentCompanyInfo }) {
     <View>
       <View style={styles.row}>
         <View style={styles.brandRow}>
-          <View style={styles.mark}>
-            <Svg viewBox="0 0 24 24" width={16} height={16}>
-              <Path
-                d="M3 16.5 9 12l4 3 8-6.5"
-                stroke={PDF_COLORS.white}
-                strokeWidth={2.4}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-              <Circle cx={21} cy={8.5} r={1.8} fill={PDF_COLORS.white} />
-            </Svg>
-          </View>
+          <Image style={styles.mark} src={FSN_MARK} />
           <View style={styles.brandText}>
             <Text style={styles.companyName}>{company.company_name}</Text>
             <Text style={styles.companyTagline}>Professional cargo &amp; logistics services</Text>

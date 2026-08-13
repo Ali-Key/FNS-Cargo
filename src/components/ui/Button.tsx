@@ -2,8 +2,8 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
-type Size = 'sm' | 'md' | 'lg'
+type Variant = 'primary' | 'deck' | 'signal' | 'secondary' | 'subtle' | 'outline' | 'ghost' | 'danger'
+type Size = 'xs' | 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant
@@ -11,51 +11,55 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean
   icon?: ReactNode
   iconPosition?: 'left' | 'right'
+  /** Stretch to the container width — used by mobile row footers and forms. */
+  block?: boolean
 }
 
 const VARIANT_STYLES: Record<Variant, string> = {
-  primary:
-    'bg-primary-500 text-white hover:bg-primary-600 shadow-elevation-2 hover:shadow-elevation-3 focus-visible:ring-primary-600 disabled:hover:bg-primary-500',
-  secondary:
-    'bg-white text-ink border border-gray-300 hover:border-primary-300 hover:bg-primary-50 shadow-sm',
-  outline:
-    'bg-transparent text-white border border-white/40 hover:bg-white/10',
-  ghost: 'bg-transparent text-text-secondary hover:bg-steel-100 hover:text-ink',
-  danger: 'bg-status-delayed text-white hover:bg-status-delayed/90 shadow-elevation-2',
+  // `primary` stays the public marketing blue so the website is untouched.
+  primary: 'bg-primary-500 text-white hover:bg-primary-600 shadow-sm',
+  // `deck` is the console's default action: solid FSN brand blue, no glow.
+  deck: 'bg-signal-500 text-white hover:bg-signal-600 shadow-sm',
+  signal: 'bg-signal-500 text-white hover:bg-signal-600 shadow-sm',
+  secondary: 'bg-panel text-deck-800 shadow-deck hover:bg-deck-50',
+  subtle: 'bg-deck-100 text-deck-700 hover:bg-deck-150',
+  outline: 'bg-transparent text-white border border-white/40 hover:bg-white/10',
+  ghost: 'bg-transparent text-deck-600 hover:bg-deck-100 hover:text-deck-900',
+  danger: 'bg-status-delayed text-white hover:bg-status-delayed/90 shadow-sm',
 }
 
 const SIZE_STYLES: Record<Size, string> = {
-  sm: 'h-9 px-3.5 text-sm gap-1.5',
-  md: 'h-11 px-5 text-sm gap-2',
-  lg: 'h-12 px-7 text-base gap-2.5',
+  xs: 'h-8 px-2.5 text-[12px] gap-1.5',
+  sm: 'h-9 px-3 text-[13px] gap-1.5',
+  md: 'h-10 px-4 text-sm gap-2',
+  lg: 'h-12 px-6 text-base gap-2.5',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant = 'primary', size = 'md', loading, icon, iconPosition = 'left', children, disabled, ...props },
+    { className, variant = 'deck', size = 'md', loading, icon, iconPosition = 'left', block, children, disabled, ...props },
     ref,
-  ) => {
-    return (
-      <button
-        ref={ref}
-        disabled={disabled || loading}
-        className={cn(
-          'inline-flex items-center justify-center rounded-control font-semibold transition-all duration-180 ease-out-premium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98]',
-          VARIANT_STYLES[variant],
-          SIZE_STYLES[size],
-          className,
-        )}
-        {...props}
-      >
-        {loading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          icon && iconPosition === 'left' && <span className="inline-flex shrink-0">{icon}</span>
-        )}
-        {children}
-        {!loading && icon && iconPosition === 'right' && <span className="inline-flex shrink-0">{icon}</span>}
-      </button>
-    )
-  },
+  ) => (
+    <button
+      ref={ref}
+      disabled={disabled || loading}
+      className={cn(
+        'deck-focus inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-deck-sm font-semibold transition-colors duration-180 disabled:cursor-not-allowed disabled:opacity-55',
+        VARIANT_STYLES[variant],
+        SIZE_STYLES[size],
+        block && 'w-full',
+        className,
+      )}
+      {...props}
+    >
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+      ) : (
+        icon && iconPosition === 'left' && <span className="inline-flex shrink-0">{icon}</span>
+      )}
+      {children}
+      {!loading && icon && iconPosition === 'right' && <span className="inline-flex shrink-0">{icon}</span>}
+    </button>
+  ),
 )
 Button.displayName = 'Button'

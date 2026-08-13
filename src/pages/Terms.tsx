@@ -3,7 +3,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export default function Terms() {
   const { settings } = useSystemSettings()
-  useDocumentTitle(`Terms of Service | ${settings.company_name}`, 'The simple terms for using FNS Cargo to ship goods and track shipments between China and Somalia.')
+  useDocumentTitle(`Terms of Service | ${settings.company_name}`, 'The simple terms for using FSN Cargo to ship goods and track shipments between China and Somalia.')
 
   return (
     <div className="container-page py-16 sm:py-20">

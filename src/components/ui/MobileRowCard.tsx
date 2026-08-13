@@ -2,27 +2,29 @@ import type { ReactNode } from 'react'
 import { cn } from '@/utils/cn'
 
 interface MobileRowCardProps {
-  /** Tracking number / invoice number / amount — the row's identifying line. */
+  /** The row's identifying line — tracking number, invoice number, name. */
   header: ReactNode
-  /** Row actions (usually a `RowActions` kebab), placed opposite `header`. */
+  /** Row actions, placed opposite `header`. */
   actions?: ReactNode
   /** `DetailRow`s describing the record. */
   children?: ReactNode
-  /** Optional full-width control below the details, e.g. "Record payment". */
+  /** Full-width control below the details, e.g. "Record payment". */
   footer?: ReactNode
   className?: string
 }
 
-/** The card shell every mobile list view (< sm breakpoint) uses in place of a table row. */
+/** The card every list view renders below the `sm` breakpoint in place of a table row. */
 export function MobileRowCard({ header, actions, children, footer, className }: MobileRowCardProps) {
   return (
-    <div className={cn('border border-gray-200 bg-white p-4', className)}>
-      <div className="flex items-start justify-between gap-3">
+    <div className={cn('rounded-deck bg-panel p-4 shadow-deck', className)}>
+      <div className="flex items-start justify-between gap-2">
         {header}
         {actions}
       </div>
-      {children && <div className="mt-3 space-y-2">{children}</div>}
-      {footer}
+      {/* A `dl`, not a div: the children are `DetailRow`s, whose dt/dd pairs are
+          only valid — and only announced as label/value — inside one. */}
+      {children && <dl className="mt-3 space-y-2 border-t border-deck-100 pt-3">{children}</dl>}
+      {footer && <div className="mt-3">{footer}</div>}
     </div>
   )
 }

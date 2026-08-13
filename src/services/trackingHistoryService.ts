@@ -2,8 +2,6 @@ import { supabase } from '@/lib/supabase'
 import type { TrackingUpdate, TrackingUpdateWithShipment, TablesInsert, TablesUpdate } from '@/types'
 import { logActivity } from './activityService'
 
-const EVENT_ORDER = { column: 'date', ascending: false } as const
-
 export async function listTrackingHistory(shipmentId: string): Promise<TrackingUpdate[]> {
   const { data, error } = await supabase
     .from('tracking_updates')
@@ -64,8 +62,8 @@ export async function deleteTrackingEvent(id: string, shipmentId: string): Promi
 export async function listRecentLocations(limit = 100): Promise<string[]> {
   const { data, error } = await supabase
     .from('tracking_updates')
-    .select('location, date')
-    .order(EVENT_ORDER.column, { ascending: false })
+    .select('location')
+    .order('date', { ascending: false })
     .limit(limit)
   if (error) throw error
   const seen = new Set<string>()

@@ -11,30 +11,26 @@ import Contact from '@/pages/Contact'
 import Privacy from '@/pages/Privacy'
 import Terms from '@/pages/Terms'
 import NotFound from '@/pages/NotFound'
-import { ScrollToTop } from "@/components/common/ScrollToTop";
+import { ScrollToTop } from '@/components/common/ScrollToTop'
 
-
-// Admin/dashboard code is split into its own chunk so it never ships with the
-// public bundle (keeps the public site lean and isolates Recharts to the dashboard).
-const Login = lazy(() => import('@/pages/admin/Login'))
+// The FSN Cargo console is split into its own chunk so it never ships with the
+// public bundle (keeps the marketing site lean and isolates Recharts).
+const Login = lazy(() => import('@/pages/auth/Login'))
 const DashboardLayout = lazy(() => import('@/layouts/DashboardLayout'))
-const Overview = lazy(() => import('@/pages/admin/Overview'))
-const Shipments = lazy(() => import('@/pages/admin/Shipments'))
-const ShipmentDetail = lazy(() => import('@/pages/admin/ShipmentDetail'))
-const TrackingUpdates = lazy(() => import('@/pages/admin/TrackingUpdates'))
-const Customers = lazy(() => import('@/pages/admin/Customers'))
-const Quotes = lazy(() => import('@/pages/admin/Quotes'))
-const Invoices = lazy(() => import('@/pages/admin/Invoices'))
-const Payments = lazy(() => import('@/pages/admin/Payments'))
-const Analytics = lazy(() => import('@/pages/admin/Analytics'))
-const Users = lazy(() => import('@/pages/admin/Users'))
-const Settings = lazy(() => import('@/pages/admin/Settings'))
-const Profile = lazy(() => import('@/pages/admin/Profile'))
+const Overview = lazy(() => import('@/pages/dashboard/Overview'))
+const Shipments = lazy(() => import('@/pages/shipments/Shipments'))
+const ShipmentDetail = lazy(() => import('@/pages/shipments/ShipmentDetail'))
+const TrackingUpdates = lazy(() => import('@/pages/tracking/TrackingUpdates'))
+const Customers = lazy(() => import('@/pages/customers/Customers'))
+const Quotes = lazy(() => import('@/pages/quotes/Quotes'))
+const Payments = lazy(() => import('@/pages/payments/Payments'))
+const Analytics = lazy(() => import('@/pages/reports/Analytics'))
+const Settings = lazy(() => import('@/pages/settings/Settings'))
 
 function RouteFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface">
-      <Spinner className="h-7 w-7 text-navy-700" />
+    <div className="flex min-h-screen items-center justify-center bg-canvas">
+      <Spinner size={28} />
     </div>
   )
 }
@@ -57,6 +53,9 @@ export default function App() {
         <Route path="/login" element={<Login />} />
 
         <Route element={<ProtectedRoute />}>
+          {/* DashboardLayout carries its own Suspense boundary around the
+              outlet, so loading a page chunk swaps the work area only — the
+              rail, topbar and their state stay mounted. */}
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<Overview />} />
             <Route path="/dashboard/shipments" element={<Shipments />} />
@@ -64,15 +63,14 @@ export default function App() {
             <Route path="/dashboard/tracking" element={<TrackingUpdates />} />
             <Route path="/dashboard/customers" element={<Customers />} />
             <Route path="/dashboard/quotes" element={<Quotes />} />
-            <Route path="/dashboard/profile" element={<Profile />} />
-            {/* Admin-only areas. Finance and Analytics expose revenue, which the
-                invoices RLS policy and analytics_report() also restrict to admins. */}
+            {/* Settings is every user's own account first; its admin bands
+                (team, company) are gated inside the page. */}
+            <Route path="/dashboard/settings" element={<Settings />} />
+            {/* Admin-only areas. Finance and Reports expose revenue, which the
+                payments RLS policy and analytics_report() also restrict to admins. */}
             <Route element={<ProtectedRoute allow={['Admin']} />}>
               <Route path="/dashboard/payments" element={<Payments />} />
-              <Route path="/dashboard/invoices" element={<Invoices />} />
               <Route path="/dashboard/analytics" element={<Analytics />} />
-              <Route path="/dashboard/users" element={<Users />} />
-              <Route path="/dashboard/settings" element={<Settings />} />
             </Route>
           </Route>
         </Route>

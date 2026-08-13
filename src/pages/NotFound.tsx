@@ -4,7 +4,7 @@ import { Button } from '@/components/ui'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 
 export default function NotFound() {
-  useDocumentTitle('Page Not Found | FNS Cargo')
+  useDocumentTitle('Page Not Found | FSN Cargo')
 
   return (
     <div className="container-page flex min-h-[60vh] flex-col items-center justify-center gap-4 py-20 text-center">

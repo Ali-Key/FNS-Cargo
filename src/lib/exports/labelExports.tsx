@@ -10,7 +10,7 @@ async function buildLabel(shipmentId: string, size: LabelSize) {
     doc: (
       <LabelDocument
         shipment={shipment}
-        companyName={settings?.company_name ?? 'FNS Cargo'}
+        companyName={settings?.company_name ?? 'FSN Cargo'}
         companyWebsite={settings?.company_website}
         size={size}
       />

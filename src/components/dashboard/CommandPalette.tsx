@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Zap, X, CornerDownLeft, Search } from 'lucide-react'
+import { Command, X, CornerDownLeft, Search } from 'lucide-react'
 import { Button, Input } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
+import { invalidateCachedResources } from '@/hooks/useCachedResource'
 import {
   findShipmentByTracking,
   createTrackingEvent,
@@ -73,10 +74,10 @@ export function CommandPalette() {
       openPalette()
     }
     window.addEventListener('keydown', onKey)
-    window.addEventListener('fns:command', onTrigger)
+    window.addEventListener('fsn:command', onTrigger)
     return () => {
       window.removeEventListener('keydown', onKey)
-      window.removeEventListener('fns:command', onTrigger)
+      window.removeEventListener('fsn:command', onTrigger)
     }
   }, [openPalette])
 
@@ -113,6 +114,9 @@ export function CommandPalette() {
       })
       if (form.sync) await updateShipment(shipment.id, { status: form.status })
 
+      // A tracking event is what moves a shipment's status, so every cached
+      // page that shows a status is stale from this point on.
+      invalidateCachedResources()
       toast.success('Update posted', `${tracking} is now ${STATUS_LABEL[form.status]}.`)
       // Reset for the next entry, keeping status/sync, and refocus tracking.
       setForm((f) => ({ ...EMPTY, status: f.status, sync: f.sync, eventTime: nowLocal() }))
@@ -134,45 +138,43 @@ export function CommandPalette() {
   if (!open) return null
 
   return createPortal(
-    <div className="fixed inset-0 z-[95] flex items-start justify-center p-4 pt-[10vh]" onKeyDown={onKeyDown}>
-      <div className="absolute inset-0 animate-fade-in bg-navy-950/60" onClick={() => setOpen(false)} aria-hidden="true" />
+    <div className="fixed inset-0 z-[95] flex items-end justify-center sm:items-start sm:p-4 sm:pt-[8vh]" onKeyDown={onKeyDown}>
+      <div className="absolute inset-0 animate-fade-in bg-deck-950/70 backdrop-blur-[2px]" onClick={() => setOpen(false)} aria-hidden="true" />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Post tracking update"
-        className="relative z-10 w-full max-w-lg animate-fade-up overflow-hidden rounded-card bg-white shadow-elevation-3"
+        className="deck-enter relative z-10 flex max-h-[92dvh] w-full max-w-xl flex-col overflow-hidden bg-panel shadow-deck-pop sm:rounded-deck-lg"
       >
-        <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3.5">
-          <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-primary-500" />
-            <h2 className="text-sm font-bold text-navy-900">Quick tracking update</h2>
+        <div className="flex shrink-0 items-center justify-between border-b border-deck-100 bg-deck-900 px-5 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <Command className="h-4 w-4 text-signal-300" aria-hidden="true" />
+            <h2 className="text-[14px] font-semibold text-white">Quick tracking update</h2>
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="rounded-md p-1 text-steel-400 hover:bg-steel-100 hover:text-navy-700"
+            className="deck-focus-dark rounded-deck-sm p-1.5 text-deck-300 transition-colors hover:bg-white/10 hover:text-white"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="space-y-4 px-5 py-4">
-          {/* Tracking number */}
+        <div className="deck-scroll min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
           <Input
             ref={trackingRef}
             value={form.tracking}
             onChange={(e) => setForm((f) => ({ ...f, tracking: e.target.value.toUpperCase() }))}
-            placeholder="FNS-2026-000123"
-            className="font-mono"
+            placeholder="FSN-CN-000123"
+            className="font-mono tracking-wide"
             icon={<Search className="h-4 w-4" />}
             aria-label="Tracking number"
             autoComplete="off"
           />
 
-          {/* Status segmented control */}
           <div>
-            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-steel-400">Status</p>
-            <div className="grid grid-cols-5 gap-1.5">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-deck-500">Status</p>
+            <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
               {SHIPMENT_STATUSES.map((s) => {
                 const Icon = STATUS_ICON[s]
                 const active = form.status === s
@@ -185,13 +187,13 @@ export function CommandPalette() {
                     aria-pressed={active}
                     title={STATUS_LABEL[s]}
                     className={cn(
-                      'flex flex-col items-center gap-1 rounded-control border px-1 py-2 text-[11px] font-semibold transition-colors duration-180 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500',
+                      'deck-focus flex flex-col items-center gap-1.5 rounded-deck-sm px-1 py-2.5 text-center text-[10px] font-semibold leading-tight transition-colors',
                       active
-                        ? cn(style.bg, style.text, 'border-transparent ring-1', style.ring)
-                        : 'border-gray-300 text-text-secondary hover:border-navy-300 hover:text-navy-700',
+                        ? cn(style.bg, style.text, 'ring-1 ring-inset', style.ring)
+                        : 'bg-deck-50 text-deck-500 hover:bg-deck-100 hover:text-deck-900',
                     )}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-4 w-4" aria-hidden="true" />
                     {STATUS_LABEL[s]}
                   </button>
                 )
@@ -199,7 +201,6 @@ export function CommandPalette() {
             </div>
           </div>
 
-          {/* Country + city */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Input
               label="Country"
@@ -215,7 +216,6 @@ export function CommandPalette() {
             />
           </div>
 
-          {/* Location + time */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Input
@@ -240,32 +240,37 @@ export function CommandPalette() {
           </div>
 
           <Input
+            label="Description"
+            note="Optional"
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            placeholder="Description (optional): visible to the customer"
-            aria-label="Description"
+            placeholder="Visible to the customer on the public tracking page"
           />
 
-          <label className="flex items-center gap-2.5 text-sm text-steel-600">
+          <label className="flex items-start gap-2.5 rounded-deck-sm bg-deck-50 px-3 py-2.5 text-[13px] text-deck-700">
             <input
               type="checkbox"
               checked={form.sync}
               onChange={(e) => setForm((f) => ({ ...f, sync: e.target.checked }))}
-              className="h-4 w-4 rounded border-steel-300 text-navy-700 focus:ring-navy-500"
+              className="mt-0.5 h-4 w-4 rounded border-deck-300 text-signal-600 focus:ring-signal-500"
             />
-            Set the shipment’s current status to match this update
+            Set the shipment&rsquo;s current status to match this update
           </label>
 
-          {error && <p className="text-sm font-medium text-status-delayed">{error}</p>}
+          {error && (
+            <p className="rounded-deck-sm bg-status-delayed/10 px-3 py-2 text-[13px] font-medium text-status-delayed-ink">
+              {error}
+            </p>
+          )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-200 bg-surface/60 px-5 py-3">
-          <span className="flex items-center gap-1 text-xs text-steel-400">
-            <CornerDownLeft className="h-3.5 w-3.5" />
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-deck-100 bg-deck-50/70 px-5 py-3">
+          <span className="hidden items-center gap-1 text-[11px] text-deck-400 sm:flex">
+            <CornerDownLeft className="h-3.5 w-3.5" aria-hidden="true" />
             <kbd className="font-sans font-semibold">⌘</kbd>
             <kbd className="font-sans font-semibold">Enter</kbd> to post
           </span>
-          <Button variant="primary" size="sm" onClick={submit} loading={submitting}>
+          <Button variant="signal" size="sm" onClick={submit} loading={submitting} className="ml-auto">
             Post update
           </Button>
         </div>
