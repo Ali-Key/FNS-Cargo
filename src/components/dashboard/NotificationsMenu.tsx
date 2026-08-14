@@ -94,12 +94,12 @@ export function NotificationsMenu() {
       trigger={
         <button
           type="button"
-          className="deck-focus relative inline-flex h-10 w-10 items-center justify-center rounded-deck-sm text-deck-500 transition-colors hover:bg-deck-100 hover:text-deck-900"
+          className="deck-focus relative inline-flex h-9 w-9 items-center justify-center rounded-deck-sm text-deck-500 transition-colors hover:bg-deck-100 hover:text-deck-900"
           aria-label={count > 0 ? `${count} operational alerts` : 'Notifications'}
         >
           <Bell className="h-[18px] w-[18px]" aria-hidden="true" />
           {count > 0 && (
-            <span className="absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-status-delayed px-1 text-[10px] font-bold text-white ring-2 ring-panel">
+            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-status-delayed px-1 text-[10px] font-bold text-white ring-2 ring-panel">
               {count > 9 ? '9+' : count}
             </span>
           )}

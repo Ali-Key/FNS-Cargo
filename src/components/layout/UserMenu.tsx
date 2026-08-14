@@ -51,7 +51,7 @@ export function UserMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="deck-focus flex items-center gap-2 rounded-deck-sm py-1 pl-1 pr-1.5 transition-colors hover:bg-deck-100 sm:pr-2"
+        className="deck-focus flex h-9 items-center gap-2 rounded-deck-sm pl-0.5 pr-1 transition-colors hover:bg-deck-100 sm:pr-2"
       >
         <Avatar name={name} size="sm" className="h-8 w-8 border-0 bg-deck-800 text-white" />
         <span className="hidden min-w-0 text-left sm:block">
