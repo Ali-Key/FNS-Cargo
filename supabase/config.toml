@@ -45,6 +45,9 @@ enabled = true
 [functions.admin-create-user]
 verify_jwt = true
 
+[functions.admin-set-email]
+verify_jwt = true              # is_admin() is re-checked inside; the JWT gate is the outer door
+
 [functions.send-invoice-email]
 verify_jwt = true              # admin-gated inside the function too; requires RESEND_API_KEY / RESEND_FROM_EMAIL secrets
 

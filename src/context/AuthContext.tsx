@@ -39,8 +39,19 @@ interface AuthContextValue {
   /** The profile lookup itself failed (offline, RLS, transient). Retryable. */
   profileError: string | null
   refreshProfile: () => Promise<void>
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>
+  /** Re-reads the GoTrue user, for fields the cached session copy cannot see change. */
+  refreshUser: () => Promise<void>
+  signIn: (email: string, password: string) => Promise<SignInResult>
   signOut: () => Promise<void>
+}
+
+/**
+ * GoTrue's prose shifts between releases; its `code` is the stable contract, so
+ * the caller is given both and maps on the code.
+ */
+export interface SignInResult {
+  error: string | null
+  code: string | null
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -107,6 +118,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<AuthProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [profileError, setProfileError] = useState<string | null>(null)
+  /**
+   * Auth user whose profile lookup has actually *completed*. A null `profile` is
+   * two different things — "looked and found nothing" (a real denial) and "not
+   * looked yet" — and only the first may deny access. Keeping the resolved id in
+   * state, rather than inferring it from `loading`, is what stops a signed-in
+   * user being shown "No dashboard access" in the window between the session
+   * being applied and their profile arriving.
+   */
+  const [resolvedFor, setResolvedFor] = useState<string | null>(null)
   const mounted = useRef(true)
   /** Guards against an older in-flight lookup overwriting a newer one. */
   const requestId = useRef(0)
@@ -138,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (result.ok) {
       loadedFor.current = authUserId
       setProfile(result.profile)
+      setResolvedFor(authUserId)
       setProfileError(null)
       writeCachedProfile(authUserId, result.profile)
     } else if (!background) {
@@ -161,6 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearAllCachedResources()
     setSession(null)
     setProfile(null)
+    setResolvedFor(null)
     setProfileError(null)
     setLoading(false)
   }, [])
@@ -204,6 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (cached) {
       loadedFor.current = authUserId
       setProfile(cached)
+      setResolvedFor(authUserId)
       setProfileError(null)
       setLoading(false)
       void loadProfile(authUserId, true)
@@ -267,11 +290,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loadProfile(authUserId)
   }, [session, loadProfile, bootstrap])
 
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string): Promise<SignInResult> => {
     signingIn.current = true
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) return { error: error.message }
+      // GoTrue stores addresses lowercased. Normalising here means a capitalised
+      // or padded address is not reported back as a wrong password.
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      })
+      if (error) return { error: error.message, code: error.code ?? null }
 
       // The one profile lookup a login needs: the access decision cannot be made
       // without the role. The SIGNED_IN listener stands down while this runs, so
@@ -280,11 +308,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         applySession(data.session)
         await loadProfile(data.session.user.id)
       }
-      return { error: null }
+      return { error: null, code: null }
     } finally {
       signingIn.current = false
     }
   }, [loadProfile, applySession])
+
+  /**
+   * The session carries a snapshot of the user taken when the token was issued,
+   * so anything GoTrue changes server-side afterwards -- `new_email` above all --
+   * stays stale until the token happens to refresh. applySession() deliberately
+   * ignores a session whose tokens are unchanged, which is exactly this case, so
+   * the refreshed user is swapped in directly.
+   */
+  const refreshUser = useCallback(async () => {
+    const { data, error } = await supabase.auth.getUser()
+    if (error || !data.user || !mounted.current) return
+    setSession((prev) => (prev ? { ...prev, user: data.user } : prev))
+  }, [])
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()
@@ -297,6 +338,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isAdmin = role === 'Admin' && active
     // Dispatchers hold real dashboard access; admin-only areas gate separately.
     const isOps = active && role !== null && OPS_ROLES.includes(role)
+
+    // Has this session's own profile lookup finished? Signing in applies the
+    // session before the lookup returns, so without this the shell would spend
+    // that gap holding a session and no profile -- which every consumer would
+    // otherwise read as a decided "not authorised" rather than "still asking".
+    const authUserId = session?.user.id ?? null
+    const pendingProfile =
+      authUserId !== null && resolvedFor !== authUserId && profileError === null
+
     return {
       session,
       user: session?.user ?? null,
@@ -304,14 +354,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin,
       isOps,
       role,
-      loading,
-      unauthorized: Boolean(session) && !loading && !profileError && !isOps,
+      // "Cannot decide yet", not merely "bootstrap is running".
+      loading: loading || pendingProfile,
+      // A denial is only ever reported once the lookup has come back for *this*
+      // user. The decision still rests entirely on the role and status the
+      // database returned -- nothing here grants access, it only refuses to
+      // deny before there is an answer.
+      unauthorized: Boolean(session) && !pendingProfile && !profileError && !isOps,
       profileError,
       refreshProfile,
+      refreshUser,
       signIn,
       signOut,
     }
-  }, [session, profile, loading, profileError, refreshProfile, signIn, signOut])
+  }, [
+    session,
+    profile,
+    resolvedFor,
+    loading,
+    profileError,
+    refreshProfile,
+    refreshUser,
+    signIn,
+    signOut,
+  ])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

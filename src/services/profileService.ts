@@ -71,3 +71,60 @@ export async function uploadAvatar(authUserId: string, profileId: string, file: 
   await logActivity('profile.avatar_changed', 'profile', profileId)
   return avatar_url
 }
+
+/**
+ * Drops a pending email change that can no longer complete.
+ *
+ * A secure email change spends one confirmation link on the current address and
+ * one on the new one. If GoTrue refuses either address the request fails, but
+ * the pending change is still recorded -- with no tokens behind it, so no link
+ * can ever redeem it and the console shows "waiting on confirmation" forever.
+ * The RPC is Admin-gated in the database (is_admin(), SECURITY DEFINER); the
+ * caller here is a convenience, not the boundary.
+ *
+ * Returns true if something was actually cleared, false if nothing was pending.
+ */
+export async function clearPendingEmailChange(profileId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('admin_clear_pending_email_change', {
+    p_profile_id: profileId,
+  })
+  if (error) {
+    // 42501 is the function's own authorization raise, not an RLS surprise.
+    if (error.code === '42501') throw new Error('Only an administrator can cancel a pending email change.')
+    throw error
+  }
+  if (data) await logActivity('profile.email_change_cancelled', 'profile', profileId)
+  return Boolean(data)
+}
+
+/**
+ * Sets a sign-in address directly, with no confirmation email.
+ *
+ * The confirm-from-both flow is the right default and stays the default. This
+ * is the way out of the case it cannot handle: when GoTrue will not send to the
+ * *current* address, the handshake can never complete and retrying only spends
+ * the project's mail quota. The edge function re-checks is_admin() and holds the
+ * service-role key server-side; nothing privileged reaches the browser.
+ */
+export async function setSignInEmail(profileId: string, email: string): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('admin-set-email', {
+    body: { profile_id: profileId, email },
+  })
+  if (error) {
+    // invoke() reports a non-2xx as a generic FunctionsHttpError, so the real
+    // reason has to be read back off the response body.
+    let message = error.message
+    try {
+      const ctx = (error as { context?: Response }).context
+      if (ctx && typeof ctx.json === 'function') {
+        const body = await ctx.json()
+        if (body?.error) message = body.error
+      }
+    } catch {
+      // keep the generic message
+    }
+    throw new Error(message)
+  }
+  await logActivity('profile.email_set_directly', 'profile', profileId, { email })
+  return (data?.email as string | undefined) ?? email
+}

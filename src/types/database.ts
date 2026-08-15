@@ -570,6 +570,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_clear_pending_email_change: {
+        Args: { p_profile_id: string }
+        Returns: boolean
+      }
       admin_users_overview: {
         Args: never
         Returns: {

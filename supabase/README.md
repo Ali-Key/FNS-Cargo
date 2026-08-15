@@ -20,10 +20,18 @@ Enums: `user_role`, `user_status`, `shipment_status`, `shipping_method`, `cargo_
 
 RPCs (SECURITY DEFINER): `is_admin()`, `current_profile_id()`, `dashboard_stats()`,
 `admin_users_overview()`, `track_shipment(p_tracking_number)`,
-`suggest_tracking_number(p_country_code)`, `public_settings()`.
+`suggest_tracking_number(p_country_code)`, `public_settings()`,
+`admin_clear_pending_email_change(p_profile_id)`.
 
 Edge function: **`admin-create-user`** — admin-gated; creates an auth user with
 `user_metadata.role`, and the `handle_new_auth_user` trigger creates the profile.
+
+Edge function: **`admin-set-email`** — admin-gated; sets a sign-in address through
+the Admin API, which moves `auth.users.email` and `auth.identities.identity_data`
+together and sends no confirmation email. For when the mail service will not
+deliver to the current address, so the normal confirm-from-both change cannot
+complete. `admin_clear_pending_email_change(p_profile_id)` clears the dead
+`email_change*` state such a failure leaves behind.
 
 ## Migrations in this folder
 

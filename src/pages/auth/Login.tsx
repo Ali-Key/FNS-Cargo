@@ -17,6 +17,27 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>
 
+/**
+ * GoTrue answers a wrong password and an address with no account with the same
+ * `invalid_credentials`, deliberately, so the form must not imply which it was.
+ * The other cases are genuinely different problems and are named as such --
+ * keyed on `code`, because GoTrue's prose shifts between releases.
+ */
+function describeSignInError(message: string, code: string | null): string {
+  switch (code) {
+    case 'invalid_credentials':
+      return 'The email or password you entered is incorrect. Check the address is the one your account was created with.'
+    case 'email_not_confirmed':
+      return 'This address has not been confirmed yet. Open the confirmation link we emailed you, then sign in again.'
+    case 'user_banned':
+      return 'This account has been suspended. Contact an administrator.'
+    case 'over_request_rate_limit':
+      return 'Too many sign-in attempts. Wait a few minutes, then try again.'
+    default:
+      return message
+  }
+}
+
 interface LocationState {
   from?: { pathname?: string }
 }
@@ -46,11 +67,9 @@ export default function Login() {
 
   async function onSubmit(data: LoginForm) {
     setFormError(null)
-    const { error } = await signIn(data.email, data.password)
+    const { error, code } = await signIn(data.email, data.password)
     if (error) {
-      setFormError(
-        /invalid login credentials/i.test(error) ? 'The email or password you entered is incorrect.' : error,
-      )
+      setFormError(describeSignInError(error, code))
       return
     }
     toast.success('Signed in', 'Opening the FSN Cargo console.')

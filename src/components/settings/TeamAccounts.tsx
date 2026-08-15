@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { ShieldCheck, UserCheck, UserMinus, UserPlus } from 'lucide-react'
+import { AtSign, ShieldCheck, UserCheck, UserMinus, UserPlus } from 'lucide-react'
 import {
   Alert,
   Avatar,
@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui'
 import { ConfirmDialog, ResponsiveDataList } from '@/components/dashboard'
-import { CreateUserModal } from '@/components/users'
+import { ChangeEmailModal, CreateUserModal } from '@/components/users'
 import { useCachedResource } from '@/hooks/useCachedResource'
 import { useToast } from '@/context/ToastContext'
 import { useAuth } from '@/context/AuthContext'
@@ -44,6 +44,7 @@ export function TeamAccounts() {
 
   const [page, setPage] = useState(1)
   const [createOpen, setCreateOpen] = useState(false)
+  const [editingEmail, setEditingEmail] = useState<DashboardUser | null>(null)
   const [revoking, setRevoking] = useState<DashboardUser | null>(null)
   const [revokeLoading, setRevokeLoading] = useState(false)
 
@@ -98,6 +99,7 @@ export function TeamAccounts() {
 
   function userActionItems(u: DashboardUser) {
     return [
+      { label: 'Change email', icon: <AtSign className="h-4 w-4" />, onClick: () => setEditingEmail(u) },
       ...(['Dispatcher', 'Staff', 'Admin'] as UserRole[])
         .filter((role) => role !== u.role)
         .map((role) => ({ label: `Set as ${role}`, onClick: () => changeRole(u, role) })),
@@ -221,6 +223,15 @@ export function TeamAccounts() {
       />
 
       <CreateUserModal open={createOpen} onClose={() => setCreateOpen(false)} onSaved={load} />
+
+      <ChangeEmailModal
+        open={Boolean(editingEmail)}
+        user={editingEmail}
+        onClose={() => setEditingEmail(null)}
+        onSaved={(email) =>
+          setRows((prev) => prev.map((r) => (r.id === editingEmail?.id ? { ...r, email } : r)))
+        }
+      />
 
       <ConfirmDialog
         open={!!revoking}
