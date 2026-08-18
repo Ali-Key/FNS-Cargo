@@ -26,3 +26,6 @@ yarn-error.log*
 
 # Visual QA screenshots (scripts/shoot.mjs)
 .screenshots
+
+# Credentials (handover only, never committed)
+CREDENTIALS.local.md

@@ -79,16 +79,26 @@ cp .env.example .env.local
 Copy-Item .env.example .env.local
 ```
 
-Open `.env.local` and set:
+Open `.env.local` and paste the live FSN Cargo project values:
 
 ```env
-VITE_SUPABASE_URL=https://<your-project-ref>.supabase.co
-VITE_SUPABASE_ANON_KEY=<your-publishable-anon-key>
+VITE_SUPABASE_URL=https://vvkztbxofacbzypxtslp.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_MXySKlYPyrNSQ-mU89F31A_4j4wdrJg
 ```
 
-Where to find them: Supabase dashboard, **Project Settings, API**. Copy the *Project URL*
-and the *anon / publishable* key. Never put the **service role** key in this file. It is a
-server-only secret, and `VITE_*` values are compiled into the public JavaScript bundle.
+These two are safe to keep here. The anon (publishable) key is compiled into the JavaScript
+bundle that every visitor downloads, so it is public by design; what protects the data is
+Row Level Security in Postgres, not the key. To find them for another project: Supabase
+dashboard, **Project Settings, API**, then copy the *Project URL* and the *anon /
+publishable* key.
+
+Never put the **service role** key in this file. It bypasses RLS, and any `VITE_*` value
+ends up readable in the shipped bundle. The service role key belongs only in Supabase edge
+function secrets.
+
+Supabase dashboard access (the account that owns the project, its schema, and its keys) is
+not stored in this repository. See `CREDENTIALS.local.md`, which is git-ignored and is
+handed over separately.
 
 > `src/lib/supabase.ts` throws on startup if either variable is missing, so a blank screen
 > with a console error usually means the env file is missing or was added after the dev
