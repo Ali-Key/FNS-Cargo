@@ -27,8 +27,8 @@ const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 // the only data it returns is the same safe field set track_shipment() exposes.
 // An origin allowlist therefore buys no security -- a non-browser client
 // ignores CORS entirely -- while silently breaking every legitimate origin that
-// is not literally in the list (drifted Vite dev ports, 127.0.0.1, Netlify
-// deploy previews), which surfaces to the user as "tracking unavailable".
+// is not literally in the list (drifted Vite dev ports, 127.0.0.1, staging
+// domains), which surfaces to the user as "tracking unavailable".
 // Abuse is handled by the per-IP rate limit below, not by CORS.
 const CORS = {
   'Access-Control-Allow-Origin': '*',

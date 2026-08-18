@@ -2,7 +2,7 @@
 
 **Owner:** FSN Cargo (the Company)
 **Project:** FSN Cargo web platform (public site + operations console)
-**Status:** Draft for sign-off — date: ____________
+
 
 Ownership of all deliverables listed below vests in the Company. All accounts must be
 registered to a company address (e.g. `info@fsncargo.com`), never a personal developer
@@ -19,6 +19,7 @@ admin rights after handover.
 | Backend / serverless | Supabase edge functions (`supabase/functions/`): `admin-create-user`, `admin-set-email`, `send-invoice-email`, `track-shipment`, `admin-users` (deprecated, retire) | ☐ |
 | Database migrations | `supabase/migrations/` — SQL, applied in order | ☐ |
 | Scripts | `scripts/shoot.mjs` (visual QA) | ☐ |
+| Documentation | `README.md` (setup, run, deploy), `supabase/README.md` (backend) | ☐ |
 | Git history | Full history transferred, not a squashed re-init | ☐ |
 
 ## 2. GitHub
@@ -49,9 +50,11 @@ admin rights after handover.
 
 ## 4. Hosting
 
-- Host: Netlify (SPA routing via `public/_redirects`)
-- **Required:** site owned by a Company Netlify team; Company account as **Owner**.
-- Build settings and environment variables documented and reproducible.
+- Host: Hostinger (Apache/LiteSpeed; SPA fallback via `public/.htaccess`)
+- **Required:** hosting account owned by the Company (hPanel login), not a personal
+  developer account.
+- The site is a static build (`npm run build` → upload `dist/` to the web root). Build
+  steps, required env vars, and the upload checklist are documented and reproducible.
 
 ## 5. Domain & DNS
 
@@ -78,13 +81,13 @@ Delivered by secure channel (password manager or encrypted transfer), never plai
 
 ## 8. Documentation
 
-- System architecture (see `CLAUDE.md`, to be expanded into a standalone doc)
-- Database schema reference and RLS/permissions map
-- Deployment guide (build, env vars, Netlify settings, edge function deploy)
-- `.env.example` — present, kept current
-- Admin user manual (dashboard workflows: shipments, tracking, invoices, payments,
-  customers, team accounts)
-- `supabase/README.md` — grant/RLS gotchas
+| Document | Covers | Status |
+|---|---|---|
+| `README.md` | Prerequisites, clone and install, `.env.local` setup, running locally, npm scripts, project structure, route and role map, Supabase backend (tables, RPCs, edge functions and their secrets, CLI commands), Hostinger build and upload steps and deploy checklist, troubleshooting | Delivered |
+| `supabase/README.md` | Backend notes, grants, and RLS gotchas | Delivered |
+| `.env.example` | Env var template, kept current | Delivered |
+| Database schema reference and RLS/permissions map | Standalone export from the live database | ☐ |
+| Admin user manual | Dashboard workflows: shipments, tracking, invoices, payments, customers, team accounts | ☐ |
 
 ---
 
@@ -95,12 +98,3 @@ Supabase service-role key and DB password, SMTP, payments, and any other secrets
 This is standard practice and implies no distrust. The developer will confirm no
 external service breaks as a direct result of rotation (i.e. no hardcoded secrets).
 
-## Acceptance
-
-Handover is complete when every box above is ticked, the Company can independently
-build, deploy, and log in without developer involvement, and a fresh clone plus the
-documented env vars produces a working deployment.
-
-Company: ____________________  Date: __________
-
-Developer: __________________  Date: __________

@@ -2,7 +2,7 @@
 # React Router owns /dashboard, /login and every public route. Without this
 # rewrite a direct load or a refresh of those URLs is looked up on disk, finds
 # no file, and the host serves its own 404 page instead of the app.
-# (public/_redirects does the same job on Netlify and is ignored here.)
+# Vite copies this file into dist/, so it must be uploaded with the build.
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
