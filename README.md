@@ -1,5 +1,7 @@
 # FSN Cargo
 
+**Live site: https://fnscargo.com**
+
 International freight and logistics platform for FSN Cargo, connecting Somalia with China,
 Turkey, and Europe. One codebase ships two apps, split by route:
 
@@ -373,11 +375,21 @@ public_html/
 
 ### Step 4. Verify
 
+Against the live domain, <https://fnscargo.com>:
+
 1. Load `/` and hard refresh (Ctrl + F5) to get past the browser cache.
 2. Open `/services` **directly in the address bar** and refresh it. If it 404s, `.htaccess`
    is missing or `mod_rewrite` is off.
 3. Run a tracking lookup on `/tracking` to confirm the Supabase keys were baked in.
 4. Sign in at `/login` and open `/dashboard`.
+5. Create a team account from Settings. If it fails with a CORS error in the browser
+   console, the live origin is not in the edge function allowlists (see below).
+
+> **Domains.** Both `fnscargo.com` and `fsncargo.com` resolve. The edge functions
+> (`admin-create-user`, `admin-set-email`, `send-invoice-email`, `admin-users`) hardcode an
+> origin allowlist, so whichever domain the browser actually loads must appear in it,
+> lowercase, or those admin actions are blocked by CORS. Pick one canonical domain, redirect
+> the other to it, and keep the allowlists in sync.
 
 ### Why the SPA fallback is required
 

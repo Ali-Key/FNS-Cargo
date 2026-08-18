@@ -50,6 +50,7 @@ admin rights after handover.
 
 ## 4. Hosting
 
+- Live site: `https://fnscargo.com`
 - Host: Hostinger (Apache/LiteSpeed; SPA fallback via `public/.htaccess`)
 - **Required:** hosting account owned by the Company (hPanel login), not a personal
   developer account.
@@ -58,7 +59,12 @@ admin rights after handover.
 
 ## 5. Domain & DNS
 
-- Domain registered in a **Company-held registrar account** with full DNS control.
+- Primary domain: `fnscargo.com` (the live public site).
+- `fsncargo.com` also resolves and is referenced by the app's own configuration
+  (edge function CORS allowlists, `system_settings.company_website`). **Every** domain the
+  Company holds must be transferred, and one must be chosen as canonical with the other
+  redirecting to it.
+- Domains registered in a **Company-held registrar account** with full DNS control.
 - Delivered: registrar login, unlock/EPP transfer where applicable, current DNS records
   (A/CNAME for the site, MX and SPF/DKIM/DMARC for mail).
 
