@@ -1,6 +1,6 @@
 # FSN Cargo
 
-**Live site: https://fnscargo.com**
+**Live site: https://fsncargo.com**
 
 International freight and logistics platform for FSN Cargo, connecting Somalia with China,
 Turkey, and Europe. One codebase ships two apps, split by route:
