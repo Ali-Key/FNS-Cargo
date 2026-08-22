@@ -21,7 +21,9 @@ import { Button } from "@/components/ui";
 import { Reveal } from "@/components/common/Reveal";
 import { images } from "@/config/images";
 import { useSystemSettings } from "@/hooks/useSystemSettings";
+import { useActiveCountries } from "@/hooks/useCountries";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { countryFlagUrl, formatCountryList } from "@/utils/country";
 
 // Shared focus-visible treatment for bare links (keyboard accessibility).
 const FOCUS_RING =
@@ -81,16 +83,6 @@ const SERVICES = [
   },
 ];
 
-const COUNTRIES = [
-  { name: "Somalia", flag: "https://flagcdn.com/w160/so.png" },
-  { name: "China", flag: "https://flagcdn.com/w160/cn.png" },
-  { name: "Turkey", flag: "https://flagcdn.com/w160/tr.png" },
-  { name: "Sweden", flag: "https://flagcdn.com/w160/se.png" },
-  { name: "Finland", flag: "https://flagcdn.com/w160/fi.png" },
-  { name: "Norway", flag: "https://flagcdn.com/w160/no.png" },
-  { name: "Denmark", flag: "https://flagcdn.com/w160/dk.png" },
-];
-
 const WHY_CHOOSE_US = [
   {
     icon: Timer,
@@ -128,9 +120,22 @@ const WHY_CHOOSE_US = [
 
 export default function Home() {
   const { settings } = useSystemSettings();
+  // The served-market list is data an administrator owns, not page copy. It is
+  // read here exactly as the console reads it, through the same shared hook.
+  const {
+    countries,
+    loading: countriesLoading,
+    error: countriesError,
+  } = useActiveCountries();
+  const countryCount = countries.length;
+  // The markets named in the page copy are the same rows the grid below renders,
+  // so adding one in Settings > Countries updates the sentence too.
+  const countryList = formatCountryList(countries.map((c) => c.name));
   useDocumentTitle(
     `${settings.company_name} · Global Air & Sea Cargo and Logistics`,
-    "FSN Cargo connects Somalia with the world through reliable air and sea freight, customs clearance, and door-to-door delivery to and from China, Turkey, Sweden, Finland, Norway, Denmark and beyond, with live shipment tracking.",
+    countryList
+      ? `FSN Cargo connects Somalia with the world through reliable air and sea freight, customs clearance, and door-to-door delivery across ${countryList}, and beyond, with live shipment tracking.`
+      : "FSN Cargo connects Somalia with the world through reliable air and sea freight, customs clearance, and door-to-door delivery, with live shipment tracking.",
   );
 
   return (
@@ -152,13 +157,14 @@ export default function Home() {
                 Connecting Somalia with the world,{" "}
                 <span className="text-primary-500">
                   tracked every step of the way
-                </span> 
+                </span>
               </h1>
               <p className="mt-5 max-w-lg text-base leading-relaxed text-text-secondary sm:text-lg">
-                Reliable, fast, and secure cargo services between Somalia and
-                China, Turkey, Sweden, Finland, Norway, Denmark, and beyond. Air
-                and sea freight, customs, and door-to-door delivery, with your
-                shipment trackable any time.
+                {countryList
+                  ? `Reliable, fast, and secure cargo services across ${countryList}, and beyond.`
+                  : "Reliable, fast, and secure cargo services worldwide."}{" "}
+                Air and sea freight, customs, and door-to-door delivery, with
+                your shipment trackable any time.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-3.5">
                 <Link to="/contact" className={`rounded-control ${FOCUS_RING}`}>
@@ -222,20 +228,23 @@ export default function Home() {
                   loading="eager"
                 />
               </div>
-              {/* Static credential card */}
-              <div className="absolute -bottom-5 right-4 flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-elevation-2 sm:right-8">
-                <span className=" font-tabular font-extrabold text-primary-500 flex h-9 w-9 items-center justify-center  text-xl  ">
-                  7 +
-                </span>
-                <div>
-                  <p className=" font-bold leading-tight text-ink text-base">
-                    Countries
-                  </p>
-                  <p className="mt-0.5 text-xs font-medium text-text-secondary">
-                    Growing global network
-                  </p>
+              {/* Credential card. Counts the active markets in the database, so
+                  it can never drift from the list below it. */}
+              {countryCount > 0 && (
+                <div className="absolute -bottom-5 right-4 flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-elevation-2 sm:right-8">
+                  <span className=" font-tabular font-extrabold text-primary-500 flex h-9 w-9 items-center justify-center  text-xl  ">
+                    {countryCount} +
+                  </span>
+                  <div>
+                    <p className=" font-bold leading-tight text-ink text-base">
+                      Countries
+                    </p>
+                    <p className="mt-0.5 text-xs font-medium text-text-secondary">
+                      Growing global network
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -288,44 +297,88 @@ export default function Home() {
         </div>
       </section>
 
-      {/* COUNTRIES WE SERVE */}
-      <section className="border-y border-gray-200 bg-surface py-16 sm:py-24">
-        <div className="container-page">
-          <Reveal className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-bold uppercase tracking-wider text-primary-500">
-              Where we ship
-            </p>
-            <h2 className="mt-3 text-balance text-3xl font-extrabold text-ink sm:text-4xl">
-              Countries we serve
-            </h2>
-            <p className="mt-4 text-pretty text-text-secondary">
-              We move cargo to and from Somalia across a growing global network,
-              and we keep expanding it to serve you better.
-            </p>
-          </Reveal>
+      {/* COUNTRIES WE SERVE — driven by the active rows in `countries`, so the
+          network shown here follows Settings > Countries with no redeploy. The
+          band is dropped entirely once the list is known to be empty: an empty
+          "Countries we serve" grid says less than no grid at all. */}
+      {(countriesLoading || countriesError || countryCount > 0) && (
+        <section className="border-y border-gray-200 bg-surface py-16 sm:py-24">
+          <div className="container-page">
+            <Reveal className="mx-auto max-w-2xl text-center">
+              <p className="text-sm font-bold uppercase tracking-wider text-primary-500">
+                Where we ship
+              </p>
+              <h2 className="mt-3 text-balance text-3xl font-extrabold text-ink sm:text-4xl">
+                Countries we serve
+              </h2>
+              <p className="mt-4 text-pretty text-text-secondary">
+                We move cargo to and from Somalia across a growing global
+                network, and we keep expanding it to serve you better.
+              </p>
+            </Reveal>
 
-          <div className="mx-auto mt-12 grid max-w-5xl grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-7">
-            {COUNTRIES.map((country, i) => (
-              <Reveal
-                as="div"
-                key={country.name}
-                delay={i * 70}
-                className="group flex flex-col items-center gap-3 rounded-card border border-gray-200 bg-white p-5 text-center shadow-elevation-1 transition-all duration-240 ease-out-premium hover:border-primary-200 hover:shadow-elevation-2"
-              >
-                <img
-                  src={country.flag}
-                  alt={`${country.name} flag`}
-                  loading="lazy"
-                  className="h-12 w-12 rounded-full border border-gray-300 object-cover shadow-elevation-1"
-                />
-                <span className="text-sm font-bold text-ink">
-                  {country.name}
-                </span>
-              </Reveal>
-            ))}
+            {countriesLoading ? (
+              <div className="mx-auto mt-12 flex max-w-5xl flex-wrap justify-center gap-4">
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <div
+                    key={i}
+                    aria-hidden="true"
+                    className="flex w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.667rem)] lg:w-[8.25rem] flex-col items-center gap-3 rounded-card border border-gray-200 bg-white p-5 shadow-elevation-1"
+                  >
+                    <span className="h-12 w-12 animate-pulse rounded-full bg-gray-200" />
+                    <span className="h-3.5 w-16 animate-pulse rounded bg-gray-200" />
+                  </div>
+                ))}
+                <span className="sr-only">Loading the countries we serve</span>
+              </div>
+            ) : countriesError ? (
+              <p className="mx-auto mt-12 max-w-xl text-center text-text-secondary">
+                We could not load our country list just now.{" "}
+                <Link
+                  to="/contact"
+                  className={`font-semibold text-primary-500 underline-offset-4 hover:underline ${FOCUS_RING}`}
+                >
+                  Contact us
+                </Link>{" "}
+                for the routes we currently serve.
+              </p>
+            ) : (
+              <div className="mx-auto mt-12 flex max-w-5xl flex-wrap justify-center gap-4">
+                {countries.map((country, i) => {
+                  const flag = countryFlagUrl(country.code);
+                  return (
+                    <Reveal
+                      as="div"
+                      key={country.id}
+                      delay={i * 70}
+                      className="group flex w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.667rem)] lg:w-[8.25rem] flex-col items-center justify-start gap-3 rounded-card border border-gray-200 bg-white p-5 text-center shadow-elevation-1 transition-all duration-240 ease-out-premium hover:border-primary-200 hover:shadow-elevation-2"
+                    >
+                      {flag ? (
+                        <img
+                          src={flag}
+                          alt={`${country.name} flag`}
+                          loading="lazy"
+                          className="h-12 w-12 rounded-full border border-gray-300 object-cover shadow-elevation-1"
+                        />
+                      ) : (
+                        <span
+                          aria-hidden="true"
+                          className="flex h-12 w-12 items-center justify-center rounded-full border border-gray-300 bg-gray-100 font-tabular text-sm font-extrabold text-text-secondary shadow-elevation-1"
+                        >
+                          {country.code.slice(0, 2).toUpperCase()}
+                        </span>
+                      )}
+                      <span className="text-sm font-bold text-ink">
+                        {country.name}
+                      </span>
+                    </Reveal>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* WHY CHOOSE US */}
       <section className="relative overflow-hidden bg-navy-900 py-16 text-white sm:py-24">
@@ -411,14 +464,16 @@ export default function Home() {
                 loading="lazy"
               />
             </div>
-            <div className="absolute -bottom-6 -right-6 hidden w-56 rounded-2xl border border-gray-200 bg-white p-5 shadow-elevation-3 sm:block">
-              <p className="font-tabular text-3xl font-extrabold text-primary-500">
-                7+
-              </p>
-              <p className="mt-1 text-sm font-semibold leading-snug text-text-secondary">
-                Countries connected across our growing network
-              </p>
-            </div>
+            {countryCount > 0 && (
+              <div className="absolute -bottom-6 -right-6 hidden w-56 rounded-2xl border border-gray-200 bg-white p-5 shadow-elevation-3 sm:block">
+                <p className="font-tabular text-3xl font-extrabold text-primary-500">
+                  {countryCount}+
+                </p>
+                <p className="mt-1 text-sm font-semibold leading-snug text-text-secondary">
+                  Countries connected across our growing network
+                </p>
+              </div>
+            )}
           </Reveal>
           <Reveal>
             <p className="text-sm font-bold uppercase tracking-wider text-primary-500">

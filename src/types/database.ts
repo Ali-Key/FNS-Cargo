@@ -380,6 +380,7 @@ export type Database = {
           tracking_number: string
           updated_at: string
           warehouse: string | null
+          warehouse_id: string | null
           weight: number | null
         }
         Insert: {
@@ -405,9 +406,10 @@ export type Database = {
           shipping_method?: Database["public"]["Enums"]["shipping_method"]
           status?: Database["public"]["Enums"]["shipment_status"]
           total_price?: number | null
-          tracking_number: string
+          tracking_number?: string
           updated_at?: string
           warehouse?: string | null
+          warehouse_id?: string | null
           weight?: number | null
         }
         Update: {
@@ -436,6 +438,7 @@ export type Database = {
           tracking_number?: string
           updated_at?: string
           warehouse?: string | null
+          warehouse_id?: string | null
           weight?: number | null
         }
         Relationships: [
@@ -451,6 +454,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipments_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -565,6 +575,47 @@ export type Database = {
           },
         ]
       }
+      warehouses: {
+        Row: {
+          city: string | null
+          code: string
+          country_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          city?: string | null
+          code: string
+          country_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          city?: string | null
+          code?: string
+          country_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouses_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -604,6 +655,7 @@ export type Database = {
       dashboard_stats: { Args: never; Returns: Json }
       is_admin: { Args: never; Returns: boolean }
       is_ops: { Args: never; Returns: boolean }
+      preview_shipment_numbers: { Args: Record<PropertyKey, never>; Returns: Json }
       public_settings: { Args: never; Returns: Json }
       suggest_tracking_number: { Args: Record<PropertyKey, never>; Returns: string }
       sync_shipment_payment_status: {
@@ -626,11 +678,7 @@ export type Database = {
         | "Documents"
       invoice_status: "Draft" | "Issued" | "Partially Paid" | "Paid" | "Void"
       payment_method:
-        | "Cash"
         | "Bank Transfer"
-        | "Mobile Money"
-        | "Card"
-        | "Cheque"
         | "EVC Plus"
         | "Edahab"
       payment_status: "Unpaid" | "Partially Paid" | "Paid" | "Refunded"
@@ -794,11 +842,11 @@ export const Constants = {
       ],
       invoice_status: ["Draft", "Issued", "Partially Paid", "Paid", "Void"],
       payment_method: [
-        "Cash",
+        
         "Bank Transfer",
-        "Mobile Money",
-        "Card",
-        "Cheque",
+       
+        
+        
         "EVC Plus",
         "Edahab",
       ],

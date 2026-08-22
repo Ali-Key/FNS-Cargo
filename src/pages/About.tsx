@@ -5,10 +5,14 @@ import { PageHero } from "@/components/common/PageHero";
 import { Reveal } from "@/components/common/Reveal";
 import { images } from "@/config/images";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useActiveCountries } from "@/hooks/useCountries";
+import { formatCountryList } from "@/utils/country";
 
+// "Countries connected" is the one figure here that the application actually
+// knows: it is the number of active rows in `countries`, filled in at render.
 const STATS = [
   { value: "5,000+", label: "Shipments delivered" },
-  { value: "7", label: "Countries connected" },
+  { value: null, label: "Countries connected" },
   { value: "10+", label: "Airline and carrier partners" },
   { value: "24/7", label: "Operations support" },
 ];
@@ -32,6 +36,8 @@ const PRINCIPLES = [
 ];
 
 export default function About() {
+  const { countries } = useActiveCountries();
+  const countryList = formatCountryList(countries.map((c) => c.name));
   useDocumentTitle(
     "About Us | FSN Cargo",
     "FSN Cargo is a logistics and freight forwarding company based in Somalia, providing air and sea freight, customs clearance, and door-to-door delivery to markets worldwide.",
@@ -42,7 +48,11 @@ export default function About() {
       <PageHero
         eyebrow="About FSN Cargo"
         title="Connecting Somalia with global markets"
-        description="FSN Cargo is a logistics and freight forwarding company based in Somalia. We provide air freight, sea freight, customs clearance, and door-to-door delivery to and from China, Turkey, Sweden, Finland, Norway, Denmark, and other international markets."
+        description={
+          countryList
+            ? `FSN Cargo is a logistics and freight forwarding company based in Somalia. We provide air freight, sea freight, customs clearance, and door-to-door delivery to and from ${countryList}, and other international markets.`
+            : "FSN Cargo is a logistics and freight forwarding company based in Somalia. We provide air freight, sea freight, customs clearance, and door-to-door delivery to and from international markets."
+        }
       />
 
       <section className="container-page py-16 sm:py-24">
@@ -107,7 +117,7 @@ export default function About() {
           {STATS.map((stat) => (
             <div key={stat.label} className="px-4 py-7 text-center sm:px-6">
               <dt className="font-tabular text-3xl font-extrabold tracking-tight text-navy-900 sm:text-4xl">
-                {stat.value}
+                {stat.value ?? (countries.length > 0 ? String(countries.length) : "—")}
               </dt>
               <dd className="mt-1.5 text-sm leading-snug text-text-secondary">
                 {stat.label}

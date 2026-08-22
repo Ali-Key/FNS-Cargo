@@ -4,6 +4,7 @@ import { Command, X, CornerDownLeft, Search } from 'lucide-react'
 import { Button, Input } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
 import { invalidateCachedResources } from '@/hooks/useCachedResource'
+import { useActiveCountries } from '@/hooks/useCountries'
 import {
   findShipmentByTracking,
   createTrackingEvent,
@@ -44,9 +45,13 @@ export function CommandPalette() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [locations, setLocations] = useState<string[]>([])
+  // Suggestions only: a scan can happen in a transit country that is not a
+  // served market, so the field stays free text.
+  const { countries } = useActiveCountries()
 
   const trackingRef = useRef<HTMLInputElement>(null)
   const listId = useId()
+  const countryListId = `${listId}-countries`
 
   const openPalette = useCallback(() => {
     setForm({ ...EMPTY, eventTime: nowLocal() })
@@ -165,7 +170,7 @@ export function CommandPalette() {
             ref={trackingRef}
             value={form.tracking}
             onChange={(e) => setForm((f) => ({ ...f, tracking: e.target.value.toUpperCase() }))}
-            placeholder="FSN-CN-000123"
+            placeholder="FSN-2026-000001"
             className="font-mono tracking-wide"
             icon={<Search className="h-4 w-4" />}
             aria-label="Tracking number"
@@ -202,12 +207,20 @@ export function CommandPalette() {
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Input
-              label="Country"
-              value={form.country}
-              onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
-              placeholder="China"
-            />
+            <div>
+              <Input
+                label="Country"
+                value={form.country}
+                onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+                list={countryListId}
+                placeholder="Country of this scan"
+              />
+              <datalist id={countryListId}>
+                {countries.map((c) => (
+                  <option key={c.id} value={c.name} />
+                ))}
+              </datalist>
+            </div>
             <Input
               label="City"
               value={form.city}

@@ -2,19 +2,21 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { RefreshCw } from 'lucide-react'
 import { Button, Combobox, Input, Select, Modal, FieldGroup, StatusBadge } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
 import { useAuth } from '@/context/AuthContext'
 import {
   createShipment,
   updateShipment,
-  suggestTrackingNumber,
-  nextTrackingNumberFallback,
-  listShipmentFieldSuggestions,
-  type ShipmentFieldSuggestions,
+  previewShipmentNumbers,
+  type ShipmentNumberPreview,
 } from '@/services/shipmentsService'
 import type { CustomerOption } from '@/services/customersService'
+import { useActiveCountries } from '@/hooks/useCountries'
+import { useWarehouseAssignment } from '@/hooks/useWarehouses'
+import { resolveBranchCode } from '@/utils/warehouse'
+import { WarehouseField } from './WarehouseField'
+import { BranchCodeField } from './BranchCodeField'
 import type { ShipmentWithCustomer, ShippingMethod, CargoType, ShipmentStatus } from '@/types'
 import { SHIPPING_METHODS, CARGO_TYPES } from '@/types'
 import { SHIPPING_METHOD_LABEL } from '@/utils/status'
@@ -23,19 +25,14 @@ import { formatCurrency } from '@/utils/format'
 /** Every shipment enters the pipeline here; later stages come from tracking events. */
 const INITIAL_STATUS: ShipmentStatus = 'Received'
 
-/** The countries FSN Cargo moves freight between. Either end of a route can be any of them. */
-const ROUTE_COUNTRIES = ['Somalia', 'China', 'Turkey', 'Sweden', 'Finland', 'Norway', 'Denmark'] as const
-const COUNTRY_OPTIONS = ROUTE_COUNTRIES.map((c) => ({ value: c, label: c }))
-const isRouteCountry = (value: string | null | undefined): boolean =>
-  ROUTE_COUNTRIES.includes((value ?? '') as (typeof ROUTE_COUNTRIES)[number])
-
 const schema = z
   .object({
-    tracking_number: z.string().trim().min(6, 'Tracking number is too short'),
     customer_id: z.string().optional(),
     customer_name: z.string().trim().optional(),
-    origin: z.enum(ROUTE_COUNTRIES, { errorMap: () => ({ message: 'Select an origin country' }) }),
-    destination: z.enum(ROUTE_COUNTRIES, { errorMap: () => ({ message: 'Select a destination country' }) }),
+    // Which countries are selectable is data, not code: the options come from
+    // the `countries` table, so the schema only asks that one was picked.
+    origin: z.string().trim().min(1, 'Select an origin country'),
+    destination: z.string().trim().min(1, 'Select a destination country'),
     shipping_method: z.string().min(1),
     cargo_type: z.string().min(1),
     weight: z.preprocess(
@@ -47,24 +44,19 @@ const schema = z
       z.number({ invalid_type_error: 'Enter a rate' }).nonnegative('Rate cannot be negative').optional(),
     ),
     estimated_delivery: z.string().optional(),
-    warehouse: z.string().optional(),
+    // The warehouse is derived from the origin rather than typed, so the schema
+    // only carries the relationship. Whether one is required depends on how many
+    // warehouses the chosen origin has, which only the resolver knows — that
+    // check lives in `onSubmit`.
+    warehouse_id: z.string().optional(),
     pieces: z.preprocess(
       (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
       z.number({ invalid_type_error: 'Enter the number of pieces' }).int().positive('Must be at least 1'),
     ),
     booking_contact: z.string().optional(),
-    cn_number: z
-      .string()
-      .trim()
-      .regex(/^\d{6,10}$/, 'Cargo number is 6 to 10 digits, no letters')
-      .or(z.literal(''))
-      .optional(),
-    branch_code: z
-      .string()
-      .trim()
-      .regex(/^[A-Za-z]{2,4}\d{4}$/, 'Branch code looks like GZ2025 (2 to 4 letters + year)')
-      .or(z.literal(''))
-      .optional(),
+    // No `branch_code`. The branch is the warehouse handling the cargo and the
+    // code is the branch's own, stamped onto the row by the database from
+    // `warehouse_id` — there is nothing for the form to submit or validate.
     flight_number: z.string().optional(),
   })
   // `shipments.customer_name` is NOT NULL. A linked customer supplies it; a
@@ -111,31 +103,19 @@ interface ShipmentFormModalProps {
 }
 
 const EMPTY: FormValues = {
-  tracking_number: '',
   customer_id: '',
   customer_name: '',
-  origin: '' as unknown as FormValues['origin'],
-  destination: '' as unknown as FormValues['destination'],
+  origin: '',
+  destination: '',
   shipping_method: 'Air Freight',
   cargo_type: 'General Goods',
   weight: '' as unknown as number,
   price_per_kg: '' as unknown as number,
   estimated_delivery: '',
-  warehouse: '',
+  warehouse_id: '',
   pieces: 1,
   booking_contact: '',
-  cn_number: '',
-  branch_code: '',
   flight_number: '',
-}
-
-const NO_SUGGESTIONS: ShipmentFieldSuggestions = {
-  warehouses: [],
-  branchCodes: [],
-  origins: [],
-  destinations: [],
-  latestBranchCode: null,
-  nextCnNumber: null,
 }
 
 /** Section heading inside the dialog, so the long form reads as several short ones. */
@@ -167,61 +147,83 @@ function ReadOnlyValue({ label, value, hint }: { label: string; value: ReactNode
   )
 }
 
-const toOptions = (values: string[]) => values.map((v) => ({ value: v, label: v }))
-
 export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOptions }: ShipmentFormModalProps) {
   const toast = useToast()
   const { profile } = useAuth()
   const isEdit = !!shipment
-  const [suggestions, setSuggestions] = useState<ShipmentFieldSuggestions>(NO_SUGGESTIONS)
-  const [generating, setGenerating] = useState(false)
+  // What a new booking will be numbered. Shown only — the database issues the
+  // real pair when the row is inserted.
+  const [numbers, setNumbers] = useState<ShipmentNumberPreview | null>(null)
+  // Shared across every consumer of the country list, so opening this dialog
+  // repeatedly costs no extra request.
+  const { countries, loading: countriesLoading, error: countriesError } = useActiveCountries()
 
   const {
     register,
     handleSubmit,
     reset,
     setValue,
+    setError,
+    clearErrors,
     control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: EMPTY })
 
-  const [watchedWeight, watchedRate, watchedCustomerId, origin, destination] = useWatch({
+  const [watchedWeight, watchedRate, watchedCustomerId, origin, destination, warehouseId] = useWatch({
     control,
-    name: ['weight', 'price_per_kg', 'customer_id', 'origin', 'destination'],
+    name: ['weight', 'price_per_kg', 'customer_id', 'origin', 'destination', 'warehouse_id'],
   })
   const total = calcTotal(watchedWeight, watchedRate)
   const linkedCustomer = customerOptions.find((c) => c.id === watchedCustomerId) ?? null
 
-  /** Server sequence first; the local fallback continues the same series. */
-  const generateTrackingNumber = useCallback(async (): Promise<string> => {
-    try {
-      const suggestion = await suggestTrackingNumber()
-      if (suggestion) return suggestion
-    } catch {
-      // RPC unreachable — fall through to the client-side continuation.
-    }
-    return nextTrackingNumberFallback()
-  }, [])
+  /**
+   * The origin decides the warehouse. This keeps `warehouse_id` correct for
+   * whatever the origin currently is — assigning the only candidate, or
+   * clearing a value the new origin has made invalid — so the dispatcher never
+   * has to think about it and a stale warehouse cannot reach the database.
+   */
+  const assignWarehouse = useCallback(
+    (id: string) => setValue('warehouse_id', id, { shouldDirty: true }),
+    [setValue],
+  )
+  const warehouse = useWarehouseAssignment({
+    origin,
+    value: warehouseId,
+    onChange: assignWarehouse,
+    enabled: open,
+    existingWarehouseId: shipment?.warehouse_id ?? null,
+  })
+
+  /**
+   * The branch code, read off the assigned branch. A shipment being edited that
+   * predates branch codes falls back to the one it was booked with, so saving
+   * it never blanks what is printed on its waybill.
+   */
+  const branch = resolveBranchCode(warehouse.status, warehouse.selected, shipment?.branch_code)
+
+  // "Warehouse is required" is raised at submit time rather than by the zod
+  // resolver, so it is cleared here rather than on the next submit — including
+  // when the origin changes and the field resolves itself.
+  useEffect(() => {
+    if (warehouseId || warehouse.status !== 'choice') clearErrors('warehouse_id')
+  }, [warehouseId, warehouse.status, clearErrors])
 
   useEffect(() => {
     if (!open) return
     if (shipment) {
       reset({
-        tracking_number: shipment.tracking_number,
         customer_id: shipment.customer_id ?? '',
         customer_name: shipment.customer_name,
-        origin: (isRouteCountry(shipment.origin) ? shipment.origin : '') as FormValues['origin'],
-        destination: (isRouteCountry(shipment.destination) ? shipment.destination : '') as FormValues['destination'],
+        origin: shipment.origin ?? '',
+        destination: shipment.destination ?? '',
         shipping_method: shipment.shipping_method,
         cargo_type: shipment.cargo_type,
         weight: (shipment.weight ?? '') as unknown as number,
         price_per_kg: (shipment.price_per_kg ?? '') as unknown as number,
         estimated_delivery: shipment.estimated_delivery ? shipment.estimated_delivery.slice(0, 10) : '',
-        warehouse: shipment.warehouse ?? '',
+        warehouse_id: shipment.warehouse_id ?? '',
         pieces: shipment.pieces,
         booking_contact: shipment.booking_contact ?? '',
-        cn_number: shipment.cn_number ?? '',
-        branch_code: shipment.branch_code ?? '',
         flight_number: shipment.flight_number ?? '',
       })
     } else {
@@ -229,57 +231,21 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
     }
   }, [open, shipment, reset])
 
-  // A new shipment gets its number before the operator sees the form; they can
-  // still regenerate or overwrite it.
+  // The numbers a new booking is about to receive, so the operator sees them
+  // while filling the form in. An edit shows what the shipment already carries.
   useEffect(() => {
     if (!open || shipment) return
     let cancelled = false
-    setGenerating(true)
-    generateTrackingNumber()
-      .then((number) => {
-        if (!cancelled) setValue('tracking_number', number, { shouldValidate: true })
+    setNumbers(null)
+    previewShipmentNumbers()
+      .then((next) => {
+        if (!cancelled) setNumbers(next)
       })
       .catch(() => undefined)
-      .finally(() => {
-        if (!cancelled) setGenerating(false)
-      })
     return () => {
       cancelled = true
     }
-  }, [open, shipment, setValue, generateTrackingNumber])
-
-  // Reference lists are only needed while the dialog is open. A new booking also
-  // inherits the next cargo number and the branch it is being booked at, both
-  // still editable — an edit keeps whatever is already on the shipment.
-  useEffect(() => {
-    if (!open) return
-    let cancelled = false
-    listShipmentFieldSuggestions()
-      .then((next) => {
-        if (cancelled) return
-        setSuggestions(next)
-        if (isEdit) return
-        if (next.nextCnNumber) setValue('cn_number', next.nextCnNumber)
-        if (next.latestBranchCode) setValue('branch_code', next.latestBranchCode)
-      })
-      .catch(() => {
-        if (!cancelled) setSuggestions(NO_SUGGESTIONS)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [open, isEdit, setValue])
-
-  async function handleRegenerate() {
-    setGenerating(true)
-    try {
-      setValue('tracking_number', await generateTrackingNumber(), { shouldValidate: true })
-    } catch {
-      toast.error('Could not generate a number', 'Enter one by hand or try again.')
-    } finally {
-      setGenerating(false)
-    }
-  }
+  }, [open, shipment])
 
   /** The linked customer owns the name and the booking contact; neither is retyped. */
   function handleCustomerChange(customerId: string) {
@@ -292,9 +258,28 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
 
   async function onSubmit(values: FormValues) {
     const parsed = schema.parse(values)
+    // Several warehouses serve this origin and none was picked. Automatic
+    // assignment cannot guess between them, so the booking waits.
+    if (warehouse.status === 'choice' && !parsed.warehouse_id) {
+      setError('warehouse_id', { type: 'manual', message: 'Warehouse is required.' })
+      return
+    }
+    // No branch, no branch code. Saving anyway would put a shipment on the
+    // books with no facility accountable for it and a blank waybill, so it is
+    // refused with the reason rather than created quietly.
+    if (!branch.code) {
+      const message =
+        branch.status === 'pending'
+          ? 'Waiting for the branch to be assigned. Try again in a moment.'
+          : `No branch code can be issued${parsed.origin ? ` for ${parsed.origin}` : ''}. Assign a warehouse to this origin first.`
+      setError('warehouse_id', { type: 'manual', message })
+      toast.error('Branch code missing', message)
+      return
+    }
     const linked = customerOptions.find((c) => c.id === parsed.customer_id)
+    // No tracking or cargo number here: both are issued by the database, on
+    // insert, and an edit must never rewrite them.
     const payload = {
-      tracking_number: parsed.tracking_number.toUpperCase(),
       customer_id: parsed.customer_id || null,
       customer_name: (linked?.full_name ?? parsed.customer_name ?? '').trim(),
       origin: parsed.origin,
@@ -310,33 +295,64 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
       weight: parsed.weight ?? null,
       price_per_kg: parsed.price_per_kg ?? null,
       estimated_delivery: parsed.estimated_delivery ? parsed.estimated_delivery : null,
-      warehouse: parsed.warehouse?.trim() || null,
+      // `warehouse` (the label) is maintained by the database from this id, so
+      // sending it here could only ever contradict the relationship.
+      warehouse_id: parsed.warehouse_id || null,
       pieces: parsed.pieces,
       booking_contact: (linked ? contactFromCustomer(linked) : parsed.booking_contact?.trim()) || null,
-      cn_number: parsed.cn_number?.trim() || null,
-      branch_code: parsed.branch_code?.trim().toUpperCase() || null,
+      // `branch_code` is stamped by the database from `warehouse_id`, exactly
+      // as `warehouse` is. Sending it could only contradict the branch.
       flight_number: parsed.flight_number?.trim() || null,
     }
 
     try {
       if (isEdit && shipment) {
         await updateShipment(shipment.id, payload)
-        toast.success('Shipment updated', `Changes to ${payload.tracking_number} have been saved.`)
+        toast.success('Shipment updated', `Changes to ${shipment.tracking_number} have been saved.`)
       } else {
-        await createShipment(payload)
-        toast.success('Shipment created', `${payload.tracking_number} is now live and ready to track.`)
+        // The numbers on screen were a preview; the created row carries the
+        // ones actually issued, so the toast quotes those.
+        const created = await createShipment(payload)
+        toast.success('Shipment created', `${created.tracking_number} is now live and ready to track.`)
       }
       onSaved()
       onClose()
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Something went wrong'
-      if (/duplicate|unique/i.test(message)) {
-        toast.error('Duplicate tracking number', 'Another shipment already uses this number. Please choose a unique one.')
-      } else {
-        toast.error('Unable to save shipment', message)
-      }
+      toast.error('Unable to save shipment', message)
     }
   }
+
+  const countryOptions = useMemo(() => {
+    const options = countries.map((c) => ({ value: c.name, label: c.name }))
+    const known = new Set(options.map((o) => o.value))
+    // Editing a shipment booked before a country was retired must not silently
+    // blank its route, so whatever it already carries stays selectable.
+    for (const existing of [shipment?.origin, shipment?.destination]) {
+      if (existing && !known.has(existing)) {
+        known.add(existing)
+        options.push({ value: existing, label: `${existing} (no longer offered)` })
+      }
+    }
+    return options
+  }, [countries, shipment?.origin, shipment?.destination])
+
+  /** One line explaining an empty picker, rather than a silently empty list. */
+  const countryNote = countriesLoading
+    ? 'Loading countries…'
+    : countriesError
+      ? 'Unable to load countries. Please try again.'
+      : countryOptions.length === 0
+        ? 'No active countries yet. Add one in Settings → Countries.'
+        : undefined
+
+  // Both numbers belong to the database. On an edit they are read back from the
+  // shipment; on a new booking they are the preview, until the insert issues
+  // the real pair.
+  const PENDING = 'Assigned when the shipment is created'
+  const trackingNumber = isEdit ? shipment!.tracking_number : (numbers?.trackingNumber ?? PENDING)
+  const cnNumber = isEdit ? (shipment!.cn_number ?? 'Not set') : (numbers?.cnNumber ?? PENDING)
+  const numberHint = isEdit ? 'Issued automatically when the shipment was created.' : 'Automatically assigned'
 
   const customerSelectOptions = useMemo(
     () => [
@@ -374,38 +390,18 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Section title="Shipment">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="tracking_number" className="text-[12px] font-semibold uppercase tracking-[0.06em] text-deck-500">
-              Tracking number
-            </label>
-            <div className="flex gap-2">
-              <Input
-                id="tracking_number"
-                className="font-mono"
-                placeholder="FSN-2026-000001"
-                containerClassName="flex-1"
-                {...register('tracking_number')}
-              />
-              {!isEdit && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handleRegenerate}
-                  loading={generating}
-                  icon={<RefreshCw className="h-4 w-4" />}
-                >
-                  Suggest
-                </Button>
-              )}
-            </div>
-            <p className="text-[12px] text-deck-500">
-              {errors.tracking_number ? (
-                <span className="font-medium text-status-delayed-ink">{errors.tracking_number.message}</span>
-              ) : (
-                'Automatically generated. Use a custom number only when matching a pre-printed waybill.'
-              )}
-            </p>
-          </div>
+          <FieldGroup>
+            <ReadOnlyValue
+              label="Tracking number"
+              value={<span className="font-mono">{trackingNumber}</span>}
+              hint={numberHint}
+            />
+            <ReadOnlyValue
+              label="Cargo number (CN)"
+              value={<span className="font-mono">{cnNumber}</span>}
+              hint={numberHint}
+            />
+          </FieldGroup>
         </Section>
 
         <Section title="Customer">
@@ -482,7 +478,7 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
           </FieldGroup>
         </Section>
 
-        <Section title="Route and delivery">
+        <Section title="Route">
           <FieldGroup>
             <Controller
               control={control}
@@ -490,11 +486,13 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
               render={({ field }) => (
                 <Combobox
                   label="Origin"
-                  options={COUNTRY_OPTIONS.filter((c) => c.value !== destination)}
+                  options={countryOptions.filter((c) => c.value !== destination)}
                   value={field.value ?? ''}
                   onChange={field.onChange}
                   placeholder="Search countries"
                   emptyMessage="No matching country"
+                  disabled={countriesLoading}
+                  hint={countryNote}
                   error={errors.origin?.message}
                 />
               )}
@@ -505,17 +503,35 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
               render={({ field }) => (
                 <Combobox
                   label="Destination"
-                  options={COUNTRY_OPTIONS.filter((c) => c.value !== origin)}
+                  options={countryOptions.filter((c) => c.value !== origin)}
                   value={field.value ?? ''}
                   onChange={field.onChange}
                   placeholder="Search countries"
                   emptyMessage="No matching country"
+                  disabled={countriesLoading}
+                  hint={countryNote}
                   error={errors.destination?.message}
                 />
               )}
             />
           </FieldGroup>
+        </Section>
 
+        {/* Directly after the route, because the origin is what decides it. */}
+        <Section title="Warehouse">
+          <FieldGroup>
+            <WarehouseField
+              assignment={warehouse}
+              origin={origin}
+              value={warehouseId ?? ''}
+              onChange={assignWarehouse}
+              error={errors.warehouse_id?.message}
+              legacyLabel={shipment?.warehouse_id ? null : shipment?.warehouse}
+            />
+          </FieldGroup>
+        </Section>
+
+        <Section title="Shipping">
           <FieldGroup>
             <Select
               label="Shipping method"
@@ -539,20 +555,6 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
             </p>
           </div>
           <FieldGroup>
-            <Controller
-              control={control}
-              name="warehouse"
-              render={({ field }) => (
-                <Combobox
-                  label="Warehouse"
-                  allowCustom
-                  options={toOptions(suggestions.warehouses)}
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  placeholder="Guangzhou Hub"
-                />
-              )}
-            />
             <ReadOnlyValue
               label="Current location"
               value={shipment?.current_location ?? 'Not set yet'}
@@ -577,33 +579,9 @@ export function ShipmentFormModal({ open, onClose, onSaved, shipment, customerOp
                 {...register('booking_contact')}
               />
             )}
-            <Input
-              label="Cargo number (CN)"
-              className="font-mono"
-              inputMode="numeric"
-              maxLength={10}
-              placeholder="1352503"
-              hint="Numbered automatically; overwrite it to match the paper waybill."
-              error={errors.cn_number?.message}
-              {...register('cn_number')}
-            />
           </FieldGroup>
           <FieldGroup>
-            <Controller
-              control={control}
-              name="branch_code"
-              render={({ field }) => (
-                <Combobox
-                  label="Branch code"
-                  allowCustom
-                  options={toOptions(suggestions.branchCodes)}
-                  value={field.value ?? ''}
-                  onChange={(value) => field.onChange(value.toUpperCase())}
-                  placeholder="GZ2025"
-                  error={errors.branch_code?.message}
-                />
-              )}
-            />
+            <BranchCodeField branch={branch} branchName={warehouse.selected?.name} origin={origin} />
             <Input label="Flight number" placeholder="F77" {...register('flight_number')} />
           </FieldGroup>
         </Section>

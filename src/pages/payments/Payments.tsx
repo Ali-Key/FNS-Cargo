@@ -2,12 +2,11 @@ import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Banknote,
-  CreditCard,
+  CalendarClock,
   Hash,
   Landmark,
   Pencil,
   Plus,
-  ReceiptText,
   Smartphone,
   Trash2,
   Wallet,
@@ -45,6 +44,7 @@ import {
   listPayments,
   deletePayment,
   getPaymentTotals,
+  getOutstandingTotal,
   type PaymentListParams,
   type PaymentTotals,
 } from '@/services/financeService'
@@ -67,17 +67,20 @@ interface LedgerView {
   rows: PaymentLedgerRow[]
   count: number
   totals: PaymentTotals | null
+  /** Distinguishes "the totals query failed" from "the totals are still loading". */
+  totalsFailed: boolean
+  /**
+   * Balance still owed across the book. Null only when the invoices query
+   * failed — an empty book owes 0, which is a figure, not a blank.
+   */
+  outstanding: number | null
 }
 
 /** A method is a fact, not a state — the glyph aids scanning, the colour stays neutral. */
 const METHOD_ICON: Record<string, LucideIcon> = {
-  Cash: Banknote,
   'Bank Transfer': Landmark,
-  'Mobile Money': Smartphone,
-  Card: CreditCard,
-  Cheque: ReceiptText,
   'EVC Plus': Smartphone,
-  Edahab: Smartphone,
+  'Edahab': Smartphone,
 }
 
 function MethodTag({ method }: { method: string }) {
@@ -127,14 +130,25 @@ export default function Payments() {
   )
 
   // The ledger and its totals are one view of one thing, so they load together:
-  // two parallel queries behind a single cache entry rather than two states that
-  // can disagree while one of them is still in flight.
+  // parallel queries behind a single cache entry rather than separate states
+  // that can disagree while one of them is still in flight.
   const fetchLedger = useCallback(async (): Promise<LedgerView> => {
-    const [result, totals] = await Promise.all([
+    const [result, totals, outstanding] = await Promise.all([
       listPayments({ page, pageSize: PAGE_SIZE, search: debouncedSearch, method }),
-      getPaymentTotals({ search: debouncedSearch, method }).catch(() => null),
+      // A totals failure must not take the ledger down with it, but it must not
+      // pass for a zero either — it comes back flagged, and the cards say so.
+      getPaymentTotals({ search: debouncedSearch, method }).catch((err: unknown) => {
+        console.error('[payments] could not load ledger totals', err)
+        return null
+      }),
+      // What is still owed is a fact about the book, not about the payments on
+      // screen, so it is read unfiltered and fails on its own terms.
+      getOutstandingTotal().catch((err: unknown) => {
+        console.error('[payments] could not load outstanding balance', err)
+        return null
+      }),
     ])
-    return { rows: result.rows, count: result.count, totals }
+    return { rows: result.rows, count: result.count, totals, totalsFailed: totals === null, outstanding }
   }, [page, debouncedSearch, method])
 
   const { data, loading, error, reload } = useCachedResource<LedgerView>(paymentsKey, fetchLedger)
@@ -142,7 +156,17 @@ export default function Payments() {
   const rows = data?.rows ?? []
   const count = data?.count ?? 0
   const totals = data?.totals ?? null
+  const totalsFailed = data?.totalsFailed ?? false
+  // `?? null` only when the view itself has not landed: once it has, a 0 is the
+  // outstanding balance and must survive as one.
+  const outstanding = data ? data.outstanding : null
   const loadError = Boolean(error)
+  // Names the month the this-month figure covers, so the card is readable
+  // without the reader having to work out which month "this" is.
+  const thisMonthLabel = useMemo(
+    () => new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date()),
+    [],
+  )
   // Only a cold ledger shows skeleton rows; a filter change or a background
   // refresh keeps the rows that are already on screen.
   const showSkeleton = loading && rows.length === 0
@@ -228,27 +252,59 @@ export default function Payments() {
         </Alert>
       )}
 
-      {/* What the ledger adds up to under the current filters — three facts, one row. */}
-      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {totals ? (
+      {/* What the ledger adds up to — four facts, one row. Every one of them is
+          read from the database: an empty ledger reads $0.00, which is the true
+          figure, and only a query that failed is allowed to say otherwise. */}
+      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {totals || totalsFailed ? (
           <>
             <Metric
-              label="Total collected"
-              value={formatCurrency(totals.collected, 2)}
+              label="Collected all time"
+              value={totals ? formatCurrency(totals.collected, 2) : 'Unable to load'}
               icon={Wallet}
               tone="positive"
-              hint={filtersActive ? 'Under the current filters' : 'Across the whole ledger'}
+              hint={
+                totals
+                  ? filtersActive
+                    ? 'Under the current filters'
+                    : 'Across the whole ledger'
+                  : 'The ledger totals could not be read'
+              }
             />
-            <Metric label="Payments recorded" value={totals.count} icon={Hash} tone="signal" hint="Individual entries" />
             <Metric
-              label="Average payment"
-              value={totals.count ? formatCurrency(totals.collected / totals.count, 2) : '—'}
+              label="Collected this month"
+              value={totals ? formatCurrency(totals.collectedThisMonth, 2) : 'Unable to load'}
+              icon={CalendarClock}
+              hint={totals ? thisMonthLabel : 'The ledger totals could not be read'}
+            />
+            {/* Owed, not taken — so it comes off the invoices, unaffected by the
+                method filter or the search box above the ledger. */}
+            <Metric
+              label="Still to collect"
+              value={outstanding == null ? 'Unable to load' : formatCurrency(outstanding, 2)}
               icon={Banknote}
-              hint="Collected ÷ payments"
+              tone={outstanding != null && outstanding > 0 ? 'caution' : 'default'}
+              hint={
+                outstanding == null
+                  ? 'The outstanding balance could not be read'
+                  : 'Unpaid invoice balances'
+              }
+            />
+            <Metric
+              label="Payments recorded"
+              value={totals ? totals.count : 'Unable to load'}
+              icon={Hash}
+              tone="signal"
+              hint={
+                totals
+                  ? `Averaging ${formatCurrency(totals.average, 2)} each`
+                  : 'The ledger totals could not be read'
+              }
             />
           </>
         ) : (
           <>
+            <MetricSkeleton />
             <MetricSkeleton />
             <MetricSkeleton />
             <MetricSkeleton />

@@ -415,28 +415,110 @@ export async function listPaymentsForExport(
 }
 
 export interface PaymentTotals {
-  /** Sum of every payment matching the filters. */
+  /** Sum of every payment matching the filters — the whole ledger when none are set. */
   collected: number
+  /** The part of that which was taken in the current calendar month. */
+  collectedThisMonth: number
   count: number
+  /**
+   * Mean payment. An empty ledger averages 0, not "unknown": nothing was
+   * collected, which is a reading, and the page prints it as $0.00.
+   */
+  average: number
 }
 
 /**
  * What the ledger adds up to under the current filters. Read straight from
  * `payments` — the ledger of record — never from invoice totals.
+ *
+ * Every row here is money already taken: the table carries no pending/failed/
+ * refunded state, a CHECK keeps `amount` above zero, and a reversal is a delete
+ * rather than a status flip. So the whole result set is the set of collected
+ * payments, and the mean is the sum over that count — computed here, once, so
+ * the ledger and its average can never be derived from different row sets.
+ *
+ * Both the all-time and this-month sums come off the same fetched rows: two
+ * figures cut from one row set can never disagree the way two queries can.
  */
 export async function getPaymentTotals(
   filters: Pick<PaymentListParams, 'search' | 'method'>,
 ): Promise<PaymentTotals> {
   const clauses = await paymentFilterClauses(filters)
-  const rows = await fetchAllRows<{ amount: number }>(async (from, to) => {
-    let q = supabase.from('payments').select('amount', { count: 'exact' })
+  const rows = await fetchAllRows<{ amount: number | null; paid_at: string | null }>(async (from, to) => {
+    let q = supabase.from('payments').select('amount, paid_at', { count: 'exact' })
     if (clauses.method) q = q.eq('method', clauses.method)
     if (clauses.or) q = q.or(clauses.or)
     const { data, error, count } = await q.range(from, to)
-    if (error) throw error
-    return { rows: (data as { amount: number }[]) ?? [], count: count ?? 0 }
+    // Surfaced, not swallowed: a totals failure has to reach the page as an
+    // error rather than as a plausible-looking zero.
+    if (error) {
+      console.error('[finance] payment totals query failed', error)
+      throw error
+    }
+    return { rows: (data as { amount: number | null; paid_at: string | null }[]) ?? [], count: count ?? 0 }
   })
-  return { collected: round2(rows.reduce((sum, row) => sum + (row.amount ?? 0), 0)), count: rows.length }
+
+  // A row whose amount is null or unparseable is not a payment of nothing — it
+  // is a row that cannot be counted as money, so it is left out of both sides of
+  // the division instead of dragging the mean toward zero.
+  const valid = rows
+    .map((row) => ({ amount: Number(row.amount), paid_at: row.paid_at }))
+    .filter((row) => Number.isFinite(row.amount) && row.amount > 0)
+
+  // Month boundary taken on the reader's clock, so "this month" means the month
+  // the person looking at the page is in.
+  const now = new Date()
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+
+  const collected = round2(valid.reduce((sum, row) => sum + row.amount, 0))
+  const collectedThisMonth = round2(
+    valid.reduce((sum, row) => {
+      const at = row.paid_at ? new Date(row.paid_at).getTime() : NaN
+      return Number.isFinite(at) && at >= monthStart ? sum + row.amount : sum
+    }, 0),
+  )
+
+  return {
+    collected,
+    collectedThisMonth,
+    count: valid.length,
+    average: valid.length > 0 ? round2(collected / valid.length) : 0,
+  }
+}
+
+/**
+ * What the book is still owed: the balance left on every invoice that is
+ * actually a debt. Void and Draft invoices are not owed and are excluded — the
+ * same rule `dashboard_stats()` applies, so the Payments page and the Overview
+ * can never quote two different outstanding figures.
+ *
+ * `balance` is a generated column (amount − amount_paid, kept current by the
+ * payments trigger), so this is read, never recomputed here.
+ */
+export async function getOutstandingTotal(): Promise<number> {
+  const rows = await fetchAllRows<{ balance: number | null }>(async (from, to) => {
+    const { data, error, count } = await supabase
+      .from('invoices')
+      .select('balance', { count: 'exact' })
+      .not('status', 'in', '("Void","Draft")')
+      .range(from, to)
+    // A failure here has to reach the page as a failure; an unread book is not
+    // a book with nothing owed on it.
+    if (error) {
+      console.error('[finance] outstanding balance query failed', error)
+      throw error
+    }
+    return { rows: (data as { balance: number | null }[]) ?? [], count: count ?? 0 }
+  })
+
+  // A settled invoice carries a balance of 0 and belongs in the sum as 0.
+  // Negative balances (an overpayment) are left in too: the book owes that back.
+  return round2(
+    rows.reduce((sum, row) => {
+      const balance = Number(row.balance)
+      return Number.isFinite(balance) ? sum + balance : sum
+    }, 0),
+  )
 }
 
 export interface SendInvoiceEmailInput {

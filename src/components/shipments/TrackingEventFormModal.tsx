@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useMemo } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Button, Input, Select, Textarea, Modal } from '@/components/ui'
+import { Button, Combobox, Input, Select, Textarea, Modal } from '@/components/ui'
 import { useToast } from '@/context/ToastContext'
+import { useActiveCountries } from '@/hooks/useCountries'
 import { createTrackingEvent, updateTrackingEvent } from '@/services/trackingHistoryService'
 import type { ShipmentStatus, TrackingUpdate } from '@/types'
 import { SHIPMENT_STATUSES } from '@/types'
@@ -52,13 +53,20 @@ export function TrackingEventFormModal({
 }: TrackingEventFormModalProps) {
   const toast = useToast()
   const isEdit = !!event
+  // Suggestions come from the served-market list, but a scan can legitimately
+  // happen in a transit country that is not one of them, so the field stays
+  // free text (`allowCustom`) rather than becoming a closed dropdown.
+  const { countries, loading: countriesLoading } = useActiveCountries()
 
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) })
+
+  const countryOptions = useMemo(() => countries.map((c) => ({ value: c.name, label: c.name })), [countries])
 
   useEffect(() => {
     if (!open) return
@@ -147,7 +155,22 @@ export function TrackingEventFormModal({
           <Input label="Time" type="time" error={errors.time?.message} {...register('time')} />
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Input label="Country" placeholder="e.g. China" error={errors.country?.message} {...register('country')} />
+          <Controller
+            control={control}
+            name="country"
+            render={({ field }) => (
+              <Combobox
+                label="Country"
+                allowCustom
+                options={countryOptions}
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                placeholder={countriesLoading ? 'Loading countries…' : 'Search or type a country'}
+                emptyMessage="No matching country — type to use it anyway"
+                error={errors.country?.message}
+              />
+            )}
+          />
           <Input label="City" placeholder="e.g. Guangzhou" error={errors.city?.message} {...register('city')} />
         </div>
         <Input

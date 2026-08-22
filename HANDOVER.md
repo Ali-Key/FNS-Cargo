@@ -39,7 +39,8 @@ admin rights after handover.
   - RLS policies on every table
   - SECURITY DEFINER RPCs (`is_admin`, `is_ops`, `current_profile_id`,
     `current_customer_id`, `track_shipment`, `dashboard_stats`, `analytics_report`,
-    `admin_users_overview`, `customer_balances_overview`, `suggest_tracking_number`,
+    `admin_users_overview`, `customer_balances_overview`, `payment_ledger_totals`,
+    `suggest_tracking_number`,
     `public_settings`, `admin_clear_pending_email_change`)
   - triggers and functions (`sync_shipment_status`, `sync_invoice_totals`,
     `stamp_delivered_at`, `handle_new_auth_user`, …)

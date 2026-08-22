@@ -102,34 +102,30 @@ export async function listShipmentsForExport(filters: ShipmentFilters): Promise<
 }
 
 /**
- * Values already in use across shipments, so the form's free-text fields can
- * offer the existing spellings instead of letting every operator invent one.
- * Read from `shipments` itself (there is no warehouse/branch lookup table), so
- * the suggestions can only ever be values that already match something.
+ * Values already in use across shipments, so the form's remaining free-text
+ * fields can offer the existing spellings instead of letting every operator
+ * invent one.
+ *
+ * Branch codes are deliberately absent. They are not free text any more: a
+ * shipment's branch is the warehouse handling it, the code belongs to that
+ * warehouse, and offering the strings older bookings happen to carry would
+ * only invite one to be typed over the assignment.
  */
 export interface ShipmentFieldSuggestions {
   warehouses: string[]
-  branchCodes: string[]
   origins: string[]
   destinations: string[]
-  /** Branch code on the newest shipment — the default a new booking inherits. */
-  latestBranchCode: string | null
-  /** One past the highest cargo number in use, padded to the house 7-digit format. */
-  nextCnNumber: string | null
 }
-
-/** Cargo numbers are a plain 7-digit counter, printed on the waybill as "CN No". */
-export const CN_NUMBER_LENGTH = 7
 
 export async function listShipmentFieldSuggestions(): Promise<ShipmentFieldSuggestions> {
   const { data, error } = await supabase
     .from('shipments')
-    .select('warehouse, branch_code, origin, destination, cn_number')
+    .select('warehouse, origin, destination')
     .order('created_at', { ascending: false })
     .limit(1000)
   if (error) throw error
 
-  const collect = (key: 'warehouse' | 'branch_code' | 'origin' | 'destination') => {
+  const collect = (key: 'warehouse' | 'origin' | 'destination') => {
     const seen = new Set<string>()
     for (const row of data ?? []) {
       const value = row[key]?.trim()
@@ -138,23 +134,10 @@ export async function listShipmentFieldSuggestions(): Promise<ShipmentFieldSugge
     return [...seen].sort((a, b) => a.localeCompare(b))
   }
 
-  // Rows arrive newest-first, so the first branch code seen is the current one.
-  let latestBranchCode: string | null = null
-  let highestCn = 0
-  for (const row of data ?? []) {
-    const branch = row.branch_code?.trim()
-    if (branch && !latestBranchCode) latestBranchCode = branch.toUpperCase()
-    const digits = row.cn_number?.replace(/\D/g, '')
-    if (digits) highestCn = Math.max(highestCn, Number(digits))
-  }
-
   return {
     warehouses: collect('warehouse'),
-    branchCodes: collect('branch_code'),
     origins: collect('origin'),
     destinations: collect('destination'),
-    latestBranchCode,
-    nextCnNumber: highestCn ? String(highestCn + 1).padStart(CN_NUMBER_LENGTH, '0') : null,
   }
 }
 
@@ -167,11 +150,25 @@ export async function getShipment(id: string): Promise<ShipmentWithCustomer | nu
 /**
  * `total_price` is a generated column in Postgres (weight x price_per_kg) — never send it.
  * `payment_status` is derived from invoices and `delivered_at` is stamped by trigger,
- * so both are owned by the database too.
+ * so both are owned by the database too. `tracking_number` and `cn_number` are
+ * issued by the assign_shipment_numbers() trigger, which is what makes them
+ * unique under concurrent bookings — sending either would defeat that.
+ * `warehouse` and `branch_code` are the two labels the branch link produces,
+ * both stamped by sync_shipment_warehouse_link() from `warehouse_id` — sending
+ * either could only contradict the relationship.
  */
 export type ShipmentInput = Omit<
   TablesInsert<'shipments'>,
-  'id' | 'created_at' | 'updated_at' | 'total_price' | 'payment_status' | 'delivered_at'
+  | 'id'
+  | 'created_at'
+  | 'updated_at'
+  | 'total_price'
+  | 'payment_status'
+  | 'delivered_at'
+  | 'tracking_number'
+  | 'cn_number'
+  | 'warehouse'
+  | 'branch_code'
 >
 
 export async function createShipment(payload: ShipmentInput): Promise<Shipment> {
@@ -186,7 +183,10 @@ export async function createShipment(payload: ShipmentInput): Promise<Shipment> 
 
 export async function updateShipment(
   id: string,
-  payload: Omit<TablesUpdate<'shipments'>, 'total_price' | 'payment_status' | 'delivered_at'>,
+  payload: Omit<
+    TablesUpdate<'shipments'>,
+    'total_price' | 'payment_status' | 'delivered_at' | 'tracking_number' | 'cn_number'
+  >,
 ): Promise<Shipment> {
   const { data, error } = await supabase
     .from('shipments')
@@ -205,33 +205,26 @@ export async function deleteShipment(id: string, trackingNumber: string): Promis
   await logActivity('shipment.deleted', 'shipment', id, { tracking_number: trackingNumber })
 }
 
-/** Server-side next number in the sequence: FSN-<year>-000001, 000002, ... */
-export async function suggestTrackingNumber(): Promise<string> {
-  const { data, error } = await supabase.rpc('suggest_tracking_number')
-  if (error) throw error
-  return (data as string) ?? ''
+/** The pair of numbers a new booking will be given: FSN-<year>-000001 / CN-<year>-000001. */
+export interface ShipmentNumberPreview {
+  trackingNumber: string
+  cnNumber: string
 }
 
 /**
- * Client-side continuation of the same sequence, used only when the RPC is
- * unreachable. It reads the highest number issued this year and adds one, so a
- * fallback number still looks like every other one; the unique index on
- * `tracking_number` remains the real guard against a collision.
+ * What the next booking will be numbered, so the form can show it before the
+ * shipment exists. Only a preview: the numbers are claimed by the database when
+ * the row is inserted, so an abandoned form burns none and two operators with
+ * the form open still get different numbers.
  */
-export async function nextTrackingNumberFallback(): Promise<string> {
-  const year = new Date().getFullYear()
-  const prefix = `FSN-${year}-`
-  const { data, error } = await supabase
-    .from('shipments')
-    .select('tracking_number')
-    .ilike('tracking_number', `${prefix}%`)
-    .order('tracking_number', { ascending: false })
-    .limit(1)
+export async function previewShipmentNumbers(): Promise<ShipmentNumberPreview> {
+  const { data, error } = await supabase.rpc('preview_shipment_numbers')
   if (error) throw error
-
-  const latest = data?.[0]?.tracking_number ?? ''
-  const seq = Number(latest.slice(prefix.length)) || 0
-  return `${prefix}${String(seq + 1).padStart(6, '0')}`
+  const numbers = (data ?? {}) as { tracking_number?: string; cn_number?: string }
+  return {
+    trackingNumber: numbers.tracking_number ?? '',
+    cnNumber: numbers.cn_number ?? '',
+  }
 }
 
 // ---- Operations ------------------------------------------------------------

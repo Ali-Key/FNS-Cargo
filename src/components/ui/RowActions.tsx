@@ -12,7 +12,7 @@ interface RowAction {
 interface RowActionsProps {
   items: RowAction[]
   align?: 'left' | 'right'
-  /** Accessible label for the trigger, e.g. `Actions for FSN-CN-000123`. */
+  /** Accessible label for the trigger, e.g. `Actions for FSN-2026-000001`. */
   label?: string
   /** Section label inside the menu. Defaults to the record named in `label`. */
   title?: string

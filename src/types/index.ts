@@ -8,6 +8,7 @@ export type Profile = Tables<'profiles'>
 export type Shipment = Tables<'shipments'>
 export type TrackingUpdate = Tables<'tracking_updates'>
 export type Country = Tables<'countries'>
+export type Warehouse = Tables<'warehouses'>
 export type Quote = Tables<'quotes'>
 export type SystemSettings = Tables<'system_settings'>
 export type ActivityLog = Tables<'activity_logs'>
@@ -45,7 +46,6 @@ export const PAYMENT_METHODS = Constants.public.Enums.payment_method
  */
 export const RECORDABLE_PAYMENT_METHODS = [
   'Bank Transfer',
-  'Cheque',
   'EVC Plus',
   'Edahab',
 ] as const satisfies readonly PaymentMethod[]
@@ -68,6 +68,11 @@ export const ACTIVE_STATUSES: ShipmentStatus[] = SHIPMENT_STATUSES.filter(
 export type ShipmentWithCustomer = Shipment & {
   customer: Pick<Customer, 'id' | 'full_name' | 'email'> | null
   assignee?: Pick<Profile, 'id' | 'full_name' | 'avatar_url'> | null
+}
+
+/** Warehouse with the country that owns it, which is what selects it on a booking. */
+export type WarehouseWithCountry = Warehouse & {
+  country: Pick<Country, 'id' | 'name' | 'code'> | null
 }
 
 /** Invoice joined with the shipment it bills and the customer it bills to. */
@@ -208,9 +213,24 @@ export interface DeliveryPerformance {
   late: number
   in_progress: number
   overdue: number
+  /**
+   * Average days from the departure scan to the delivery scan, over the legs
+   * that landed inside the reporting period. Null when none did.
+   */
   avg_transit_days: number | null
-  /** Days the still-moving shipments have been open. Null when none are. */
+  /** How many delivered legs that average was taken over. */
+  transit_sample: number
+  /** Days the legs still in transit have been out. Null when none are. */
   avg_open_days: number | null
+  /** How many legs are still in transit. */
+  open_sample: number
+  /** Legs that departed in the period at all, landed or not. Separates cargo
+   *  still sitting at the counter from cargo that moved but left no usable
+   *  trail — the two read identically without it. */
+  departed_sample: number
+  /** Shipments booked in the period, measurable or not. Separates "nothing on
+   *  the books" from "booked, but no departure scan filed yet". */
+  period_shipments: number
 }
 
 export interface CustomerGrowthPoint {
@@ -233,9 +253,20 @@ export interface TopCustomer {
   value: number
 }
 
+/** Collected money in the reporting period, and the mean payment it arrived in. */
+export interface PaymentStats {
+  collected: number
+  count: number
+  /** Mean collected payment. Null when nothing was collected — never 0. */
+  average: number | null
+}
+
 export interface AnalyticsReport {
   months: number
   revenue_trend: RevenuePoint[]
+  payment_stats: PaymentStats
+  /** Collected money split by payment channel, over the same reporting window. */
+  payment_mix: MixPoint[]
   top_routes: RoutePoint[]
   delivery_performance: DeliveryPerformance
   customer_growth: CustomerGrowthPoint[]

@@ -148,6 +148,18 @@ export function Footer() {
           <p>
             &copy; {year} {settings.company_name}. All rights reserved.
           </p>
+          <p className="order-3 text-steel-400 sm:order-none">
+            Developed by{' '}
+            <a
+              href="https://github.com/Ali-Key"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`rounded-control font-semibold text-primary-100 transition-colors duration-180 ease-out-premium hover:text-white ${focusRing}`}
+            >
+              Eng Ali Omar
+            </a>{' '}
+            <span className="text-steel-500">(Ali Key)</span>
+          </p>
           <div className="flex items-center gap-6">
             {LEGAL_LINKS.map((link) => (
               <Link

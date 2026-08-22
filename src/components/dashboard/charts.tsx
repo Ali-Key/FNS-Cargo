@@ -201,6 +201,62 @@ export function MixDonutChart({ data, label }: { data: MixPoint[]; label: string
   )
 }
 
+export interface ValueBarRow {
+  label: string
+  value: number
+  /** Secondary figure shown beside the label, e.g. how many payments made it up. */
+  note?: string
+}
+
+/**
+ * A ranked list of labelled bars. Deliberately not recharts: this is one column
+ * of values compared against each other, and the axis, grid and tooltip a chart
+ * library brings would all be chrome around a number already printed on the row.
+ *
+ * One colour throughout. The bars are read against each other inside a single
+ * panel, so a hue per row would imply a distinction that is not there.
+ */
+export function ValueBars({
+  data,
+  format = (value: number) => formatCurrency(value, 2),
+  emptyMessage = 'Nothing to break down yet.',
+}: {
+  data: ValueBarRow[]
+  format?: (value: number) => string
+  emptyMessage?: string
+}) {
+  const rows = data.filter((row) => row.value > 0)
+  if (rows.length === 0) return <ChartEmpty message={emptyMessage} />
+
+  // Scaled against the largest row rather than the total, so the shape of the
+  // ranking stays readable when one channel dwarfs the rest.
+  const max = Math.max(...rows.map((row) => row.value))
+
+  return (
+    <ul className="space-y-3">
+      {rows.map((row) => (
+        <li key={row.label}>
+          <div className="flex items-baseline justify-between gap-3 text-[13px]">
+            <span className="flex min-w-0 items-baseline gap-2">
+              <span className="truncate text-deck-600">{row.label}</span>
+              {row.note && <span className="shrink-0 text-[11px] text-deck-400">{row.note}</span>}
+            </span>
+            <span className="font-tabular shrink-0 font-semibold text-deck-900">{format(row.value)}</span>
+          </div>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-deck-100">
+            <div
+              className="h-full rounded-full"
+              // A visible sliver for the smallest channel: a bar that rounds to
+              // nothing reads as "no data" when the row says otherwise.
+              style={{ width: `${Math.max((row.value / max) * 100, 2)}%`, backgroundColor: DECK_HEX.signal }}
+            />
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function ChartEmpty({ message }: { message: string }) {
   return <p className="py-14 text-center text-[13px] text-deck-400">{message}</p>
 }

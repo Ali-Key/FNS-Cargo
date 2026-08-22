@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { Building2, UserCog, UserRound } from 'lucide-react'
+import { Building2, Globe2, UserCog, UserRound } from 'lucide-react'
 import { PageHeader, PillGroup, type PillOption } from '@/components/dashboard'
-import { CompanySettings, ProfileSettings, TeamAccounts } from '@/components/settings'
+import { CompanySettings, CountrySettings, ProfileSettings, TeamAccounts } from '@/components/settings'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useAuth } from '@/context/AuthContext'
 
-type Band = 'account' | 'team' | 'company'
+type Band = 'account' | 'team' | 'company' | 'countries'
 
 /**
  * The console's single account-management destination. One band is shown at a
@@ -25,6 +25,7 @@ export default function Settings() {
       ? ([
           { value: 'team', label: 'Team', icon: UserCog },
           { value: 'company', label: 'Company', icon: Building2 },
+          { value: 'countries', label: 'Countries', icon: Globe2 },
         ] as PillOption<Band>[])
       : []),
   ]
@@ -51,6 +52,7 @@ export default function Settings() {
       {active === 'account' && <ProfileSettings />}
       {active === 'team' && isAdmin && <TeamAccounts />}
       {active === 'company' && isAdmin && <CompanySettings />}
+      {active === 'countries' && isAdmin && <CountrySettings />}
     </div>
   )
 }

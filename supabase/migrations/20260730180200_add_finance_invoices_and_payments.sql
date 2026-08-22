@@ -2,8 +2,8 @@
 -- amount_paid and status are maintained by trigger from the payments ledger so
 -- the client never has to aggregate; shipments.payment_status mirrors it.
 
-create type public.invoice_status as enum ('Draft', 'Issued', 'Partially Paid', 'Paid', 'Void');
-create type public.payment_method as enum ('Cash', 'Bank Transfer', 'Mobile Money', 'Card', 'Cheque');
+create type public.invoice_status as enum ('Partially Paid', 'Paid',);
+create type public.payment_method as enum ('Bank Transfer');
 
 create sequence if not exists public.invoice_number_seq start 1001;
 
@@ -36,7 +36,7 @@ create table public.payments (
   id          uuid primary key default gen_random_uuid(),
   invoice_id  uuid not null references public.invoices(id) on delete cascade,
   amount      numeric(12,2) not null check (amount > 0),
-  method      public.payment_method not null default 'Cash',
+  method      public.payment_method not null default 'Bank Transfer',
   reference   text,
   paid_at     timestamptz not null default now(),
   recorded_by uuid references public.profiles(id) on delete set null,

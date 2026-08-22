@@ -279,7 +279,8 @@ Enums: `user_role`, `user_status`, `shipment_status` (9 stages), `shipping_metho
 
 `is_admin()`, `is_ops()`, `current_profile_id()`, `current_customer_id()`,
 `track_shipment()`, `dashboard_stats()`, `analytics_report()`, `admin_users_overview()`,
-`customer_balances_overview()`, `suggest_tracking_number()`, `public_settings()`,
+`customer_balances_overview()`, `payment_ledger_totals()`,
+`suggest_tracking_number()`, `public_settings()`,
 `admin_clear_pending_email_change()`.
 
 ### Edge functions (`supabase/functions/`)
